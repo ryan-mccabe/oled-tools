@@ -137,6 +137,8 @@ class KDUMP_UTILS:
 		if "LABEL=" in rootdev or "UUID=" in rootdev :
 			cmd = "/sbin/findfs " + rootdev
 			rootdev = commands.getoutput(cmd)
+		cmd = "blkid -sUUID -o value " + rootdev
+		root_uuid = commands.getoutput(cmd)
 
 		#create kdump_pre.sh script
 		content = """#!/bin/sh
@@ -166,7 +168,8 @@ if [ "$OLED_ENABLE" != "yes" ]; then
 fi
 
 mkdir $OLED_DIR
-mount """ + rootdev + """ $OLED_DIR
+ROOT_UUID=""" + root_uuid + """
+mount UUID=$ROOT_UUID $OLED_DIR
 mount -o bind /proc $OLED_DIR/proc
 mount -o bind /dev $OLED_DIR/dev
 
