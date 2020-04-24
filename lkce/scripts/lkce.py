@@ -194,6 +194,15 @@ max_out_files=""" + self.max_out_files
 			print "correct the error and rerun 'oled lkce configure'.",
 			proper_config = False
 
+		if not os.path.exists(self.crash_cmds_file):
+			print "\n%s not found.\nManually create it or Run 'oled lkce configure --default' to create the default one"%(self.crash_cmds_file)
+			proper_config = False
+
+		crash_bin_file = commands.getoutput('which crash 2> /dev/null')
+		if not os.path.exists(crash_bin_file):
+			print "\ncrash not found. Please install crash [yum install crash]"
+			proper_config = False
+
 		if proper_config == True:
 			print "configuration is correct"
 		else:
@@ -236,6 +245,8 @@ max_out_files=""" + self.max_out_files
 		elif subarg == "--default":
 			self.create_crash_cmds_file(self.LKCE_CRASH_CMDS_FILE)
 		else:
+			if not os.path.exists(self.LKCE_CRASH_CMDS_FILE):
+				self.create_crash_cmds_file(self.LKCE_CRASH_CMDS_FILE)
 			self.read_config(self.LKCE_CONFIG_FILE)
 			self.ask_user()
 
@@ -272,8 +283,12 @@ max_out_files=""" + self.max_out_files
 	#def clean
 
 	def list(self):
-		print "followings are the crash*out found in %s dir:" % self.LKCE_OUT
-		for file in os.listdir(self.LKCE_OUT):
+		filename = self.LKCE_OUT
+		print "followings are the crash*out found in %s dir:" % filename
+		if not os.path.exists(filename):
+			return
+
+		for file in os.listdir(filename):
 			if re.search("crash.*out", file):
 				print "%s/%s"%(self.LKCE_OUT, file)
 	#def list
@@ -297,7 +312,7 @@ options:
 def main():
 	lkce = LKCE()
 
-	if len(sys.argv) < 2:
+	if len(sys.argv) < 2 or 'help' in sys.argv or '-help' in sys.argv or '--help' in sys.argv:
 		lkce.usage()
 
 	arg = sys.argv[1]
