@@ -114,8 +114,12 @@ class LKCE_KDUMP:
 	def run_crash(self):
 		self.get_vmlinux()
 		if not os.path.exists(self.crash_cmds_file):
-			print "lkce: %s not found"%self.crash.cmd_file
+			print "lkce: %s not found"%self.crash_cmd_file
 			return 1
+
+		if not os.path.exists(self.LKCE_OUT):
+			cmd = "mkdir -p " + self.LKCE_OUT
+			os.system(cmd)
 
 		cmd = "crash " + self.VMLINUX + " " + self.VMCORE + " -i " + self.crash_cmds_file + " > " + self.LKCE_OUT_FILE
 		print "lkce: Executing '%s'"%cmd
