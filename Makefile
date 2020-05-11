@@ -56,3 +56,38 @@ uninstall:
 	rmdir $(BINDIR)/oled-tools
 	rmdir /etc/oled
 	@echo "OLED_TOOLS successfully uninstalled!"
+
+rpm:
+	rm -rf oled-tools-0.1
+	rm -f ./oled-tools-0.1.tar.gz
+	mkdir oled-tools-0.1
+	cp -R Makefile oled-env.sh oled.man oled.py oled-tools-0.1/
+	cp -R kdump-utils oled-tools-0.1/
+	cp -R lkce oled-tools-0.1/
+	cp -R gather oled-tools-0.1/
+	cp -R smtool oled-tools-0.1/
+	tar chozf oled-tools-0.1.tar.gz oled-tools-0.1
+	#rpmbuild
+	mkdir -p `pwd`/rpmbuild/{RPMS,BUILD{,ROOT},SRPMS}
+ifeq ($(OLED_DIST),OL6)
+	exec rpmbuild -ba \
+	--define="_topdir `pwd`/rpmbuild" \
+	--define="_sourcedir `pwd`" \
+	--define="_specdir `pwd`" \
+	--define="_tmppath `pwd`/rpmbuild/BUILDROOT" \
+	buildrpm/ol6/oled-tools.spec
+else ifeq ($(OLED_DIST),OL7)
+	exec rpmbuild -ba \
+	--define="_topdir `pwd`/rpmbuild" \
+	--define="_sourcedir `pwd`" \
+	--define="_specdir `pwd`" \
+	--define="_tmppath `pwd`/rpmbuild/BUILDROOT" \
+	buildrpm/ol7/oled-tools.spec
+else
+	@echo "Unknown dist. Running './configure' can fix this issue"
+endif
+	rm -rf oled-tools-0.1
+	rm -f ./oled-tools-0.1.tar.gz
+
+rpm_clean:
+	rm -rf ./rpmbuild

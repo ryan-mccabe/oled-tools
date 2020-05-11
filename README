@@ -1,0 +1,56 @@
+From master branch supports only local build and install.
+To build distro specific packages [ex: rpm] checkout a release branch or tag.
+
+Please git clone the source and follow the instruction mentioned below -
+To local build:
+	./configure
+	make all
+
+To local build and install:
+	./configure
+	make install
+
+To uninstall local build:
+	[./configure]
+	make uninstall
+
+To clean temporary files:
+	[.configure]
+	make clean
+
+To build rpm:
+	Local Build:
+	1. checkout a release branch or tag
+	2. make clean;./configure
+	3. make rpm
+	[4. make rpm_clean]
+
+	Similarly, code in master branch[latest unstable] can also be built.
+
+	Jenkins Build:
+	1. checkout a release branch or tag
+	2. update the spec file [Release line] with bug# to customize the build name
+	3. create a dev-build tag
+		[Ex: git tag -a -m "build-dev" ol6/oled-tools-0.1-1.*]
+	4. push build-dev tag to your personal repo
+		[Ex: git push mbpatil ol6/test-oled-tools-0.1-1.* ]
+	5. Check the jenkins/auto build area for created rpms
+
+[Developer Work Flow]
+	1. Checkout the release branch or tag to work on
+	2. Update the spec file [Release line] with bug# to customize the build name
+	3. Trigger a local/jenkins build [Make sure build happens]
+	4. Work on your changes on this code base
+	5. Once tested locally, send the patches for review
+	6. Address the review commnets [go back to step 4 or proceed below]
+	7. Push the patches to your personal repo and notify the maintainer to pull the changes
+
+Additionally, If your patch is applicable to future releases -
+	8. Re-stage your changes on master branch and test it
+	9. Get your patches reviewed again, if the re-staged patch is different
+	10. Push the patches to your personal repo and notify the maintainer to pull the changes
+
+[Maintainer Role]
+	1. Make sure pull requests have been reviewed and tested.
+	2. Make sure master bug is present and addressed [to avoid forward porting to future releases]
+	3. If pulled patches doesn't apply cleanly, ask the developer to re-stage the patches.
