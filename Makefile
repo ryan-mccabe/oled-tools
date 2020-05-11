@@ -19,7 +19,7 @@
 # questions.
 
 TOPDIR=$$PWD
-subdirs=kdump-utils lkce gather
+subdirs=kdump-utils lkce gather smtool
 
 rev_subdirs:=$(shell echo -n "$(subdirs) " | tac -s ' ')
 BINDIR_PREFIX=/usr
