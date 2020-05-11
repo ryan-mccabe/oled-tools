@@ -1,0 +1,50 @@
+# Copyright (c) 2020, Oracle and/or its affiliates.
+# DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+#
+# This code is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 only, as
+# published by the Free Software Foundation.
+#
+# This code is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+# version 2 for more details (a copy is included in the LICENSE file that
+# accompanied this code).
+#
+# You should have received a copy of the GNU General Public License version
+# 2 along with this work; if not, see <https://www.gnu.org/licenses/>.
+#
+# Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+# or visit www.oracle.com if you need additional information or have any
+# questions.
+
+all:
+	@echo "all:$(CURDIR)"
+
+clean:
+	@echo "clean:$(CURDIR)"
+
+install:
+	@echo "install:$(CURDIR)"
+	mkdir -p /etc/oled/kdump_pre.d
+	install -m 755 kdump-utils.py $(BINDIR)/kdump
+	python $(BINDIR)/kdump --add
+ifeq ($(OLED_DIST),OL6)
+	service kdump restart
+else ifeq ($(OLED_DIST),OL7)
+	systemctl restart kdump
+endif
+	@echo "KDUMP-UTILS successfully installed!"
+
+uninstall:
+	@echo "uninstall:$(CURDIR)"
+	python $(BINDIR)/kdump --remove
+ifeq ($(OLED_DIST),OL6)
+	service kdump restart
+else ifeq ($(OLED_DIST),OL7)
+	systemctl restart kdump
+endif
+	rm -f $(BINDIR)/kdump
+	rm -f /etc/oled/kdump_pre.sh
+	rmdir  /etc/oled/kdump_pre.d
+	@echo "KDUMP-UTILS successfully uninstalled!"
