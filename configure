@@ -1,0 +1,49 @@
+#!/usr/bin/python
+#
+# Copyright (c) 2020, Oracle and/or its affiliates.
+# DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+#
+# This code is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 only, as
+# published by the Free Software Foundation.
+#
+# This code is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+# version 2 for more details (a copy is included in the LICENSE file that
+# accompanied this code).
+#
+# You should have received a copy of the GNU General Public License version
+# 2 along with this work; if not, see <https://www.gnu.org/licenses/>.
+#
+# Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+# or visit www.oracle.com if you need additional information or have any
+# questions.
+
+#
+# Program to generate ./oled-env.sh file
+#
+import platform
+import sys
+
+dist = None
+os_release = float(platform.linux_distribution()[1])
+if os_release > 6.0 and os_release < 7.0 :
+	dist = "OL6"
+elif os_release > 7.0 and os_release < 8.0 :
+	dist = "OL7"
+elif os_release > 8.0 and os_release < 9.0 :
+	dist = "OL8"
+
+python_ver = sys.version[:3]
+python_sitedir = "/usr/lib/python" + python_ver + "/site-packages"
+content = """#This is temporary file to store the evinroment variables
+#required to locally built and install the oled
+
+OLED_DIST=""" + dist + """
+PYTHON_SITEDIR=""" + python_sitedir + """
+#this file gets deleted with 'make clean'."""
+
+file = open("./oled-env.sh", "w")
+file.write(content)
+file.close()

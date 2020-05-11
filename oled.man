@@ -1,0 +1,65 @@
+.TH oled 8 "Dec 2019" "0.1"
+
+.SH NAME
+oled - Program to invoke other diagnostic tools
+
+.SH SYNOPSIS
+oled [options]
+
+.SH DESCRIPTION
+oled program is used to invoke other diagnostic tools of oled-tool package.
+
+Ex: oled can be used to invoke smtool, gather, lkce etc
+
+.TP
+# oled help
+Oracle Linux Enhanced Diagnostic Tools
+
+Usage:
+  /usr/sbin/oled <command> <subcommand>
+
+Valid commands
+     smtool      -- security mitigation tool
+     gather      -- system data gather
+     lkce        -- Linux Kernel Core Extractor
+     kdump       -- configure oled related kdump options
+     help        -- show this help message
+    version      -- show oled-tools version
+
+.SH OPTIONS
+.TP
+smtool - run security mitigation tool
+
+.TP
+gather - run system data gather
+
+.TP
+lkce - run Linux Kernel Core Extractor
+
+.TP
+kdump - configure oled related kdump options
+
+.SH EXAMPLES
+.TP
+# oled gather -help
+ INFO: /usr/sbin/oled-tools/gather Version: 0.3
+
+USAGE: /usr/sbin/oled-tools/gather [-h|-y|-v|-t DIR|-d DATE]
+
+   -h = Help (this message)
+   -d = Specify the date of the problem (YYYY_MM_DD).
+        Defaults to today's date.
+   -t = Specify the target directory for the files.
+   -y = Answer yes when prompted.
+   -v = Verbose
+
+.SH MISC
+[to be filled]
+
+.SH AUTHOR
+.TP
+Manjunath Patil <manjunath.b.patil@oracle.com>
+
+.SH COPYRIGHT
+.TP
+[to be filled]
