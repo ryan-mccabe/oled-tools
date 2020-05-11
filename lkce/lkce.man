@@ -1,0 +1,70 @@
+.TH oled lkce 8 "Feb 2020" "0.1"
+
+.SH NAME
+oled lkce - Program to manage Linux Kernel Core Extractor
+
+.SH SYNOPSIS
+oled lkce [options]
+
+.SH DESCRIPTION
+lkce command can be used to enable or disable the lkce-kdump script inside the
+kdump kernel.  This can also be used to configure and check the status of
+lkce-kdump.
+
+The lkce command is a utility program to alter the behavior of lkce-kdump
+script, which runs inside kdump kernel.  [lkce-kdump script runs the crash
+utility inside the kdump kernel and information about panic is collected.]
+
+Ex: lkce-kdump can be configured to capture any or most of the crash utility
+commands like log, bt, log, ps, kmem etc.
+
+.SH OPTIONS
+.TP
+enable	- enable lkce-kdump script inside kdump kernel.
+
+.TP
+disable	- disable lkce-kdump script inside kdump kernel.
+
+.TP
+status 	- check if the lkce-kdump script is configured properly to run inside
+kdump kernel.
+
+.TP
+config 	- configure the lkce-kdump script. This will ask the users to enter the
+config values.  Once user provides the values, it creates/updates lkce.conf
+file.
+
+.TP
+config --default - do not prompt user for values. Configure with default values
+overwriting the existing.  Re-creates kdump_pre.sh and crash_cmds files.
+Updates /etc/kdump.conf file. Restarts the kdump service.
+
+.TP
+config --show - show the configured values for lkce
+
+.TP
+clean	- remove all but last 3 crash*out files result directory.
+
+.TP
+clean --all - remove all the files from result directory.
+
+.TP
+list - list the crash*out files.
+
+.SH EXAMPLES
+.TP
+[to be filled]
+
+.SH MISC
+.TP
+kdump kernel is a secondary kernel used to collect the memory image[vmcore] of
+the first kernel when system crashes. kexec-tools is used to configure the
+kdump kernel.
+
+.SH AUTHOR
+.TP
+Manjunath Patil <manjunath.b.patil@oracle.com>
+
+.SH COPYRIGHT
+.TP
+[to be filled]

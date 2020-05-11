@@ -19,7 +19,7 @@
 # questions.
 
 TOPDIR=$$PWD
-subdirs=kdump-utils
+subdirs=kdump-utils lkce
 
 rev_subdirs:=$(shell echo -n "$(subdirs) " | tac -s ' ')
 BINDIR_PREFIX=/usr
