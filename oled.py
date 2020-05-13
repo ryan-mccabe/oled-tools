@@ -28,7 +28,7 @@ import platform
 # Oracle Linux Enhanced Diagnostic Tools
 MAJOR = "0"
 MINOR = "1"
-RELEASE = "LATEST_UNSTABLE"
+RELEASE = "1"
 
 BINDIR="/sbin/oled-tools"
 if not os.path.exists(BINDIR):

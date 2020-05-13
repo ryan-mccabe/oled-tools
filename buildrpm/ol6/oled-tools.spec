@@ -1,6 +1,6 @@
 Name: oled-tools
 Version: 0.1
-Release: LATEST_UNSTABLE%{?dist}
+Release: 1%{?dist}
 Summary: Diagnostic tools for more efficient and faster debugging on Oracle Linux
 
 Group: Development/Tools
