@@ -359,7 +359,7 @@ class Vulnerabilities(Base):
                           "disabled: " + supported_variants[:-2]
                     print "Would you like to disable them?"
                     option = raw_input(
-                        "Please enter y to enable or n if you do not wish "\
+                        "Please enter y to disable or n if you do not wish "\
                         "to disable them: ")
                     if option == "y":
                         yes = True
