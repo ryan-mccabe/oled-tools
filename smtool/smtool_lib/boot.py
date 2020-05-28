@@ -453,8 +453,14 @@ class Boot(Base):
         kernel_ver = self.run_command("uname -r", True)
         string_to_match = '/vmlinuz-' + kernel_ver.strip()
         grub_info = ''
+        boot_file = ''
 
-        with open('/boot/grub2/grub.cfg') as old_file:
+        if (os.path.exists('boot/grub2/grub.cfg')):
+             boot_file = '/boot/grub2/grub.cfg'
+        elif (os.path.exists('/boot/efi/EFI/redhat/grub.cfg')):
+             boot_file = '/boot/efi/EFI/redhat/grub.cfg'
+
+        with open(boot_file) as old_file:
             for line in old_file:
                 if string_to_match in line:
                     grub_info = line
@@ -566,8 +572,14 @@ class Boot(Base):
         # updating grub cmdline
         if not self.is_grubby_supported():
             f_h, abs_path = mkstemp()
+            boot_file = ''
+            if (os.path.exists('boot/grub2/grub.cfg')):
+                boot_file = '/boot/grub2/grub.cfg'
+            elif (os.path.exists('/boot/efi/EFI/redhat/grub.cfg')):
+                boot_file = '/boot/efi/EFI/redhat/grub.cfg'
+
             with fdopen(f_h, 'w') as new_file:
-                with open('/boot/grub2/grub.cfg') as old_file:
+                with open(boot_file) as old_file:
                     for line in old_file:
                         if string_to_match in line:
                             if mitigation_type in line:
@@ -592,8 +604,8 @@ class Boot(Base):
                                         mitigation_string, '')
                             line = new_line
                         new_file.write(line)
-            remove('/boot/grub2/grub.cfg')
-            move(abs_path, '/boot/grub2/grub.cfg')
+            remove(boot_file)
+            move(abs_path, boot_file)
         else:
             cmd = "grubby --update-kernel=/boot/vmlinuz-" + self.kver + " " +\
                 args
