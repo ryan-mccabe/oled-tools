@@ -36,7 +36,10 @@ elif os_release > 8.0 and os_release < 9.0 :
 	dist = "OL8"
 
 python_ver = sys.version[:3]
-python_sitedir = "/usr/lib/python" + python_ver + "/site-packages"
+if ((dist == "OL6") and (sys.version_info[1] == 6)):
+    python_sitedir = "/usr/lib/python2.6/site-packages"
+else:
+    python_sitedir = site.getsitepackages()[-2]
 content = """#This is temporary file to store the evinroment variables
 #required to locally built and install the oled
 
