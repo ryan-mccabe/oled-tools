@@ -111,8 +111,6 @@ class Server(Base):
                 return self.XEN_HVM
             if server_type[1] == "xen-domU":
                 return self.XEN_PV
-            if server_type[1] == "xen-dom0":
-                return self.XEN_HYPERVISOR
         elif server_type[0] == "kvm":
             return self.KVM_GUEST
 
