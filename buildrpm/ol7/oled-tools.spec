@@ -1,6 +1,6 @@
 Name: oled-tools
 Version: 0.1
-Release: 1%{?dist}
+Release: 2%{?dist}
 Summary: Diagnostic tools for more efficient and faster debugging on Oracle Linux
 
 Group: Development/Tools
@@ -166,5 +166,9 @@ rm -rf %{buildroot}
 /usr/share/man/man8/oled-smtool.8.gz
 
 %changelog
+* Mon Jun 8 2020 Manjunath Patil <manjunath.b.patil@oracle.com> [0.2]
+- Bug fixes post QA on oled-tools-0.1-1
+- Bugs fixed: 31221495, 31226705, 31396705, 31410360, 31417143, 31454410
+
 * Sun May 10 2020 Manjunath Patil <manjunath.b.patil@oracle.com> [0.1]
 - first version
