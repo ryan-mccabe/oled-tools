@@ -77,7 +77,7 @@ chmod 644 %{buildroot}/usr/share/man/man8/oled-smtool.8.gz
 
 #kdump-utils
 python /usr/sbin/oled-tools/kdump --add > /dev/null
-systemctl restart kdump > /dev/null
+systemctl restart kdump > /dev/null || :
 
 # lkce
 if [ -f /etc/oled/lkce/lkce.conf ]
@@ -96,7 +96,7 @@ if [ $1 -eq 0 ]
 then
 	#kdump-utils
 	python /usr/sbin/oled-tools/kdump --remove > /dev/null
-	systemctl restart kdump > /dev/null
+	systemctl restart kdump > /dev/null || :
 fi
 
 #After uninstall
