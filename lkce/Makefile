@@ -18,6 +18,8 @@
 # or visit www.oracle.com if you need additional information or have any
 # questions.
 
+LKCEDIR := $(OLEDDIR)/lkce
+
 all:
 	@echo "all:$(CURDIR)"
 
@@ -26,29 +28,20 @@ clean:
 
 install:
 	@echo "install:$(CURDIR)"
-	mkdir -p /etc/oled/lkce
-	mkdir -p /usr/share/man/man8/
+	mkdir -p $(OLEDDIR)
+	mkdir -p $(MANDIR)
 	install -m 755 $(CURDIR)/scripts/lkce.py $(BINDIR)/lkce
 	install -m 755 $(CURDIR)/scripts/lkce-kdump.py $(BINDIR)/lkce-kdump
-	gzip -c $(CURDIR)/lkce.man > /usr/share/man/man8/oled-lkce.8.gz
-	chmod 644 /usr/share/man/man8/oled-lkce.8.gz
-	@if [ -f /etc/oled/lkce/lkce.conf ];\
-	then \
-		echo "updating the lkce";\
-		mv -f /etc/oled/lkce/lkce.conf /etc/oled/lkce/lkce.conf.old;\
-		mkdir -p /etc/oled/kdump_pre.d/ ||: ;\
-		$(BINDIR)/lkce configure --default ||: ;\
-		mv -f /etc/oled/lkce/lkce.conf /etc/oled/lkce/lkce.conf.new;\
-		mv -f /etc/oled/lkce/lkce.conf.old /etc/oled/lkce/lkce.conf;\
-	fi
-	@echo "LKCE successfully installed!"
+	gzip -c $(CURDIR)/lkce.man > $(MANDIR)/oled-lkce.8.gz
+	chmod 644 $(MANDIR)/oled-lkce.8.gz
+	@echo "lkce successfully installed"
 
 uninstall:
 	@echo "uninstall:$(CURDIR)"
-	rm -f /etc/oled/lkce/*
-	[ -f /etc/oled/kdump_pre.d/lkce-kdump ] && rm -f /etc/oled/kdump_pre.d/lkce-kdump || :
+	rm -f $(LKCEDIR)/*
+	[ -f $(OLEDDIR)/kdump_pre.d/lkce-kdump ] && rm -f $(OLEDDIR)/kdump_pre.d/lkce-kdump || :
 	rm -f $(BINDIR)/lkce-kdump
 	rm -f $(BINDIR)/lkce
-	rm -f /usr/share/man/man8/oled-lkce.8.gz
-	rmdir /etc/oled/lkce
-	@echo "LKCE successfully uninstalled!"
+	rm -f $(MANDIR)/oled-lkce.8.gz
+	rmdir $(LKCEDIR) || :
+	@echo "lkce successfully uninstalled"

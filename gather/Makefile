@@ -27,12 +27,12 @@ clean:
 install:
 	@echo "install:$(CURDIR)"
 	install --mode=755 gather $(BINDIR)/gather
-	gzip -c gather.man > /usr/share/man/man8/oled-gather.8.gz
-	chmod 644 /usr/share/man/man8/oled-gather.8.gz
-	@echo "GATHER successfully installed!"
+	gzip -c gather.man > $(MANDIR)/oled-gather.8.gz
+	chmod 644 $(MANDIR)/oled-gather.8.gz
+	@echo "gather successfully installed"
 
 uninstall:
 	@echo "uninstall:$(CURDIR)"
-	rm -f /usr/share/man/man8/oled-gather.8.gz
+	rm -f $(MANDIR)/oled-gather.8.gz
 	rm -f $(BINDIR)/gather
-	@echo "GATHER successfully uninstalled!"
+	@echo "gather successfully uninstalled"

@@ -18,50 +18,57 @@
 # or visit www.oracle.com if you need additional information or have any
 # questions.
 
-TOPDIR=$$PWD
-subdirs=kdump-utils lkce gather smtool
-
-rev_subdirs:=$(shell echo -n "$(subdirs) " | tac -s ' ')
-BINDIR_PREFIX=/usr
-BINDIR=$(BINDIR_PREFIX)/sbin
-
 # run ./configure generate oled-env.sh
 -include oled-env.sh
-export OLED_DIST
+export DIST
 export PYTHON_SITEDIR
+export SPECFILE
+export DESTDIR
+
+subdirs := kdump-utils lkce gather smtool
+rev_subdirs := $(shell echo -n "$(subdirs) " | tac -s ' ')
+OLEDDIR := $(DESTDIR)/etc/oled
+SBINDIR := $(DESTDIR)/usr/sbin
+MANDIR := $(DESTDIR)/usr/share/man/man8
+OLEDBIN := $(DESTDIR)/usr/lib/oled-tools
+
+export OLEDDIR
+export MANDIR
 
 all:
-	$(foreach dir,$(subdirs), make TOPDIR=$(TOPDIR) BINDIR=$(BINDIR)/oled-tools -C $(dir) all || exit 1;)
+	$(foreach dir,$(subdirs), make BINDIR=$(OLEDBIN) -C $(dir) all || exit 1;)
 
 clean:
 
-	$(foreach dir,$(subdirs), make TOPDIR=$(TOPDIR) BINDIR=$(BINDIR)/oled-tools -C $(dir) clean;)
+	$(foreach dir,$(subdirs), make BINDIR=$(OLEDBIN) -C $(dir) clean;)
 	[ -f oled-env.sh ] && rm -f oled-env.sh || :
 
 install:
 	@echo "install:$(CURDIR)"
 	make all
-	mkdir -p /etc/oled
-	mkdir -p $(BINDIR)/oled-tools
-	install -m 755 oled.py $(BINDIR)/oled
-	gzip -c oled.man > /usr/share/man/man8/oled.8.gz; chmod 644 /usr/share/man/man8/oled.8.gz
-	$(foreach dir,$(subdirs), make TOPDIR=$(TOPDIR) BINDIR=$(BINDIR)/oled-tools -C $(dir) install || exit 1;)
-	@echo "OLED_TOOLS successfully installed!"
+	mkdir -p $(OLEDDIR)
+	mkdir -p $(SBINDIR)
+	mkdir -p $(MANDIR)
+	mkdir -p $(OLEDBIN)
+	install -m 755 oled.py $(SBINDIR)/oled
+	gzip -c oled.man > $(MANDIR)/oled.8.gz; chmod 644 $(MANDIR)/oled.8.gz
+	$(foreach dir,$(subdirs), make BINDIR=$(OLEDBIN) -C $(dir) install || exit 1;)
+	@echo "oled-tools installed"
 
 uninstall:
 	@echo "uninstall:$(CURDIR)"
-	$(foreach dir, $(rev_subdirs), make TOPDIR=$(TOPDIR) BINDIR=$(BINDIR)/oled-tools -C $(dir) uninstall || exit 1;)
-	rm -f /usr/share/man/man8/oled.8.gz
-	rm -f $(BINDIR)/oled
-	rmdir $(BINDIR)/oled-tools
-	rmdir /etc/oled
-	@echo "OLED_TOOLS successfully uninstalled!"
+	$(foreach dir, $(rev_subdirs), make BINDIR=$(OLEDBIN) -C $(dir) uninstall || exit 1;)
+	rm -f $(MANDIR)/oled.8.gz
+	rm -f $(SBINDIR)/oled
+	rmdir $(OLEDBIN) || :
+	rmdir $(OLEDDIR) || :
+	@echo "oled-tools uninstalled"
 
 rpm:
 	rm -rf oled-tools-0.1
 	rm -f ./oled-tools-0.1.tar.gz
 	mkdir oled-tools-0.1
-	cp -R Makefile oled-env.sh oled.man oled.py oled-tools-0.1/
+	cp -R Makefile configure oled-env.sh oled.man oled.py oled-tools-0.1/
 	cp -R kdump-utils oled-tools-0.1/
 	cp -R lkce oled-tools-0.1/
 	cp -R gather oled-tools-0.1/
@@ -69,25 +76,16 @@ rpm:
 	tar chozf oled-tools-0.1.tar.gz oled-tools-0.1
 	#rpmbuild
 	mkdir -p `pwd`/rpmbuild/{RPMS,BUILD{,ROOT},SRPMS}
-ifeq ($(OLED_DIST),OL6)
 	exec rpmbuild -ba \
 	--define="_topdir `pwd`/rpmbuild" \
 	--define="_sourcedir `pwd`" \
 	--define="_specdir `pwd`" \
 	--define="_tmppath `pwd`/rpmbuild/BUILDROOT" \
-	buildrpm/ol6/oled-tools.spec
-else ifeq ($(OLED_DIST),OL7)
-	exec rpmbuild -ba \
-	--define="_topdir `pwd`/rpmbuild" \
-	--define="_sourcedir `pwd`" \
-	--define="_specdir `pwd`" \
-	--define="_tmppath `pwd`/rpmbuild/BUILDROOT" \
-	buildrpm/ol7/oled-tools.spec
-else
-	@echo "Unknown dist. Running './configure' can fix this issue"
-endif
+	buildrpm/oled-tools.spec
 	rm -rf oled-tools-0.1
 	rm -f ./oled-tools-0.1.tar.gz
+	@echo "oled-tools rpms built"
 
 rpm_clean:
 	rm -rf ./rpmbuild
+	@echo "oled-tools RPM build dir cleaned"

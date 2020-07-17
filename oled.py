@@ -30,9 +30,7 @@ MAJOR = "0"
 MINOR = "1"
 RELEASE = "1"
 
-BINDIR="/sbin/oled-tools"
-if not os.path.exists(BINDIR):
-	BINDIR="/usr/sbin/oled-tools"
+BINDIR="/usr/lib/oled-tools"
 
 # cmds
 GATHER = BINDIR + "/gather"

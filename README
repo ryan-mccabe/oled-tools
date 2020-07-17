@@ -31,9 +31,9 @@ To build rpm:
 	1. checkout a release branch or tag
 	2. update the spec file [Release line] with bug# to customize the build name
 	3. create a dev-build tag
-		[Ex: git tag -a -m "build-dev" ol6/oled-tools-0.1-1.*]
+		[Ex: git tag -a -m "build-dev" oled-tools-0.1-3.*]
 	4. push build-dev tag to your personal repo
-		[Ex: git push mbpatil ol6/test-oled-tools-0.1-1.* ]
+		[Ex: git push mbpatil oled-tools-0.1-3.* ]
 	5. Check the jenkins/auto build area for created rpms
 
 [Developer Work Flow]
