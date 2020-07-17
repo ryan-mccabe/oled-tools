@@ -18,6 +18,8 @@
 # or visit www.oracle.com if you need additional information or have any
 # questions.
 
+KDUMP_PREDIR := $(OLEDDIR)/kdump_pre.d
+
 all:
 	@echo "all:$(CURDIR)"
 
@@ -26,25 +28,27 @@ clean:
 
 install:
 	@echo "install:$(CURDIR)"
-	mkdir -p /etc/oled/kdump_pre.d
+	mkdir -p $(KDUMP_PREDIR)
 	install -m 755 kdump-utils.py $(BINDIR)/kdump
+ifeq ("$(SPECFILE)","")
 	python $(BINDIR)/kdump --add
-ifeq ($(OLED_DIST),OL6)
+ifeq ("$(DIST)",".el6")
 	service kdump restart
-else ifeq ($(OLED_DIST),OL7)
+else ifeq ("$(DIST)",".el7")
 	systemctl restart kdump
 endif
-	@echo "KDUMP-UTILS successfully installed!"
+	@echo "kdump-utils successfully installed"
+endif #ifeq ("$(SPECFILE)","")
 
 uninstall:
 	@echo "uninstall:$(CURDIR)"
 	python $(BINDIR)/kdump --remove
-ifeq ($(OLED_DIST),OL6)
+ifeq ("$(DIST)",".el6")
 	service kdump restart
-else ifeq ($(OLED_DIST),OL7)
+else ifeq ("$(DIST)",".el7")
 	systemctl restart kdump
 endif
 	rm -f $(BINDIR)/kdump
-	rm -f /etc/oled/kdump_pre.sh
-	rmdir  /etc/oled/kdump_pre.d
-	@echo "KDUMP-UTILS successfully uninstalled!"
+	rm -f $(OLEDDIR)/kdump_pre.sh
+	rmdir $(KDUMP_PREDIR) || :
+	@echo "kdump-utils successfully uninstalled"

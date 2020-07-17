@@ -18,7 +18,7 @@
 # or visit www.oracle.com if you need additional information or have any
 # questions.
 
-SMTOOL_LIB=$(PYTHON_SITEDIR)/smtool_lib
+SMTOOL_LIB=$(DESTDIR)$(PYTHON_SITEDIR)/smtool_lib
 CUR_LIB=$(CURDIR)/smtool_lib
 
 all:
@@ -44,13 +44,13 @@ install:
 	install -m 755 $(CUR_LIB)/sysfile.py $(SMTOOL_LIB)/sysfile.py
 	install -m 755 $(CUR_LIB)/variant.py $(SMTOOL_LIB)/variant.py
 	install -m 755 $(CUR_LIB)/vulnerabilities.py $(SMTOOL_LIB)/vulnerabilities.py
-	gzip -c $(CURDIR)/smtool.man > /usr/share/man/man8/oled-smtool.8.gz
-	chmod 644 /usr/share/man/man8/oled-smtool.8.gz
-	@echo "SMTOOL successfully installed!"
+	gzip -c $(CURDIR)/smtool.man > $(MANDIR)/oled-smtool.8.gz
+	chmod 644 $(MANDIR)/oled-smtool.8.gz
+	@echo "smtool successfully installed"
 
 uninstall:
 	@echo "uninstall:$(CURDIR)"
-	rm -f /usr/share/man/man8/oled-smtool.8.gz
+	rm -f $(MANDIR)/oled-smtool.8.gz
 	rm -f $(SMTOOL_LIB)/vulnerabilities.py
 	rm -f $(SMTOOL_LIB)/variant.py
 	rm -f $(SMTOOL_LIB)/sysfile.py
@@ -66,5 +66,5 @@ uninstall:
 	rm -f $(SMTOOL_LIB)/__init__.py
 	rm -f $(SMTOOL_LIB)/*.pyc
 	rm -f $(BINDIR)/smtool
-	rmdir $(SMTOOL_LIB)
-	@echo "SMTOOL successfully uninstalled!"
+	rmdir $(SMTOOL_LIB) || :
+	@echo "smtool successfully installed"
