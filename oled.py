@@ -28,7 +28,6 @@ import platform
 # Oracle Linux Enhanced Diagnostic Tools
 MAJOR = "0"
 MINOR = "1"
-RELEASE = "LATEST_UNSTABLE"
 
 BINDIR="/usr/lib/oled-tools"
 
@@ -60,7 +59,7 @@ def run_as_root():
         sys.exit(1)
 
 def cmd_version():
-	version = "%s.%s-%s"%(MAJOR, MINOR, RELEASE)
+	version = "%s.%s"%(MAJOR, MINOR)
 	print(version)
 
 def cmd_smtool(args):
