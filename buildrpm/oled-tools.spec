@@ -1,6 +1,6 @@
 Name:		oled-tools
 Version:	0.1
-Release:	4%{?dist}
+Release:	5%{?dist}
 Summary:	Diagnostic tools for more efficient and faster debugging on Oracle Linux
 
 Group:		Development/Tools
@@ -140,6 +140,9 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Fri Sep 4 2020 Manjunath Patil <manjunath.b.patil@oracle.com> [0.1-5]
+- Orabug: 31793813 - remove release string from oled version
+
 * Thu Aug 17 2020 Manjunath Patil <manjunath.b.patil@oracle.com> [0.1-4]
 - Prod Release oled-tools-0.1-4
 
