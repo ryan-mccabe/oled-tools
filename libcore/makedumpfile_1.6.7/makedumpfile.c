@@ -703,11 +703,13 @@ readpage_elf(unsigned long long paddr, void *bufptr)
 	off_t offset, size;
 	void *p, *endp;
 	unsigned long long phys_start, phys_end;
+	unsigned long long vaddr;
 
 	p = bufptr;
 	endp = p + info->page_size;
 	while (p < endp) {
-		idx = closest_pt_load(paddr, endp - p);
+		vaddr = paddr_to_vaddr(paddr);
+		idx = closest_pt_load_by_vaddr(vaddr, endp - p);
 		if (idx < 0)
 			break;
 

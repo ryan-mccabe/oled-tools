@@ -1026,6 +1026,7 @@ int get_machdep_info_x86_64(void);
 int get_versiondep_info_x86_64(void);
 unsigned long long vtop4_x86_64(unsigned long vaddr);
 unsigned long long vtop4_x86_64_pagetable(unsigned long vaddr, unsigned long pagetable);
+int closest_pt_load_by_vaddr(unsigned long long vaddr, unsigned long distance);
 #define find_vmemmap()		find_vmemmap_x86_64()
 #define get_phys_base()		get_phys_base_x86_64()
 #define get_machdep_info()	get_machdep_info_x86_64()

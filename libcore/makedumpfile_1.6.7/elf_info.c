@@ -724,6 +724,29 @@ closest_pt_load(unsigned long long paddr, unsigned long distance)
 }
 
 int
+closest_pt_load_by_vaddr(unsigned long long vaddr, unsigned long distance)
+{
+	int i, bestidx;
+	struct pt_load_segment *pls;
+	unsigned long bestdist;
+
+	bestdist = distance;
+	bestidx = -1;
+	for (i = 0; i < num_pt_loads; ++i) {
+		pls = &pt_loads[i];
+		if (vaddr >= pls->virt_end)
+			continue;
+		if (vaddr >= pls->virt_start)
+			return i;	/* Exact match */
+		if (bestdist > pls->virt_start - vaddr) {
+			bestdist = pls->virt_start - vaddr;
+			bestidx = i;
+		}
+	}
+	return bestidx;
+}
+
+int
 get_elf64_ehdr(int fd, char *filename, Elf64_Ehdr *ehdr)
 {
 	if (lseek(fd, 0, SEEK_SET) < 0) {
