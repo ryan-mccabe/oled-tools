@@ -37,13 +37,24 @@ LKCE = BINDIR + "/lkce"
 SMTOOL = BINDIR + "/smtool"
 OLED_KDUMP = BINDIR + "/kdump"
 
+def dist():
+    os_release = float(platform.linux_distribution()[1])
+    if os_release > 6.0 and os_release < 7.0 :
+        dist = "el6"
+    elif os_release > 7.0 and os_release < 8.0 :
+        dist = "el7"
+    else :
+        dist = "el8"
+    return dist
+
 def help(error):
     print("Oracle Linux Enhanced Diagnostic Tools")
     print("Usage:")
     print("  %s <command> <subcommand>" % sys.argv[0])
     print("Valid commands:")
     print("     smtool          -- Spectre-Meltdown tool")
-    print("     gather          -- system data gather")
+    if (dist() != "el8") :
+        print("     gather          -- system data gather")
     print("     lkce            -- Linux Kernel Core Extractor")
     print("     kdump           -- configure oled related kdump options")
     print("     help            -- show this help message")
@@ -105,26 +116,28 @@ def main():
     if cmd == "smtool":
         ret = cmd_smtool(args)
         sys.exit(ret)
-
-    if cmd == "gather":
-        ret = cmd_gather(args)
-        sys.exit(ret)
-
-    if cmd == "lkce":
+    elif cmd == "gather":
+        if (dist() != "el8") :
+            ret = cmd_gather(args)
+            sys.exit(ret)
+        else :
+            print ("%s not supported for this distribution" % cmd)
+            sys.exit(1)
+    elif cmd == "lkce":
         ret = cmd_lkce(args)
         sys.exit(ret)
-
-    if cmd == "kdump":
+    elif cmd == "kdump":
         ret = cmd_kdump(args)
         sys.exit(ret)
-
-    if cmd == "version" or cmd == "--version":
+    elif cmd == "version" or cmd == "--version":
         ret = cmd_version()
         sys.exit(ret)
-
-    if cmd == "help":
+    elif cmd == "help":
         ret = cmd_help(args)
         sys.exit(ret)
+    else:
+        print("Invalid command")
+        sys.exit(1)
 
     help(True)
 

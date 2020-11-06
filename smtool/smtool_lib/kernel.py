@@ -25,10 +25,15 @@ and validate various kernel versions.
 
 """
 import re
-import parser
+import sys
 
-from base import Base
-
+if (sys.version_info[0] == 3):
+    from . import parser
+    from .base import Base
+else:
+    import parser
+    from base import Base
+    from command import Cmd
 
 def log(msg):
     """
@@ -37,27 +42,7 @@ def log(msg):
 
     """
     if parser.VERBOSE:
-        print msg,
-    return
-
-
-def logn(msg):
-    """
-    Logs messages if the variable
-    VERBOSE is set.
-
-    """
-    if parser.VERBOSE:
-        print msg
-    return
-
-
-def error(msg):
-    """
-    Logs error messages.
-
-    """
-    print "ERROR: " + msg
+        print(msg)
     return
 
 
@@ -77,11 +62,12 @@ class Kernel(Base):
     UEK3 = 2
     UEK4 = 3
     UEK5 = 4
-    RHCK6 = 5
-    RHCK7 = 6
-    RHCK8 = 7
-    desc = ['UNKNOWN', 'UEK2', 'UEK3', 'UEK4', 'UEK5', 'RHCK6', 'RHCK7',
-            'RHCK8']
+    UEK6 = 5
+    RHCK6 = 6
+    RHCK7 = 7
+    RHCK8 = 8
+    desc = ['UNKNOWN', 'UEK2', 'UEK3', 'UEK4', 'UEK5', 'UEK6', 'RHCK6',
+            'RHCK7', 'RHCK8']
 
     def recommended_ver(self, kernel_ver):
         """
@@ -104,6 +90,8 @@ class Kernel(Base):
             return "4.1.12-124.33.2"
         elif kernel_ver == "UEK5":
             return "4.14.35-1902.6.7"
+        elif kernel_ver == "UEK6":
+            return "5.4.17-2011.1.0"
         elif kernel_ver == "RHCK6":
             return "2.6.32-754.25.1"
         elif kernel_ver == "RHCK7":
@@ -140,10 +128,10 @@ class Kernel(Base):
         returns False.
 
         """
-        if (self.ktype in [self.UEK4, self.UEK5, self.UEK2,
+        if (self.ktype in [self.UEK4, self.UEK5, self.UEK6, self.UEK2,
                            self.UEK3, self.RHCK6, self.RHCK7, self.RHCK8]):
             return True
-        logn("Tool currently doesn't support kernel " + self.desc[self.ktype])
+        log("Tool currently doesn't support kernel " + self.desc[self.ktype])
 
         return False
 
@@ -153,7 +141,8 @@ class Kernel(Base):
 
         """
         self.ktype = self.UNKNOWN
-        self.kver = self.run_command(self.kern_ver_cmd, True)
+
+        self.kver = self.run_command("uname -r")
 
     def set_kernel_type(self, ver):
         """
@@ -176,6 +165,9 @@ class Kernel(Base):
         if re.search("^4.14.35", self.kver) is not None:
             self.ktype = self.UEK5
 
+        if re.search("^5.4.17", self.kver) is not None:
+            self.ktype = self.UEK6
+
         if re.search("^2.6.32", self.kver) is not None:
             self.ktype = self.RHCK6
 
@@ -187,7 +179,6 @@ class Kernel(Base):
 
         return
 
-
     def __init__(self, server):
         """
         Init function for kernel class.
@@ -197,7 +188,6 @@ class Kernel(Base):
         server(int): Server type.
 
         """
-        log("           running kernel..........:")
         if not server.is_valid():
             raise ValueError("Invalid server")
 
@@ -205,5 +195,6 @@ class Kernel(Base):
         self.set_kernel_type(self.get_kernel())
         if not self.is_valid():
             raise ValueError("Invalid kernel " + self.get_kernel())
-        logn(self.get_kernel_desc() + " (" + self.get_kernel() + ")")
+        log("           running kernel..........:" +
+            self.get_kernel_desc() + " (" + self.get_kernel() + ")")
         return

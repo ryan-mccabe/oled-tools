@@ -29,12 +29,22 @@ Contains routines to read and write sysfiles.
 
 """
 import os
-import parser
+import sys
 
-from base import Base
-from distro import Distro
-from kernel import Kernel
-from server import Server
+if (sys.version_info[0] == 3):
+    from . import parser
+
+    from .base import Base
+    from .distro import Distro
+    from .kernel import Kernel
+    from .server import Server
+else:
+    import parser
+
+    from base import Base
+    from distro import Distro
+    from kernel import Kernel
+    from server import Server
 
 
 def log(msg):
@@ -44,27 +54,7 @@ def log(msg):
 
     """
     if parser.VERBOSE:
-        print msg,
-    return
-
-
-def logn(msg):
-    """
-    Logs messages if the variable
-    VERBOSE is set.
-
-    """
-    if parser.VERBOSE:
-        print msg
-    return
-
-
-def error(msg):
-    """
-    Logs error messages.
-
-    """
-    print "ERROR: " + msg
+        print(msg)
     return
 
 
@@ -164,7 +154,8 @@ class Sysfile(Base):
 
         """
         self.distro = Distro(False)                  # Oracle distro object
-        self.server = Server(self.distro, False)       # Baremetal, hypervisor, VM
+        # Baremetal, hypervisor, VM
+        self.server = Server(self.distro, False)
         self.kernel = Kernel(self.server)       # Running kernel
         return self.kernel.get_kernel_desc()
 
@@ -178,7 +169,8 @@ class Sysfile(Base):
 
         """
         self.distro = Distro(False)                  # Oracle distro object
-        self.server = Server(self.distro, False)       # Baremetal, hypervisor, VM
+        # Baremetal, hypervisor, VM
+        self.server = Server(self.distro, False)
         if (self.server.stype == 5) or (self.server.stype == 6):
             return True
         return False
@@ -334,11 +326,12 @@ class Sysfile(Base):
         else returns False.
 
         """
-        cmd = ["dmesg | grep SPEC_CTRL"]
-        is_spec_ctrl = self.run_command(cmd, True)
+        cmd = "dmesg | grep SPEC_CTRL"
+        is_spec_ctrl = self.run_command(cmd)
 
-        cmd = ["dmesg | grep IBPB | grep FEATURE"]
-        is_ibpb = self.run_command(cmd, True)
+        cmd = "dmesg | grep IBPB | grep FEATURE"
+
+        is_ibpb = self.run_command(cmd)
 
         if (is_spec_ctrl.find("Not") != -1) and (is_ibpb.find("Not") != -1):
             return False
@@ -369,10 +362,10 @@ class Sysfile(Base):
         """
         self.read_sysfiles()
         if self.is_mitigated():
-            logn("        Boot status................: Mitigated (" +
-                 self.svalue + ")")
+            log("        Boot status................: Mitigated (" +
+                self.svalue + ")")
         else:
-            logn("        Boot status................: Vulnerable")
+            log("        Boot status................: Vulnerable")
 
     def __init__(self, vtype):
         """

@@ -26,9 +26,14 @@ Also checks and reports vulnerabilities that
 various CPU models are susceptible to.
 
 """
-import parser
-from base import Base
+import sys
 
+if (sys.version_info[0] == 3):
+    from . import parser
+    from .base import Base
+else:
+    import parser
+    from base import Base
 
 VERBOSE = False  # type: bool
 
@@ -40,27 +45,7 @@ def log(msg):
 
     """
     if parser.VERBOSE:
-        print msg,
-    return
-
-
-def logn(msg):
-    """
-    Logs messages if the variable
-    VERBOSE is set.
-
-    """
-    if parser.VERBOSE:
-        print msg
-    return
-
-
-def error(msg):
-    """
-    Logs error messages.
-
-    """
-    print "ERROR: " + msg
+        print(msg)
     return
 
 
@@ -305,14 +290,14 @@ class Cpu(Base):
                     self.INTEL_FAM6_XEON_PHI_KNM]):
                 return True
 
-            logn("Tool doesn't support this Intel Model")
+            log("Tool doesn't support this Intel Model")
             return False
 
         if (self.is_amd() or self.is_hygon() or self.is_centaur() or
                 self.is_nsc()):
             return True
 
-        logn("Tool doesn't support this CPU family")
+        log("Tool doesn't support this CPU family")
         return False
 
     def scan_cpuinfo(self):
@@ -328,7 +313,7 @@ class Cpu(Base):
         try:
             f_p = open(c_f)
         except BaseException:
-            print "ERROR opening " + c_f
+            print("ERROR opening " + c_f)
             return None
 
         for line in f_p:
@@ -421,7 +406,7 @@ class Cpu(Base):
 
         """
         if not self.is_valid():
-            logn("Invalid CPU")
+            log("Invalid CPU")
             return
 
         self.v_1 = self.v_2 = self.v_3 = self.v_4 = True
@@ -648,22 +633,22 @@ class Cpu(Base):
         that the cpu is vulnerable to.
 
         """
-        print "CPU Info :"
+        print("CPU Info :")
         if self.vendor:
-            print "  Vendor        :  " + self.vendor
+            print("  Vendor        :  " + self.vendor)
         if self.family:
-            print "  Family        :  " + str(self.family)
+            print("  Family        :  " + str(self.family))
         if self.model:
-            print "  Model         :  " + str(self.model)
-        print "  Vulnerable    : " + str(self.is_cpu_vulnerable())
-        print "     Spectre V1 : " + str(self.is_vulnerable_v_1())
-        print "     Spectre V2 : " + str(self.is_vulnerable_v_2())
-        print "     Meltdown   : " + str(self.is_vulnerable_v_3())
-        print "     SSBD       : " + str(self.is_vulnerable_v_4())
-        print "     L1TF       : " + str(self.is_vulnerable_v_5())
-        print "     MDS        : " + str(self.is_vulnerable_v_6())
-        print "     ITLB_MULTIHIT: " + str(self.is_vulnerable_v_7())
-        print "    TSX_ASYNC_ABORT: " + str(self.is_vulnerable_v_8())
+            print("  Model         :  " + str(self.model))
+        print("  Vulnerable    : " + str(self.is_cpu_vulnerable()))
+        print("     Spectre V1 : " + str(self.is_vulnerable_v_1()))
+        print("     Spectre V2 : " + str(self.is_vulnerable_v_2()))
+        print("     Meltdown   : " + str(self.is_vulnerable_v_3()))
+        print("     SSBD       : " + str(self.is_vulnerable_v_4()))
+        print("     L1TF       : " + str(self.is_vulnerable_v_5()))
+        print("     MDS        : " + str(self.is_vulnerable_v_6()))
+        print("     ITLB_MULTIHIT: " + str(self.is_vulnerable_v_7()))
+        print("    TSX_ASYNC_ABORT: " + str(self.is_vulnerable_v_8()))
 
     # Some cpus are not vulnerable to v_1,v_2,v_3,v_4,v_5,v_6,v_7 and
     # v_8 variants.
@@ -678,7 +663,6 @@ class Cpu(Base):
         is valid and supported by the tool.
 
         """
-        log("           running cpu.............:")
         self.scan_cpuinfo()
         if not self.is_valid():
             raise ValueError("Unsupported cpu(vendor='" +
@@ -689,11 +673,12 @@ class Cpu(Base):
                              str(self.model) +
                              "'")
 
-        logn(str(self.get_cpu_vendor()) +
-             " (family=" +
-             str(self.get_cpu_family()) +
-             ", model=" +
-             str(self.get_cpu_model()) +
-             ")")
+        log("           running cpu.............:" +
+            str(self.get_cpu_vendor()) +
+            " (family=" +
+            str(self.get_cpu_family()) +
+            ", model=" +
+            str(self.get_cpu_model()) +
+            ")")
 
         return

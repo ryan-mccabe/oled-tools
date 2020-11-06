@@ -24,8 +24,15 @@ Module contains various methods to
 identify and validate the server type.
 
 """
-import parser
-from base import Base
+import sys
+
+if (sys.version_info[0] == 3):
+    from . import parser
+    from .base import Base
+else:
+    import parser
+    from base import Base
+    from command import Cmd
 
 
 def log(msg):
@@ -35,18 +42,7 @@ def log(msg):
 
     """
     if parser.VERBOSE:
-        print msg,
-    return
-
-
-def logn(msg):
-    """
-    Logs messages if the variable
-    VERBOSE is set.
-
-    """
-    if parser.VERBOSE:
-        print msg
+        print(msg)
     return
 
 
@@ -55,7 +51,7 @@ def error(msg):
     Logs error messages.
 
     """
-    print "ERROR: " + msg
+    print("ERROR: " + msg)
     return
 
 
@@ -93,16 +89,15 @@ class Server(Base):
         if distro.is_ovm():
             return self.XEN_HYPERVISOR
 
-        cmd = ["virt-what"]
-        out = self.run_command(cmd, True)
+        cmd = "virt-what"
+        out = self.run_command(cmd)
         server_type = out.splitlines()
 
         if not server_type:
-            cmd = ["egrep vmx /proc/cpuinfo"]
-            out = self.run_command(cmd, True)
-            if not out is None:
-                cmd = ["lsmod | grep kvm"]
-                run = self.run_command(cmd, True)
+            cmd = "egrep vmx /proc/cpuinfo"
+            out = self.run_command(cmd)
+            if out is not None:
+                run = self.run_command(cmd)
                 if run != "":
                     return self.KVM_HOST
                 else:
@@ -155,14 +150,12 @@ class Server(Base):
         distro(int): Type of distribution.
 
         """
-	if (is_log is True):
-        	log("           server type.............:")
         if not distro.is_valid():
             raise ValueError("ERROR: Unsupported Linux Distribution")
 
         self.stype = self.scan_server(distro)
         if not self.is_valid():
             raise ValueError("ERROR: Invalid server type")
-	if (is_log is True):
-        	logn(str(self.get_server()))
+        if (is_log is True):
+            log("           server type.............:" + str(self.get_server()))
         return

@@ -24,124 +24,152 @@
 # program to -
 #	- generate kdump_pre.sh script
 #
-import commands, os, sys, re
+import os
+import re
+import subprocess
+import sys
+
 
 class KDUMP_UTILS:
-	def __init__(self):
-		#global variables
-		self.OLED_HOME = "/etc/oled"
-		self.OLED_KDUMP_PRE_SH = self.OLED_HOME + "/kdump_pre.sh"
-		self.OLED_KDUMP_PRE_DIR = self.OLED_HOME + "/kdump_pre.d"
+    def run_command(self, cmd):
+        """
+        Execute command and return the result
+        Parameters:
+        cmd (int): Command to run
+        shell (bool): If True, run command through
+        the shell
 
-		self.FSTAB = "/etc/fstab"
-		self.KDUMP_CONF = "/etc/kdump.conf"
+        Returns string: result of the specific command
+        executed.
 
-		#timeout
-		self.TIMEOUT_PATH = commands.getoutput('which timeout')
-	#def __init__
+        """
+        command = subprocess.Popen(cmd,
+                               stdin=None,
+                               stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE,
+                               shell=True)
+        out,err = command.communicate()
+        if (sys.version_info[0] == 3):
+            out = out.decode("utf-8").strip()
 
-	def restart_kdump_service(self):
-		cmd = "service kdump restart"
-		os.system(cmd)
-	#def restart_kdump_service
+        return out.strip()
 
-	def enable(self):
-		filename = self.OLED_KDUMP_PRE_SH
-		if not os.path.exists(filename):
-			print("%s not found.  Run 'oled kdump --add' to create one")%(filename)
-			return
+    def __init__(self):
+        #global variables
+        self.OLED_HOME = "/etc/oled"
+        self.OLED_KDUMP_PRE_SH = self.OLED_HOME + "/kdump_pre.sh"
+        self.OLED_KDUMP_PRE_DIR = self.OLED_HOME + "/kdump_pre.d"
 
-		cmd = "sed -i 's/^OLED_ENABLE=.*/OLED_ENABLE=\"yes\"/' " + filename
-		os.system(cmd);
-		self.restart_kdump_service()
-		print("enabled")
-	#def enable
+        self.FSTAB = "/etc/fstab"
+        self.KDUMP_CONF = "/etc/kdump.conf"
 
-	def disable(self):
-		filename = self.OLED_KDUMP_PRE_SH
+        # timeout
+        self.TIMEOUT_PATH = self.run_command('which timeout')
+    # def __init__
 
-		if not os.path.exists(filename):
-			print("%s not found.  Run 'oled kdump --add' to create one")%(filename)
-			return
+    def restart_kdump_service(self):
+        cmd = "service kdump restart"
+        os.system(cmd)
+    # def restart_kdump_service
 
-		cmd = "sed -i 's/^OLED_ENABLE=.*/OLED_ENABLE=\"no\"/' " + filename
-		os.system(cmd);
-		self.restart_kdump_service()
-		print("disabled")
-	#def disable
+    def enable(self):
+        filename = self.OLED_KDUMP_PRE_SH
+        if not os.path.exists(filename):
+            print("%s not found.  Run 'oled kdump --add' to create one") % (filename)
+            return
 
-	def status(self):
-		filename = self.OLED_KDUMP_PRE_SH
+        cmd = "sed -i 's/^OLED_ENABLE=.*/OLED_ENABLE=\"yes\"/' " + filename
+        os.system(cmd)
+        self.restart_kdump_service()
+        print("enabled")
+    # def enable
 
-		if not os.path.exists(filename):
-			print("%s not found.  Run 'oled kdump --add' to create one")%(filename)
-			return
+    def disable(self):
+        filename = self.OLED_KDUMP_PRE_SH
 
-		tmp_enable = ""
-		tmp_vmcore = ""
-		file = open(filename, "r")
-		for line in file.readlines():
-			#ignore lines starting with '#'
-			if re.search("^#", line):
-				continue
+        if not os.path.exists(filename):
+            print("%s not found.  Run 'oled kdump --add' to create one") % (filename)
+            return
 
-			#ignore lines not starting with 'OLED_'
-			if not re.search("^OLED_", line):
-				continue
+        cmd = "sed -i 's/^OLED_ENABLE=.*/OLED_ENABLE=\"no\"/' " + filename
+        os.system(cmd)
+        self.restart_kdump_service()
+        print("disabled")
+    # def disable
 
-			# trim space/tab/newline from the line
-			line = re.sub(r"\s+", "", line)
+    def status(self):
+        filename = self.OLED_KDUMP_PRE_SH
 
-                        entry = re.split("=", line)
-                        if "OLED_ENABLE" in entry[0] and entry[1]:
-                                tmp_enable = entry[1]
+        if not os.path.exists(filename):
+            print("%s not found.  Run 'oled kdump --add' to create one") % (filename)
+            return
 
-                        if "OLED_VMCORE" in entry[0] and entry[1]:
-                                tmp_vmcore = entry[1]
-		#for
-		file.close()
+        tmp_enable = ""
+        tmp_vmcore = ""
+        file = open(filename, "r")
+        for line in file.readlines():
+            # ignore lines starting with '#'
+            if re.search("^#", line):
+                continue
 
-		if "yes" in tmp_enable:
-			print("kdump_scripts are enabled to run in kdump kernel")
-		else:
-			print("kdump_scripts are disabled to run in kdump kernel")
+            # ignore lines not starting with 'OLED_'
+            if not re.search("^OLED_", line):
+                continue
 
-		if "yes" in tmp_vmcore:
-			print("vmcore capture is enabled")
-		else:
-			print("vmcore capture is disabled")
-	#def status
+            # trim space/tab/newline from the line
+            line = re.sub(r"\s+", "", line)
 
-	def vmcore(self, arg):
-		filename = self.OLED_KDUMP_PRE_SH
+            entry = re.split("=", line)
+            if "OLED_ENABLE" in entry[0] and entry[1]:
+                tmp_enable = entry[1]
 
-		if not os.path.exists(filename):
-			print("%s not found.  Run 'oled kdump --add' to create one")%(filename)
-			return
+            if "OLED_VMCORE" in entry[0] and entry[1]:
+                tmp_vmcore = entry[1]
+        # for
+        file.close()
 
-		if arg == "vmcore=yes":
-			cmd = "sed -i 's/^OLED_VMCORE=.*/OLED_VMCORE=\"yes\"/' " + filename
-		else:
-			cmd = "sed -i 's/^OLED_VMCORE=.*/OLED_VMCORE=\"no\"/' " + filename
+        if "yes" in tmp_enable:
+            print("kdump_scripts are enabled to run in kdump kernel")
+        else:
+            print("kdump_scripts are disabled to run in kdump kernel")
 
-		os.system(cmd);
-		self.restart_kdump_service()
-	#def vmcore
+        if "yes" in tmp_vmcore:
+            print("vmcore capture is enabled")
+        else:
+            print("vmcore capture is disabled")
+    # def status
 
-	def create_kdump_pre(self):
-		filename = self.OLED_KDUMP_PRE_SH
+    def vmcore(self, arg):
+        filename = self.OLED_KDUMP_PRE_SH
 
-		#get the root device
-		cmd = "awk '/^[ \t]*[^#]/ { if ($2 == \"/\") { print $1; }}' " + self.FSTAB
-		rootdev= commands.getoutput(cmd)
-		if "LABEL=" in rootdev or "UUID=" in rootdev :
-			cmd = "/sbin/findfs " + rootdev
-			rootdev = commands.getoutput(cmd)
-		cmd = "blkid -sUUID -o value " + rootdev
-		root_uuid = commands.getoutput(cmd)
+        if not os.path.exists(filename):
+            print("%s not found.  Run 'oled kdump --add' to create one") % (filename)
+            return
 
-		#create kdump_pre.sh script
-		content = """#!/bin/sh
+        if arg == "vmcore=yes":
+            cmd = "sed -i 's/^OLED_VMCORE=.*/OLED_VMCORE=\"yes\"/' " + filename
+        else:
+            cmd = "sed -i 's/^OLED_VMCORE=.*/OLED_VMCORE=\"no\"/' " + filename
+
+        os.system(cmd)
+        self.restart_kdump_service()
+    # def vmcore
+
+    def create_kdump_pre(self):
+        filename = self.OLED_KDUMP_PRE_SH
+
+        # get the root device
+        cmd = "awk '/^[ \t]*[^#]/ { if ($2 == \"/\") { print $1; }}' " + \
+            self.FSTAB
+        rootdev = self.run_command(cmd)
+        if "LABEL=" in rootdev or "UUID=" in rootdev:
+            cmd = "/sbin/findfs " + rootdev
+            rootdev = self.run_command(cmd)
+        cmd = "blkid -sUUID -o value " + rootdev
+        root_uuid = self.run_command(cmd)
+
+        # create kdump_pre.sh script
+        content = """#!/bin/sh
 # This is a kdump_pre script
 # /etc/kdump.conf is used to configure kdump_pre script
 
@@ -201,52 +229,55 @@ fi
 
 exit 0
 """
-		file = open(filename, "w")
-		file.write(content)
-		file.close()
+        file = open(filename, "w")
+        file.write(content)
+        file.close()
 
-		cmd = "chmod a+x " + filename
-		os.system(cmd);
-	#def create_kdump_pre
+        cmd = "chmod a+x " + filename
+        os.system(cmd)
+    # def create_kdump_pre
 
-	#enable kdump_pre in /etc/kdump.conf
-	def update_kdump_conf(self, arg):
-		KUDMP_PRE_LINE = "kdump_pre " + self.OLED_KDUMP_PRE_SH
-		KUDMP_TIMEOUT_LINE = "extra_bins " + self.TIMEOUT_PATH
+    # enable kdump_pre in /etc/kdump.conf
+    def update_kdump_conf(self, arg):
+        KUDMP_PRE_LINE = "kdump_pre " + self.OLED_KDUMP_PRE_SH
+        KUDMP_TIMEOUT_LINE = "extra_bins " + self.TIMEOUT_PATH
 
-		if arg == "--remove" :
-			cmd = "sed --in-place '/""" + KUDMP_PRE_LINE.replace("/", "\/") + """/d' """ + self.KDUMP_CONF
-			cmd = cmd + "; sed --in-place '/""" + KUDMP_TIMEOUT_LINE.replace("/", "\/") + """/d' """ + self.KDUMP_CONF
-			print("%s")%(cmd)
-			os.system(cmd)
-			return
+        if arg == "--remove":
+            cmd = "sed --in-place '/""" + \
+                KUDMP_PRE_LINE.replace("/", r"\/") + """/d' """ + self.KDUMP_CONF
+            cmd = cmd + "; sed --in-place '/""" + \
+                KUDMP_TIMEOUT_LINE.replace("/", r"\/") + """/d' """ + self.KDUMP_CONF
+            print("%s" % (cmd))
+            os.system(cmd)
+            return
 
-		#arg == "--add"
-		cmd = "grep -q '^kdump_pre' " + self.KDUMP_CONF
-		ret = os.system(cmd);
-		if (ret): #not present
-			cmd = "echo '" + KUDMP_PRE_LINE + "' >> " + self.KDUMP_CONF
-			cmd = cmd + "; echo 'extra_bins " + self.TIMEOUT_PATH + "' >> " + self.KDUMP_CONF
-			print("%s")%(cmd)
-			os.system(cmd)
-		else:
-			cmd = "grep -q '^" +  KUDMP_PRE_LINE + "$' " + self.KDUMP_CONF
-			if (os.system(cmd)): #kdump_pre is enabled, but it is not our kdump_pre script
-				print("kdump_pre is already enabled. Manually enable the entry in %s")%(self.KDUMP_CONF)
-				print("\nHint: you need to add the following")
-				print("%s")%(KUDMP_PRE_LINE)
-				print("%s\n")%(KUDMP_TIMEOUT_LINE)
-				print("present entry in kdump.conf")
-				cmd = "grep ^kdump_pre " + self.KDUMP_CONF
-				os.system(cmd)
-				return 1
-			else:
-				print("kdump_pre is already enabled to run oled scripts")
-		return 0
-	#def update_kdump_conf
+        #arg == "--add"
+        cmd = "grep -q '^kdump_pre' " + self.KDUMP_CONF
+        ret = os.system(cmd)
+        if (ret):  # not present
+            cmd = "echo '" + KUDMP_PRE_LINE + "' >> " + self.KDUMP_CONF
+            cmd = cmd + "; echo 'extra_bins " + self.TIMEOUT_PATH + "' >> " + self.KDUMP_CONF
+            print("%s" % (cmd))
+            os.system(cmd)
+        else:
+            cmd = "grep -q '^" + KUDMP_PRE_LINE + "$' " + self.KDUMP_CONF
+            if (os.system(cmd)):  # kdump_pre is enabled, but it is not our kdump_pre script
+                print("kdump_pre is already enabled. Manually enable the entry in %s") % (
+                    self.KDUMP_CONF)
+                print("\nHint: you need to add the following")
+                print("%s") % (KUDMP_PRE_LINE)
+                print("%s\n") % (KUDMP_TIMEOUT_LINE)
+                print("present entry in kdump.conf")
+                cmd = "grep ^kdump_pre " + self.KDUMP_CONF
+                os.system(cmd)
+                return 1
+            else:
+                print("kdump_pre is already enabled to run oled scripts")
+        return 0
+    # def update_kdump_conf
 
-	def usage(self):
-		usage = """Usage: """ + sys.argv[0] + """ <options>
+    def usage(self):
+        usage = """Usage: """ + sys.argv[0] + """ <options>
 options:
 	enable	-- enable oled kdump scripts
 	disable	-- disable oled kdump scripts
@@ -259,51 +290,53 @@ options:
 
 	help	-- print this info
 """
-		print(usage)
-		sys.exit()
-	#def usage
+        print(usage)
+        sys.exit()
+    # def usage
 
-#class KDUMP_UTILS
+# class KDUMP_UTILS
+
 
 def main():
-	ku = KDUMP_UTILS()
+    ku = KDUMP_UTILS()
 
-	if len(sys.argv) < 2:
-		ku.usage()
+    if len(sys.argv) < 2:
+        ku.usage()
 
-	arg = sys.argv[1]
-	if arg == "enable":
-		ku.enable()
+    arg = sys.argv[1]
+    if arg == "enable":
+        ku.enable()
 
-	elif arg == "disable":
-		ku.disable()
+    elif arg == "disable":
+        ku.disable()
 
-	elif arg == "status":
-		ku.status()
+    elif arg == "status":
+        ku.status()
 
-	elif arg == "vmcore=yes":
-		ku.vmcore(arg)
+    elif arg == "vmcore=yes":
+        ku.vmcore(arg)
 
-	elif arg == "vmcore=no":
-		ku.vmcore(arg)
+    elif arg == "vmcore=no":
+        ku.vmcore(arg)
 
-	elif arg == "--add":
-		cmd = "mkdir -p " + ku.OLED_KDUMP_PRE_DIR
-		os.system(cmd)
-		ku.create_kdump_pre()
-		ku.update_kdump_conf(arg)
+    elif arg == "--add":
+        cmd = "mkdir -p " + ku.OLED_KDUMP_PRE_DIR
+        os.system(cmd)
+        ku.create_kdump_pre()
+        ku.update_kdump_conf(arg)
 
-	elif arg == "--remove":
-		ku.update_kdump_conf(arg)
+    elif arg == "--remove":
+        ku.update_kdump_conf(arg)
 
-	elif arg == "--list":
-		print("list of oled kdump_pre scripts - ")
-		cmd = "ls -lrt " + ku.OLED_KDUMP_PRE_DIR
-		os.system(cmd)
+    elif arg == "--list":
+        print("list of oled kdump_pre scripts - ")
+        cmd = "ls -lrt " + ku.OLED_KDUMP_PRE_DIR
+        os.system(cmd)
 
-	else:
-		ku.usage()
-#def main
+    else:
+        ku.usage()
+# def main
+
 
 if __name__ == '__main__':
-	main()
+    main()

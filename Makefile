@@ -25,7 +25,11 @@ export PYTHON_SITEDIR
 export SPECFILE
 export DESTDIR
 
+ifeq ("$(DIST)",".el8")
+subdirs := smtool kdump-utils lkce
+else
 subdirs := kdump-utils lkce gather smtool
+endif
 rev_subdirs := $(shell echo -n "$(subdirs) " | tac -s ' ')
 OLEDDIR := $(DESTDIR)/etc/oled
 SBINDIR := $(DESTDIR)/usr/sbin
@@ -36,6 +40,7 @@ export OLEDDIR
 export MANDIR
 
 all:
+	echo $(subdirs)
 	$(foreach dir,$(subdirs), make BINDIR=$(OLEDBIN) -C $(dir) all || exit 1;)
 
 clean:
@@ -70,9 +75,9 @@ rpm:
 	mkdir oled-tools-0.1
 	cp -R Makefile configure oled-env.sh oled.man oled.py oled-tools-0.1/
 	cp -R kdump-utils oled-tools-0.1/
+	cp -R smtool oled-tools-0.1/
 	cp -R lkce oled-tools-0.1/
 	cp -R gather oled-tools-0.1/
-	cp -R smtool oled-tools-0.1/
 	tar chozf oled-tools-0.1.tar.gz oled-tools-0.1
 	#rpmbuild
 	mkdir -p `pwd`/rpmbuild/{RPMS,BUILD{,ROOT},SRPMS}
