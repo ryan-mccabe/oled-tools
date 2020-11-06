@@ -29,9 +29,14 @@ Smtool.
 import sys
 import getopt
 
-from base import Base
-from distro import Distro
-from server import Server
+if (sys.version_info[0] == 3):
+    from .base import Base
+    from .distro import Distro
+    from .server import Server
+else:
+    from base import Base
+    from distro import Distro
+    from server import Server
 
 VERBOSE = False  # type: bool
 
@@ -43,18 +48,7 @@ def log(msg):
 
     """
     if VERBOSE:
-        print msg,
-    return
-
-
-def logn(msg):
-    """
-    Logs messages if the variable
-    VERBOSE is set.
-
-    """
-    if VERBOSE:
-        print msg
+        print(msg)
     return
 
 
@@ -63,7 +57,7 @@ def error(msg):
     Logs error messages.
 
     """
-    print "ERROR: " + msg
+    print("ERROR: " + msg)
     return
 
 
@@ -97,7 +91,8 @@ class Parser(Base):
 
         """
         self.distro = Distro(False)                  # Oracle distro object
-        self.server = Server(self.distro, False)       # Baremetal, hypervisor, VM
+        # Baremetal, hypervisor, VM
+        self.server = Server(self.distro, False)
         server_type = self.server.scan_server(self.distro)
         return server_type
 
@@ -108,31 +103,30 @@ class Parser(Base):
         and their usage.
 
         """
-        print " smtool - Scans and mitigates the following"
-        print " vulnerabilities:"
-        print "                 Spectre V1,"
-        print "                 Spectre V2,"
-        print "                 Meltdown,"
-        print "                 SSBD,"
-        print "                 L1TF,"
-        print "                 ITLB_Multihit,"
-        print "                 TSX Async Abort."
-        print " NOTE:"
-        print "     This script must be run as root and requires"
-        print "     virt-what package to be installed on the machine."
-        print " USAGE:"
-        print "       smtool [-hvsyrd]<options>"
-        print "       -h, --help       help"
-        print "       -v, --verbose    verbose"
-        print "       -s, --scan-only  scan current state of the host"
-        print "       -y, --yes        make changes without prompt"
-        print "       -r, --runtime    runtime only changes"
-        print "       -d, --dry-run    don't make changes yet"
-        print " OPTIONS:"
-        print "         --enable-default-mitigation [-yd]"
-        print "         --disable-mitigations [-yrd]"
-        print "         --enable-full-mitigation [-yrd]"
-
+        print(" smtool - Scans and mitigates the following")
+        print(" vulnerabilities:")
+        print("                 Spectre V1,")
+        print("                 Spectre V2,")
+        print("                 Meltdown,")
+        print("                 SSBD,")
+        print("                 L1TF,")
+        print("                 ITLB_Multihit,")
+        print("                 TSX Async Abort.")
+        print(" NOTE:")
+        print("     This script must be run as root and requires")
+        print("     virt-what package to be installed on the machine.")
+        print(" USAGE:")
+        print("       smtool [-hvsyrd]<options>")
+        print("       -h, --help       help")
+        print("       -v, --verbose    verbose")
+        print("       -s, --scan-only  scan current state of the host")
+        print("       -y, --yes        make changes without prompt")
+        print("       -r, --runtime    runtime only changes")
+        print("       -d, --dry-run    don't make changes yet")
+        print(" OPTIONS:")
+        print("         --enable-default-mitigation [-yd]")
+        print("         --disable-mitigations [-yrd]")
+        print("         --enable-full-mitigation [-yrd]")
 
     def print_options(self):
         """
@@ -168,7 +162,7 @@ class Parser(Base):
         if self.help:
             opt += ", help"
 
-        logn("   Options: " + opt)
+        log("   Options: " + opt)
         return
 
     def validate_options(self):
@@ -240,7 +234,7 @@ class Parser(Base):
 
             opts, args = getopt.getopt(argv[1:], 'hvyrsd', options)
         except getopt.GetoptError as err:
-            print err
+            print(err)
             self.usage()
             sys.exit(2)
 
@@ -248,7 +242,7 @@ class Parser(Base):
             self.usage()
             return False
 
-        for opt,arg in opts:
+        for opt, arg in opts:
             if opt == '-h' or opt == '--help':
                 self.help = True
                 self.usage()

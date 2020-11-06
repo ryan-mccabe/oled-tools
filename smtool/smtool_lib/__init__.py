@@ -20,14 +20,32 @@
 # questions.
 
 # allows other modules to import smtool_lib.Parser, etc.
-from boot import Boot
-from cpu import Cpu
-from distro import Distro
-from host import Host
-from kernel import Kernel
-from microcode import Microcode
-from parser import Parser
-from server import Server
-from sysfile import Sysfile
-from variant import Variant
-from vulnerabilities import Vulnerabilities
+import sys
+if (sys.version_info[0] == 3):
+    from .boot import Boot
+    from .boothole import Boothole
+    from .command import Cmd
+    from .cpu import Cpu
+    from .distro import Distro
+    from .host import Host
+    from .kernel import Kernel
+    from .microcode import Microcode
+    from .parser import Parser
+    from .server import Server
+    from .sysfile import Sysfile
+    from .variant import Variant
+    from .vulnerabilities import Vulnerabilities
+else:
+    from boot import Boot
+    from boothole import Boothole
+    from command import Cmd
+    from cpu import Cpu
+    from distro import Distro
+    from host import Host
+    from kernel import Kernel
+    from microcode import Microcode
+    from parser import Parser
+    from server import Server
+    from sysfile import Sysfile
+    from variant import Variant
+    from vulnerabilities import Vulnerabilities

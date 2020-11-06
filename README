@@ -2,6 +2,7 @@ From master branch supports only local build and install.
 To build distro specific packages [ex: rpm] checkout a release branch or tag.
 
 Please git clone the source and follow the instruction mentioned below -
+[For OL8: ./setup.sh followed by below commands]
 To local build:
 	./configure
 	make all

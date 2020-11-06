@@ -18,10 +18,19 @@ oled-tools is a collection of command line tools, scripts, config files, etc.,
 that will aid in faster and better debugging of problems on Oracle Linux. It
 contains: lkce, gather and smtool presently
 
+# avoid OL8 build error. We have to fix this eventually
+%if 0%{?el8}
+%define debug_package %{nil}
+%endif
 
 %prep
 %setup -q
 
+%if 0%{?el8}
+find -type f -exec sed -i '1s=^#!/usr/bin/\(python\|env python\)[23]\?=#!%{__python3}=' {} +
+find . -type f -name "Makefile" -print0 | xargs -0 sed -i  's/\bpython\b/python3/g'
+find -type f -exec sed -i 's/\braw_input\b/input/g' {} \;
+%endif
 
 %build
 %configure
@@ -34,17 +43,20 @@ make install DESTDIR=$RPM_BUILD_ROOT DIST=%{?dist} SPECFILE="1"
 
 %define oled_d %{_usr}/lib/oled-tools
 %define oled_etc_d /etc/oled/
+%if 0%{?el8}
+%define smtool_lib %{python3_sitearch}/smtool_lib/
+%else
+%define smtool_lib %{python_sitelib}/smtool_lib/
+%endif
 %define lkce_d %{oled_etc_d}/lkce
 %define kdump_pre_d %{oled_etc_d}/kdump_pre.d
-%define smtool_lib %{python_sitelib}/smtool_lib/
 
 %post
 #kdump-utils
 oled kdump --add > /dev/null || :
 %if 0%{?el6}
 service kdump restart > /dev/null || :
-%endif
-%if 0%{?el7}
+%else
 systemctl restart kdump > /dev/null || :
 %endif
 
@@ -53,29 +65,31 @@ systemctl restart kdump > /dev/null || :
 oled kdump --remove > /dev/null || :
 %if 0%{?el6}
 service kdump restart > /dev/null || :
-%endif
-%if 0%{?el7}
+%else
 systemctl restart kdump > /dev/null || :
 %endif
 
 %postun
 if [ $1 -ge 1 ] ; then
-	# package upgrade, not uninstall
+# package upgrade, not uninstall
 
 	#kdump-utils
 	oled kdump --add > /dev/null || :
 
 	%if 0%{?el6}
-	service kdump restart > /dev/null || :
-	%endif
-	%if 0%{?el7}
-	systemctl restart kdump > /dev/null || :
+		service kdump restart > /dev/null || :
+	%else
+		systemctl restart kdump > /dev/null || :
 	%endif
 else
-	# package uninstall, not upgrade
+# package uninstall, not upgrade
 	#smtool
-	rm -f %{smtool_lib}/*.pyc || :
-	rm -f %{smtool_lib}/*.pyo || :
+	%if 0%{?el8}
+		rm -rf %{smtool_lib}/__pycache__
+	%else
+		rm -f %{smtool_lib}/*.pyc || :
+		rm -f %{smtool_lib}/*.pyo || :
+	%endif
 
 	#lkce
 	if [ -f %{lkce_d}/lkce.conf ]
@@ -83,7 +97,7 @@ else
 		rm -f %{kdump_pre_d}/lkce-kdump || :
 		rm -f %{lkce_d}/crash_cmds || :
 		rm -f %{lkce_d}/lkce.conf || :
-	fi
+		fi
 	rmdir %{lkce_d} || :
 
 	#kdump-utils
@@ -106,22 +120,14 @@ rm -rf $RPM_BUILD_ROOT
 %{_sbindir}/oled
 %{_mandir}/man8/oled.8.gz
 
-#kdump-utils
-%{oled_d}/kdump
-
-# lkce
-%{oled_d}/lkce
-%{oled_d}/lkce-kdump
-%{_mandir}/man8/oled-lkce.8.gz
-
-#gather
-%{oled_d}/gather
-%{_mandir}/man8/oled-gather.8.gz
-
 #smtool
 %{oled_d}/smtool
+%if 0%{?el8}
+%exclude %{smtool_lib}/__pycache__/*.pyc
+%else
 %exclude %{smtool_lib}/*.pyc
 %exclude %{smtool_lib}/*.pyo
+%endif
 %{smtool_lib}/vulnerabilities.py
 %{smtool_lib}/variant.py
 %{smtool_lib}/sysfile.py
@@ -132,18 +138,36 @@ rm -rf $RPM_BUILD_ROOT
 %{smtool_lib}/host.py
 %{smtool_lib}/distro.py
 %{smtool_lib}/cpu.py
+%{smtool_lib}/command.py
+%{smtool_lib}/boothole.py
 %{smtool_lib}/boot.py
 %{smtool_lib}/base.py
 %{smtool_lib}/__init__.py
 %{_mandir}/man8/oled-smtool.8.gz
 
+%if 0%{?el6}%{?el7}
+#gather
+%{oled_d}/gather
+%{_mandir}/man8/oled-gather.8.gz
+%endif
 
+#kdump-utils
+%{oled_d}/kdump
+
+# lkce
+%{oled_d}/lkce
+%{oled_d}/lkce-kdump
+%{_mandir}/man8/oled-lkce.8.gz
 
 %changelog
-* Fri Sep 4 2020 Manjunath Patil <manjunath.b.patil@oracle.com> [0.1-5]
-- Orabug: 31793813 - remove release string from oled version
+* Tue Jan 5 2021 Mridula Shastry <mridula.c.shastry@oracle.com>
+- Enable smtool on OL8. Also verification for boothole [Orabug: 30441144]
+- Enabled kdump-utils and lkce to run on OL8. [Orabug: 32299961]
 
-* Thu Aug 17 2020 Manjunath Patil <manjunath.b.patil@oracle.com> [0.1-4]
+* Fri Sep 4 2020 Manjunath Patil <manjunath.b.patil@oracle.com> [0.1-5]
+- remove release string from oled version [Orabug: 31793813]
+
+* Mon Aug 17 2020 Manjunath Patil <manjunath.b.patil@oracle.com> [0.1-4]
 - Prod Release oled-tools-0.1-4
 
 * Fri Jul 17 2020 Manjunath Patil <manjunath.b.patil@oracle.com> [0.1-3]

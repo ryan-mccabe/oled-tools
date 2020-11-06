@@ -28,13 +28,23 @@ various variants and also contains methods to scan, enable
 and disable vulnerabilities.
 
 """
-import parser
+import sys
+if (sys.version_info[0] == 3):
+    from . import parser
 
-from distro import Distro
-from cpu import Cpu
-from kernel import Kernel
-from server import Server
-from vulnerabilities import Vulnerabilities
+    from .distro import Distro
+    from .cpu import Cpu
+    from .kernel import Kernel
+    from .server import Server
+    from .vulnerabilities import Vulnerabilities
+else:
+    import parser
+
+    from distro import Distro
+    from cpu import Cpu
+    from kernel import Kernel
+    from server import Server
+    from vulnerabilities import Vulnerabilities
 
 
 VERBOSE = False  # type: bool
@@ -47,31 +57,11 @@ def log(msg):
 
     """
     if parser.VERBOSE:
-        print msg,
+        print(msg)
     return
 
 
-def logn(msg):
-    """
-    Logs messages if the variable
-    VERBOSE is set.
-
-    """
-    if parser.VERBOSE:
-        print msg
-    return
-
-
-def error(msg):
-    """
-    Logs error messages.
-
-    """
-    print "ERROR: " + msg
-    return
-
-
-class Host:
+class Host(object):
     """
     Contains methods to initialize various host parameters
     including distribution type, kernel, cpu and microcode
@@ -142,7 +132,7 @@ class Host:
         False.
 
         """
-        logn("disabling mitigations")
+        log("disabling mitigations")
         if runtime:
             self.vuln.enable_vulnerabilities_runtime(yes)
         else:
@@ -163,7 +153,7 @@ class Host:
         False.
 
         """
-        logn("enabling mitigation")
+        log("enabling mitigation")
         if runtime:
             self.vuln.disable_vulnerabilities_runtime(yes)
         else:
@@ -182,7 +172,7 @@ class Host:
         False.
 
         """
-        logn("reset mitigation")
+        log("reset mitigation")
         self.vuln.reset_vulnerabilities(dry_run, yes)
         return
 
@@ -192,7 +182,7 @@ class Host:
         vulnerabilities.
 
         """
-        logn("Scanning Host.......................")
+        log("Scanning Host.......................")
 
         self.vuln = Vulnerabilities(self)
 
@@ -208,7 +198,8 @@ class Host:
         kernel version.
 
         """
-        logn("Initializing host")
+        log("Initializing host")
+
         self.distro = Distro(True) 			# Oracle distro object
         if not self.distro.is_valid():
             raise ValueError("Invalid Distribution")

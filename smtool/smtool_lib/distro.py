@@ -27,10 +27,16 @@ server is running and validate it.
 
 """
 import os
-import parser
+import subprocess
+import sys
 
-from base import Base
-
+if (sys.version_info[0] == 3):
+    from . import parser
+    from .base import Base
+else:
+    import parser
+    from base import Base
+    from command import Cmd
 
 def log(msg):
     """
@@ -39,27 +45,7 @@ def log(msg):
 
     """
     if parser.VERBOSE:
-        print msg,
-    return
-
-
-def logn(msg):
-    """
-    Logs messages if the variable
-    VERBOSE is set.
-
-    """
-    if parser.VERBOSE:
-        print msg
-    return
-
-
-def error(msg):
-    """
-    Logs error messages.
-
-    """
-    print "ERROR: " + msg
+        print(msg)
     return
 
 
@@ -98,8 +84,8 @@ class Distro(Base):
         OVS, Redhat, UEK
 
         """
-        cmd = ["uname -r"]
-        out = self.run_command(cmd, True)
+
+        out = self.run_command("uname -r")
 
         if os.path.exists(self.ovs_release_file):
             return self.read_file(self.ovs_release_file)
@@ -111,7 +97,7 @@ class Distro(Base):
             if os.path.exists(self.redhat_release_file):
                 return self.read_file(self.redhat_release_file)
 
-        print "Unknown Release"
+        print("Unknown Release")
 
         return None
 
@@ -133,14 +119,14 @@ class Distro(Base):
                 return self.UNKNOWN
 
             if tmp[1] == "Linux":
-                if tmp[4] < "6.0" or tmp[4] >= "9.0":
-                    return self.UNKNOWN
                 if tmp[4] > "8.0":
                     return self.OL8
                 if tmp[4] > "7.0":
                     return self.OL7
                 if tmp[4] > "6.0":
                     return self.OL6
+                if tmp[4] < "6.0" or tmp[4] >= "9.0":
+                    return self.UNKNOWN
 
             if tmp[1] == "VM":
                 if tmp[4] < "3.2" or tmp[4] >= "5.0":
@@ -155,9 +141,6 @@ class Distro(Base):
                     return self.OVM32
 
         if tmp[0] == "Red" and tmp[1] == "Hat":
-            if tmp[6] < "6.0" or tmp[6] >= "9.0":
-                return self.UNKNOWN
-
             if tmp[6] >= "8.0":
                 return self.RHEL8
 
@@ -166,6 +149,9 @@ class Distro(Base):
 
             if tmp[6] >= "6.0":
                 return self.RHEL6
+
+            if tmp[6] < "6.0" or tmp[6] >= "9.0":
+                return self.UNKNOWN
 
         return self.UNKNOWN
 
@@ -212,11 +198,11 @@ class Distro(Base):
         of distribution that the server is running.
 
         """
-	if (is_log is True):
-        	log(" Scanning distribution....................:")
+        if (is_log is True):
+            log(" Scanning distribution....................:")
         self.dtype = self.scan_distro()
         if not self.is_valid():
             raise ValueError("ERROR: Unsupported Linux Distribution")
-	if (is_log is True):
-        	logn(self.get_distro())
+        if (is_log is True):
+            log(self.get_distro())
         return

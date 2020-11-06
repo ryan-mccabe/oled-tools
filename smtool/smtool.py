@@ -32,6 +32,7 @@ the status of vulnerabilities to the user.
 """
 import sys
 
+from smtool_lib import Boothole
 from smtool_lib import Parser
 from smtool_lib import Host
 from smtool_lib import Microcode
@@ -45,7 +46,7 @@ def error(msg):
     Logs error messages.
 
     """
-    print "ERROR: " + msg
+    print("ERROR: " + msg)
     return
 
 
@@ -63,6 +64,9 @@ class Smtool(Parser):
     version required by scan routine.
 
     """
+
+    boothole = None
+
     def get_variant_type(self, vname):
         """
         Returns specific variant type based
@@ -149,12 +153,15 @@ class Smtool(Parser):
         disabled_variants_cmdline = ""
         disabled_variants_kernel = ""
         recommended_ver = kernel.recommended_ver(kernel.get_kernel_desc())
+
+        self.boothole = Boothole()
+
         if not h.is_vulnerable():
-            print "System is not vulnerable"
+            print("System is not vulnerable")
             return
 
         if h.is_mitigated():
-            print "System is mitigated"
+            print("Mitigations are in place for all cpu vulnerabilities")
             return
 
         list_vuln = h.get_vulnerabilities()
@@ -199,14 +206,14 @@ class Smtool(Parser):
             if enabled_mitigation_list.find("Spectre V2") != -1:
                 is_enabled_runtime = True
 
-        print "System is vulnerable to " + list_vuln[:-2]
+        print("System is vulnerable to " + list_vuln[:-2])
         vuln_list = list_vuln[:-2].split(",")
 
         if ((self.server.stype == self.XEN_PV) or (
                 self.server.stype == self.XEN_HYPERVISOR)):
             xen = True
-            print "Mitigation is not available for Meltdown, "\
-                  "SSBD and MDS on this system"
+            print("Mitigation is not available for Meltdown, "
+                  "SSBD and MDS on this system")
             for vuln in vuln_list:
                 if (vuln.strip() == "Spectre V2" or vuln.strip()
                         == "Spectre V1" or vuln.strip() == "L1TF"):
@@ -267,35 +274,37 @@ class Smtool(Parser):
                             require_kernel_upgrade = True
 
         if require_cmdline_update:
-            print "Mitigation for the following variants disabled on "\
-                  "the cmdline: " + disabled_variants_cmdline[:-1]
-            print "Please enable the mitigations for the above mentioned "\
-                  "variants using the tool."
+            print("Mitigation for the following variants disabled on "
+                  "the cmdline: " + disabled_variants_cmdline[:-1])
+            print("Please enable the mitigations for the above mentioned "
+                  "variants using the tool.")
         if enabled_mitigation_list:
             if is_enabled_runtime:
-                print "Runtime mitigation may be enabled for Spectre V2."
+                print("Runtime mitigation may be enabled for Spectre V2.")
                 enabled_mitigation_list_new = enabled_mitigation_list.\
                     replace('Spectre V2', '')
             else:
                 enabled_mitigation_list_new = enabled_mitigation_list
         if enabled_mitigation_list_new:
-            print "Please note that the default mitigation will "\
-                  "always be enabled for the following: "\
-                  "" + enabled_mitigation_list_new[:-2].strip()
+            print("Please note that the default mitigation will "
+                  "always be enabled for the following: "
+                  "" + enabled_mitigation_list_new[:-2].strip())
 
         if require_kernel_upgrade:
-            print "Kernel is too old to support mitigations for "\
-                  "" + disabled_variants_kernel[:-1]
+            print("Kernel is too old to support mitigations for "
+                  "" + disabled_variants_kernel[:-1])
             if (kernel.ktype == 1) or (kernel.ktype == 2):
-                print "Kernels older than UEK4 do not support mitigation "\
-                      "for SSBD."
-                print "Please upgrade the kernel to UEK4 version "\
-                      "4.1.12-124.33.2 to enable support for all "\
-                      "mitigations"
+                print("Kernels older than UEK4 do not support mitigation "
+                      "for SSBD.")
+                print("Please upgrade the kernel to UEK4 version "
+                      "4.1.12-124.33.2 to enable support for all "
+                      "mitigations")
             else:
-                print "Please upgrade the kernel to version " + recommended_ver
+                print(
+                    "Please upgrade the kernel to version " +
+                    recommended_ver)
 
-	if require_microcode_update:
+        if require_microcode_update:
             if (server_type == self.BARE_METAL or server_type ==
                     self.KVM_HOST or server_type == self.XEN_HYPERVISOR):
                 if (min_microcode_ver_arr):
@@ -312,33 +321,33 @@ class Smtool(Parser):
                             continue
                         else:
                             variants.append(i)
-                	if variants:
-                            print "Microcode is too old to support "\
-                                "mitigation for " + ''.join(variants)
+                        if variants:
+                            print("Microcode is too old to support "
+                                  "mitigation for " + ''.join(variants))
                             if (min_microcode_ver_arr):
-                                print "Please upgrade the microcode to "\
-                                    "version " + str(hex(highest_ver))
+                                print("Please upgrade the microcode to "
+                                      "version " + str(hex(highest_ver)))
                             else:
-                                print "Please upgrade the microcode to "\
-                                      "the latest version"
-		print "Microcode is too old to support "\
-			"mitigation for " + ''.join(variant_list)
-		if (min_microcode_ver_arr):
-                    print "Please upgrade the microcode to "\
-			"version " + str(hex(highest_ver))
+                                print("Please upgrade the microcode to "
+                                      "the latest version")
+                print("Microcode is too old to support "
+                      "mitigation for " + ''.join(variant_list))
+                if (min_microcode_ver_arr):
+                    print("Please upgrade the microcode to "
+                          "version " + str(hex(highest_ver)))
                 else:
-                    print "Please upgrade the microcode to "\
-                          "the latest version."
-	    elif (server_type == self.KVM_GUEST or server_type ==
-			self.XEN_PV or server_type == self.XEN_HVM):
-            	print "Please check if the host microcode "\
-                	"is uptodate for " + is_microcode_vulnerable[:-2]
-            	if (server_type == self.KVM_GUEST):
-                    print "Also please verify if the host is running "\
-                    "QEMU version 2.9 and above"
-		else:
-		    print "Also please verify if Dom0 is running "\
-		    "the latest xen version"
+                    print("Please upgrade the microcode to "
+                          "the latest version.")
+            elif (server_type == self.KVM_GUEST or server_type ==
+                  self.XEN_PV or server_type == self.XEN_HVM):
+                print("Please check if the host microcode "
+                      "is uptodate for " + is_microcode_vulnerable[:-2])
+                if (server_type == self.KVM_GUEST):
+                    print("Also please verify if the host is running "
+                          "QEMU version 2.9 and above")
+                else:
+                    print("Also please verify if Dom0 is running "
+                          "the latest xen version")
 
     def __init__(self, argv):
         """
@@ -361,12 +370,13 @@ class Smtool(Parser):
         try:
             self.host = Host()
             self.distro = Distro(False)                  # Oracle distro object
-            self.server = Server(self.distro, False)     # Baremetal, hypervisor, VM
+            # Baremetal, hypervisor, VM
+            self.server = Server(self.distro, False)
 
             self.microcode = Microcode()
             self.host.scan_host()
             if not self.host.is_vulnerable():
-                print "This system is not vulnerable. Nothing to be done"
+                print("This system is not vulnerable. Nothing to be done")
             if self.scan_only:
                 self.scan_status()
                 return
@@ -379,8 +389,9 @@ class Smtool(Parser):
             if self.enable_default:
                 self.host.reset_mitigations(self.dry_run, self.yes)
         except ValueError as err:
-            print err
+            print(err)
             sys.exit(2)
+
 
 # main
 try:

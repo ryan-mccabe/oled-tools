@@ -24,137 +24,172 @@
 # program that runs inside kdump kernel
 # program to run crash utility inside the kdump kernel
 #
-import time, commands, os, re, sys, signal
+import time
+import os
+import re
+import subprocess
+import sys
+import signal
+
 
 class LKCE_KDUMP:
-	def __init__(self):
-		#global variables
-		self.VMLINUX = ""
-		self.VMCORE = '/proc/vmcore'
+    def run_command(self, cmd):
+        """
+        Execute command and return the result
+        Parameters:
+        cmd (int): Command to run
+        shell (bool): If True, run command through
+        the shell
 
-		self.SYSCONFIG_KDUMP = "/etc/sysconfig/kdump"
-		self.KDUMP_KERNELVER = commands.getoutput('uname -r')
+        Returns string: result of the specific command
+        executed.
 
-		#vmlinux_path
-		file = open(self.SYSCONFIG_KDUMP, "r")
-		for line in file:
-			if re.search("KDUMP_KERNELVER=", line):
-				line = re.sub(r"\s+", "", line)
-				entry = re.split("=", line)
-				if re.search("\w", entry[1]):
-					self.KDUMP_KERNELVER = entry[1]
-			#if re.seach
-		#for
-		file.close()
+        """
+        command = subprocess.Popen(cmd,
+                               stdin=None,
+                               stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE,
+                               shell=True)
+        out, err = command.communicate()
+        if (sys.version_info[0] == 3):
+            out = out.decode("utf-8").strip()
 
-		self.LKCE_HOME = "/etc/oled/lkce"
-		self.LKCE_CONFIG_FILE = self.LKCE_HOME + "/lkce.conf"
-		self.LKCE_CRASH_CMDS_FILE = self.LKCE_HOME + "/crash_cmds"
-		self.LKCE_OUT = "/var/crash/lkce"
-		self.LKCE_OUT_FILE = self.LKCE_OUT + "/crash_" + time.strftime("%Y%m%d-%H%M%S") + ".out"
-		self.LKCE_OUT_VMLINUX_PATH= self.LKCE_OUT + "/debug-vmlinux/" + self.KDUMP_KERNELVER
-		self.TIMEDOUT_ACTION = "reboot -f"
+        return out.strip()
 
-		#default values
-		self.enable = "yes"
-		self.vmlinux_path = "/usr/lib/debug/lib/modules/" + self.KDUMP_KERNELVER
-		self.crash_cmds_file = self.LKCE_CRASH_CMDS_FILE
-		self.max_out_files = "50"
+    def __init__(self):
+        #global variables
+        self.VMLINUX = ""
+        self.VMCORE = '/proc/vmcore'
 
-		self.read_config(self.LKCE_CONFIG_FILE)
-	#def __init__
+        self.SYSCONFIG_KDUMP = "/etc/sysconfig/kdump"
+        self.KDUMP_KERNELVER = self.run_command('uname -r')
 
-	def read_config(self, filename):
-		if not os.path.exists(filename):
-			self.exit()
+        # vmlinux_path
+        file = open(self.SYSCONFIG_KDUMP, "r")
+        for line in file:
+            if re.search("KDUMP_KERNELVER=", line):
+                line = re.sub(r"\s+", "", line)
+                entry = re.split("=", line)
+                if re.search(r"\w", entry[1]):
+                    self.KDUMP_KERNELVER = entry[1]
+            # if re.seach
+        # for
+        file.close()
 
-		file = open(filename, "r")
-		for line in file.readlines():
-			if re.search("^#", line): #ignore lines starting with '#'
-				continue
+        self.LKCE_HOME = "/etc/oled/lkce"
+        self.LKCE_CONFIG_FILE = self.LKCE_HOME + "/lkce.conf"
+        self.LKCE_CRASH_CMDS_FILE = self.LKCE_HOME + "/crash_cmds"
+        self.LKCE_OUT = "/var/crash/lkce"
+        self.LKCE_OUT_FILE = self.LKCE_OUT + "/crash_" + \
+            time.strftime("%Y%m%d-%H%M%S") + ".out"
+        self.LKCE_OUT_VMLINUX_PATH = self.LKCE_OUT + \
+            "/debug-vmlinux/" + self.KDUMP_KERNELVER
+        self.TIMEDOUT_ACTION = "reboot -f"
 
-			# trim space/tab/newline from the line
-			line = re.sub(r"\s+", "", line)
+        # default values
+        self.enable = "yes"
+        self.vmlinux_path = "/usr/lib/debug/lib/modules/" + self.KDUMP_KERNELVER
+        self.crash_cmds_file = self.LKCE_CRASH_CMDS_FILE
+        self.max_out_files = "50"
 
-			entry = re.split("=", line)
-			if "enable" in entry[0] and entry[1]:
-				self.enable = entry[1]
+        self.read_config(self.LKCE_CONFIG_FILE)
+    # def __init__
 
-			elif "vmlinux_path" in entry[0] and entry[1]:
-				self.vmlinux_path = entry[1]
+    def read_config(self, filename):
+        if not os.path.exists(filename):
+            self.exit()
 
-			elif "crash_cmds_file" in entry[0] and entry[1]:
-				self.crash_cmds_file = entry[1]
+        file = open(filename, "r")
+        for line in file.readlines():
+            if re.search("^#", line):  # ignore lines starting with '#'
+                continue
 
-			elif "max_out_files" in entry[0] and entry[1]:
-				self.max_out_files = entry[1]
-	#def read_config
+            # trim space/tab/newline from the line
+            line = re.sub(r"\s+", "", line)
 
-	def get_vmlinux(self):
-		VMLINUX_1 = self.LKCE_OUT_VMLINUX_PATH + "/vmlinux"
-		VMLINUX_2 = self.vmlinux_path + "/vmlinux"
-		VMLINUX_3 = "/usr/lib/debug/lib/modules/" + self.KDUMP_KERNELVER + "/vmlinux"
+            entry = re.split("=", line)
+            if "enable" in entry[0] and entry[1]:
+                self.enable = entry[1]
 
-		if os.path.exists(VMLINUX_1):
-			self.VMLINUX = VMLINUX_1
-		elif os.path.exists(VMLINUX_2):
-			self.VMLINUX = VMLINUX_2
-		elif os.path.exists(VMLINUX_2):
-			self.VMLINUX = VMLINUX_3
-		else:
-			print "lkce: vmlinux not found in the following locations."
-			print "lkce: %s"%VMLINUX_1
-			print "lkce: %s"%VMLINUX_2
-			print "lkce: %s"%VMLINUX_3
-			self.exit()
+            elif "vmlinux_path" in entry[0] and entry[1]:
+                self.vmlinux_path = entry[1]
 
-		print "lkce: vmlinux found at %s"%self.VMLINUX
-	#def get_vmlinux
+            elif "crash_cmds_file" in entry[0] and entry[1]:
+                self.crash_cmds_file = entry[1]
 
-	def run_crash(self):
-		self.get_vmlinux()
-		if not os.path.exists(self.crash_cmds_file):
-			print "lkce: %s not found"%self.crash_cmd_file
-			return 1
+            elif "max_out_files" in entry[0] and entry[1]:
+                self.max_out_files = entry[1]
+    # def read_config
 
-		if not os.path.exists(self.LKCE_OUT):
-			cmd = "mkdir -p " + self.LKCE_OUT
-			os.system(cmd)
+    def get_vmlinux(self):
+        VMLINUX_1 = self.LKCE_OUT_VMLINUX_PATH + "/vmlinux"
+        VMLINUX_2 = self.vmlinux_path + "/vmlinux"
+        VMLINUX_3 = "/usr/lib/debug/lib/modules/" + self.KDUMP_KERNELVER + "/vmlinux"
 
-		cmd = "crash " + self.VMLINUX + " " + self.VMCORE + " -i " + self.crash_cmds_file + " > " + self.LKCE_OUT_FILE
-		print "lkce: Executing '%s'"%cmd
-		os.system(cmd)
-	#def run_crash
+        if os.path.exists(VMLINUX_1):
+            self.VMLINUX = VMLINUX_1
+        elif os.path.exists(VMLINUX_2):
+            self.VMLINUX = VMLINUX_2
+        elif os.path.exists(VMLINUX_2):
+            self.VMLINUX = VMLINUX_3
+        else:
+            print("lkce: vmlinux not found in the following locations.")
+            print("lkce: %s" % VMLINUX_1)
+            print("lkce: %s" % VMLINUX_2)
+            print("lkce: %s" % VMLINUX_3)
+            self.exit()
 
-	def clean_up(self):
-		cmd = "ls -r " + self.LKCE_OUT + "/crash*out 2>/dev/null | tail -n +"  + str(int(self.max_out_files)+1)
-		delete_files = commands.getoutput(cmd)
-		delete_files = re.sub(r"\s+", " ", delete_files)
+        print("lkce: vmlinux found at %s" % self.VMLINUX)
+    # def get_vmlinux
 
-		if delete_files :
-			print "lkce: found more than %s[max_out_files] out files. Deleting older ones"%self.max_out_files
-			cmd = "rm -f " + delete_files
-			os.system(cmd)
-	#def clean_up
+    def run_crash(self):
+        self.get_vmlinux()
+        if not os.path.exists(self.crash_cmds_file):
+            print("lkce: %s not found" % self.crash_cmd_file)
+            return 1
 
-	def exit(self):
-		sys.exit(0);
-	#def exit
+        if not os.path.exists(self.LKCE_OUT):
+            cmd = "mkdir -p " + self.LKCE_OUT
+            os.system(cmd)
 
-#class LKCE_KDUMP
+        cmd = "crash " + self.VMLINUX + " " + self.VMCORE + " -i " + \
+            self.crash_cmds_file + " > " + self.LKCE_OUT_FILE
+        print("lkce: Executing '%s'" % cmd)
+        os.system(cmd)
+    # def run_crash
+
+    def clean_up(self):
+        cmd = "ls -r " + self.LKCE_OUT + "/crash*out 2>/dev/null | tail -n +" + \
+            str(int(self.max_out_files) + 1)
+        delete_files = self.run_command(cmd)
+        delete_files = re.sub(r"\s+", " ", delete_files)
+
+        if delete_files:
+            print("lkce: found more than %s[max_out_files] out files. Deleting older ones" % self.max_out_files)
+            cmd = "rm -f " + delete_files
+            os.system(cmd)
+    # def clean_up
+
+    def exit(self):
+        sys.exit(0)
+    # def exit
+
+# class LKCE_KDUMP
+
 
 def main():
-	lkce_kdump = LKCE_KDUMP()
+    lkce_kdump = LKCE_KDUMP()
 
-	if lkce_kdump.enable != "yes" :
-		print "lkce: lkce is disabled to run"
-		lkce_kdump.exit()
-	else :
-		print "lkce: lkce is enabled to run"
-		lkce_kdump.run_crash()
-		lkce_kdump.clean_up()
-		lkce_kdump.exit()
-#def main
+    if lkce_kdump.enable != "yes":
+        print("lkce: lkce is disabled to run")
+        lkce_kdump.exit()
+    else:
+        print("lkce: lkce is enabled to run")
+        lkce_kdump.run_crash()
+        lkce_kdump.clean_up()
+        lkce_kdump.exit()
+# def main
+
 
 if __name__ == '__main__':
     main()

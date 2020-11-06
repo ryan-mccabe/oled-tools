@@ -31,14 +31,26 @@ recommends upgrades if any.
 
 """
 import os
-import parser
+import sys
 
-from base import Base
-from boot import Boot
-from cpu import Cpu
-from distro import Distro
-from server import Server
-from sysfile import Sysfile
+if (sys.version_info[0] == 3):
+    from . import parser
+
+    from .base import Base
+    from .boot import Boot
+    from .cpu import Cpu
+    from .distro import Distro
+    from .server import Server
+    from .sysfile import Sysfile
+else:
+    import parser
+
+    from base import Base
+    from boot import Boot
+    from cpu import Cpu
+    from distro import Distro
+    from server import Server
+    from sysfile import Sysfile
 
 
 def log(msg):
@@ -48,7 +60,7 @@ def log(msg):
 
     """
     if parser.VERBOSE:
-        print msg,
+        print(msg)
     return
 
 
@@ -59,7 +71,7 @@ def logn(msg):
 
     """
     if parser.VERBOSE:
-        print msg
+        print(msg)
     return
 
 
@@ -68,7 +80,7 @@ def error(msg):
     Logs error messages.
 
     """
-    print "ERROR: " + msg
+    print("ERROR: " + msg)
     return
 
 
@@ -175,25 +187,25 @@ class Variant(Base):
 
                 if not yes:
                     if kernel_version.find("RHCK") != -1:
-                        print "Enter 0 to disable mitigation"
+                        print("Enter 0 to disable mitigation")
                         option = raw_input(
                             self.sysfile.runtime_files_array_RHCK[int(i)] +
                             ": ")
                         while (
                                 not self.sysfile.is_option_valid(
                                     int(i), option, kernel_version)):
-                            print "Please enter a valid option"
+                            print("Please enter a valid option")
                             option = raw_input(
                                 self.sysfile.runtime_files_array_RHCK[int(i)]
                                 + ": ")
                     else:
-                        print "Please enter 0 to disable mitigation"
+                        print("Please enter 0 to disable mitigation")
                         option = raw_input(
                             self.sysfile.runtime_files_array[int(i)] + ": ")
                         while (
                                 not self.sysfile.is_option_valid(
                                     int(i), option, kernel_version)):
-                            print "Please enter a valid option"
+                            print("Please enter a valid option")
                             option = raw_input(
                                 self.sysfile.runtime_files_array[int(i)] +
                                 ": ")
@@ -216,13 +228,13 @@ class Variant(Base):
         if (self.vtype == 4) and (kernel_version.find("RHCK") != -1):
             if os.path.isfile(self.sysfile.runtime_files_array[3]):
                 if not yes:
-                    print "Enter 0 to disable mitigation"
+                    print("Enter 0 to disable mitigation")
                     option = raw_input(
                         self.sysfile.runtime_files_array_RHCK[3] + ": ")
                     while (
                             not self.sysfile.is_option_valid(
                                 3, option, kernel_version)):
-                        print "Please enter a valid option"
+                        print("Please enter a valid option")
                     option = raw_input(
                         self.sysfile.runtime_files_array_RHCK[3] + ": ")
                     self.write_file(
@@ -241,25 +253,25 @@ class Variant(Base):
                     if (self.read_file(
                             self.sysfile.runtime_files_array[4])
                             not in smt_list):
-                        print "Enter on to enable SMT"
+                        print("Enter on to enable SMT")
                         option = raw_input(
                             self.sysfile.runtime_files_array[4] + ": ")
                         while (
                                 not self.sysfile.is_option_valid(
                                     4, option, kernel_version)):
-                            print "Please enter a valid option"
+                            print("Please enter a valid option")
                             option = raw_input(
                                 self.sysfile.runtime_files_array[4] + ": ")
                         self.write_file(
                             self.sysfile.runtime_files_array[4], str(option))
                 if os.path.isfile(self.sysfile.runtime_files_array[5]):
-                    print "Enter never to disable L1D flush mitigation"
+                    print("Enter never to disable L1D flush mitigation")
                     option = raw_input(
                         self.sysfile.runtime_files_array[5] + ": ")
                     while (
                             not self.sysfile.is_option_valid(
                                 5, option, kernel_version)):
-                        print "Please enter a valid option"
+                        print("Please enter a valid option")
                         option = raw_input(
                             self.sysfile.runtime_files_array[5] + ": ")
                     self.write_file(
@@ -279,25 +291,25 @@ class Variant(Base):
         if (self.vtype == 6) and (kernel_version.find("UEK") != -1):
             if not yes:
                 if os.path.isfile(self.sysfile.runtime_files_array[6]):
-                    print "Enter 0 to disable mitigation"
+                    print("Enter 0 to disable mitigation")
                     option = raw_input(
                         self.sysfile.runtime_files_array[6] + ": ")
                     while (
                             not self.sysfile.is_option_valid(
                                 6, option, kernel_version)):
-                        print "Please enter a valid option"
+                        print("Please enter a valid option")
                         option = raw_input(
                             self.sysfile.runtime_files_array[6] + ": ")
                     self.write_file(
                         self.sysfile.runtime_files_array[6], str(option))
                 if os.path.isfile(self.sysfile.runtime_files_array[7]):
-                    print "Enter 0 to disable mitigation"
+                    print("Enter 0 to disable mitigation")
                     option = raw_input(
                         self.sysfile.runtime_files_array[7] + ": ")
                     while (
                             not self.sysfile.is_option_valid(
                                 7, option, kernel_version)):
-                        print "Please enter a valid option"
+                        print("Please enter a valid option")
                         option = raw_input(
                             self.sysfile.runtime_files_array[7] + ": ")
                     self.write_file(
@@ -314,13 +326,13 @@ class Variant(Base):
         if (self.vtype == 7) and is_kvm:
             if not yes:
                 if os.path.isfile(self.sysfile.runtime_files_array[8]):
-                    print "Enter off to disable mitigation"
+                    print("Enter off to disable mitigation")
                     option = raw_input(
                         self.sysfile.runtime_files_array[8] + ": ")
                     while (
                             not self.sysfile.is_option_valid(
                                 8, option, kernel_version)):
-                        print "Please enter a valid option"
+                        print("Please enter a valid option")
                         option = raw_input(
                             self.sysfile.runtime_files_array[8] + ": ")
                     self.write_file(
@@ -374,20 +386,20 @@ class Variant(Base):
                             if self.sysfile.is_ibrs_tunable() is False:
                                 continue
                             if (i == 0) and (kernel_version == "RHCK6"):
-                                print "Please enter 1,2 or 3 to "\
-                                "enable mitigation"
+                                print("Please enter 1,2 or 3 to "
+                                      "enable mitigation")
                             if (i == 0) and (kernel_version == "RHCK7"):
-                                print "Please enter 1,2,3 or 4 to "\
-                                "enable mitigation"
+                                print("Please enter 1,2,3 or 4 to "
+                                      "enable mitigation")
                         else:
-                            print "Please enter 1 to enable mitigation"
+                            print("Please enter 1 to enable mitigation")
                         option = raw_input(
                             self.sysfile.runtime_files_array_RHCK[int(i)] +
                             ": ")
                         while (
                                 not self.sysfile.is_option_valid(
                                     int(i), option, kernel_version)):
-                            print "Please enter a valid option"
+                            print("Please enter a valid option")
                             option = raw_input(
                                 self.sysfile.runtime_files_array_RHCK[int(i)] +
                                 ": ")
@@ -399,14 +411,14 @@ class Variant(Base):
                             if self.sysfile.is_ibrs_tunable() is False:
                                 continue
                         else:
-                            print "Please enter 1 to enable mitigation"
+                            print("Please enter 1 to enable mitigation")
                             option = raw_input(
                                 self.sysfile.runtime_files_array[int(i)] +
                                 ": ")
                             while (
                                     not self.sysfile.is_option_valid(
                                         int(i), option, kernel_version)):
-                                print "Please enter a valid option"
+                                print("Please enter a valid option")
                                 option = raw_input(
                                     self.sysfile.runtime_files_array[int(i)] +
                                     ": ")
@@ -424,13 +436,13 @@ class Variant(Base):
         if (self.vtype == 4) and (kernel_version.find("RHCK") != -1):
             if os.path.isfile(self.sysfile.runtime_files_array[3]):
                 if not yes:
-                    print "Please enter 1 to enable mitigation"
+                    print("Please enter 1 to enable mitigation")
                     option = raw_input(
                         self.sysfile.runtime_files_array_RHCK[3] + ": ")
                     while (
                             not self.sysfile.is_option_valid(
                                 3, option, kernel_version)):
-                        print "Please enter a valid option"
+                        print("Please enter a valid option")
                         option = raw_input(
                             self.sysfile.runtime_files_array_RHCK[3] + ": ")
                     self.write_file(
@@ -453,25 +465,25 @@ class Variant(Base):
                     if (self.read_file(
                             self.sysfile.runtime_files_array[4])
                             not in smt_list):
-                        print "Enter off or forceoff to disable SMT"
+                        print("Enter off or forceoff to disable SMT")
                         option = raw_input(
                             self.sysfile.runtime_files_array[4] + ": ")
                         while (
                                 not self.sysfile.is_option_valid(
                                     4, option, kernel_version)):
-                            print "Please enter a valid option"
+                            print("Please enter a valid option")
                             option = raw_input(
                                 self.sysfile.runtime_files_array[4] + ": ")
                         self.write_file(
                             self.sysfile.runtime_files_array[4], str(option))
                 if os.path.isfile(self.sysfile.runtime_files_array[5]):
-                    print "Enter cond or always to enable L1D flush mitigation"
+                    print("Enter cond or always to enable L1D flush mitigation")
                     option = raw_input(
                         self.sysfile.runtime_files_array[5] + ": ")
                     while (
                             not self.sysfile.is_option_valid(
                                 5, option, kernel_version)):
-                        print "Please enter a valid option"
+                        print("Please enter a valid option")
                         option = raw_input(
                             self.sysfile.runtime_files_array[5] + ": ")
                     self.write_file(
@@ -490,25 +502,25 @@ class Variant(Base):
         if (self.vtype == 6) and (kernel_version.find("UEK") != -1):
             if not yes:
                 if os.path.isfile(self.sysfile.runtime_files_array[6]):
-                    print "Enter 1 to enable mitigation"
+                    print("Enter 1 to enable mitigation")
                     option = raw_input(
                         self.sysfile.runtime_files_array[6] + ": ")
                     while (
                             not self.sysfile.is_option_valid(
                                 6, option, kernel_version)):
-                        print "Please enter a valid option"
+                        print("Please enter a valid option")
                         option = raw_input(
                             self.sysfile.runtime_files_array[6] + ": ")
                     self.write_file(
                         self.sysfile.runtime_files_array[6], str(option))
                 if os.path.isfile(self.sysfile.runtime_files_array[7]):
-                    print "Enter 1 to enable mitigation"
+                    print("Enter 1 to enable mitigation")
                     option = raw_input(
                         self.sysfile.runtime_files_array[7] + ": ")
                     while (
                             not self.sysfile.is_option_valid(
                                 7, option, kernel_version)):
-                        print "Please enter a valid option"
+                        print("Please enter a valid option")
                         option = raw_input(
                             self.sysfile.runtime_files_array[7] + ": ")
                     self.write_file(
@@ -525,13 +537,13 @@ class Variant(Base):
         if (self.vtype == 7) and is_kvm:
             if not yes:
                 if os.path.isfile(self.sysfile.runtime_files_array[8]):
-                    print "Enter force or auto to enable mitigation"
+                    print("Enter force or auto to enable mitigation")
                     option = raw_input(
                         self.sysfile.runtime_files_array[8] + ": ")
                     while (
                             not self.sysfile.is_option_valid(
                                 8, option, kernel_version)):
-                        print "Please enter a valid option"
+                        print("Please enter a valid option")
                         option = raw_input(
                             self.sysfile.runtime_files_array[8] + ": ")
                     self.write_file(
@@ -559,21 +571,21 @@ class Variant(Base):
         Displays the mitigation status of each variant.
 
         """
-        print "     Variant      : " + self.vname
+        print("     Variant      : " + self.vname)
         if self.sysfile is None:
             return
-        print "       File       : " + self.sysfile.get_sysfile()
-        print "       Mitigated  : kernel=" + str(self.mitigated_kernel)
-        print ", Boot="
-        print str(self.mitigated_boot) + ", sys=" + str(self.mitigated_sys)
+        print("       File       : " + self.sysfile.get_sysfile())
+        print("       Mitigated  : kernel=" + str(self.mitigated_kernel))
+        print(", Boot=")
+        print(str(self.mitigated_boot) + ", sys=" + str(self.mitigated_sys))
         if self.boot.boot_on:
-            print "       boot on    : True"
+            print("       boot on    : True")
         if self.boot.boot_off:
-            print "       boot off   : True"
+            print("       boot off   : True")
         if self.boot.grub_on:
-            print "       grub on    : True"
+            print("       grub on    : True")
         if self.boot.grub_off:
-            print "       grub off   : True"
+            print("       grub off   : True")
 
     def is_mitigated(self):
         """
@@ -629,7 +641,8 @@ class Variant(Base):
         cpu = self.host.cpu
         kernel = self.host.kernel
         self.distro = Distro(False)                  # Oracle distro object
-        self.server = Server(self.distro, False)       # Baremetal, hypervisor, VM
+        # Baremetal, hypervisor, VM
+        self.server = Server(self.distro, False)
 
         mitigation_possible = self.is_mitigation_possible()
         if cpu.is_vulnerable(self.vtype):

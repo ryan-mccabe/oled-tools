@@ -27,13 +27,23 @@ vulnerabilities both in boot and runtime.
 
 """
 import os
-import parser
+import sys
+if (sys.version_info[0] == 3):
+    from . import parser
 
-from base import Base
-from distro import Distro
-from server import Server
-from sysfile import Sysfile
-from variant import Variant
+    from .base import Base
+    from .distro import Distro
+    from .server import Server
+    from .sysfile import Sysfile
+    from .variant import Variant
+else:
+    import parser
+
+    from base import Base
+    from distro import Distro
+    from server import Server
+    from sysfile import Sysfile
+    from variant import Variant
 
 
 def log(msg):
@@ -43,7 +53,7 @@ def log(msg):
 
     """
     if parser.VERBOSE:
-        print msg,
+        print(msg)
     return
 
 
@@ -54,7 +64,7 @@ def logn(msg):
 
     """
     if parser.VERBOSE:
-        print msg
+        print(msg)
     return
 
 
@@ -63,7 +73,7 @@ def error(msg):
     Logs error messages.
 
     """
-    print "ERROR: " + msg
+    print("ERROR: " + msg)
     return
 
 
@@ -149,7 +159,8 @@ class Vulnerabilities(Base):
         str: Type of Xen server.
         """
         self.distro = Distro(False)                  # Oracle distro object
-        self.server = Server(self.distro, False)       # Baremetal, hypervisor, VM
+        # Baremetal, hypervisor, VM
+        self.server = Server(self.distro, False)
         if self.server.stype == 2:
             self.xen_machine_type = "Xen Hypervisor"
             return True
@@ -157,7 +168,6 @@ class Vulnerabilities(Base):
             self.xen_machine_type = "Xen PV Guest"
             return True
         return False
-
 
     def disable_vulnerabilities(self, dry_run, yes):
         """
@@ -207,46 +217,47 @@ class Vulnerabilities(Base):
 
         if self.mitigation_not_supported:
             if self.is_xen():
-                print self.xen_machine_type + \
-                    " does not support mitigation for " + \
-                    unsupported_variants[:-2]
+                print(self.xen_machine_type +
+                      " does not support mitigation for " +
+                      unsupported_variants[:-2])
             if variants and variants.strip():
-                print "Kernel does not support mitigation for "
-                print variants[:-2]
+                print("Kernel does not support mitigation for ")
+                print(variants[:-2])
                 if ((kernel.get_kernel_desc() == "UEK3") or (
                         kernel.get_kernel_desc() == "UEK2")):
-                    print "Kernels older than UEK4 do not support mitigation "\
-                            "for SSBD"
-                    print "Please upgrade the kernel to UEK4 version "\
-                            "4.1.12-124.33.2 to enable support for all mitigations"
+                    print("Kernels older than UEK4 do not support mitigation "
+                          "for SSBD")
+                    print(
+                        "Please upgrade the kernel to UEK4 version "
+                        "4.1.12-124.33.2 to enable support for all mitigations")
                 else:
-                    print "Please upgrade the kernel to the following "\
-                            "version: " + \
-                        kernel.recommended_ver(kernel.get_kernel_desc())
+                    print("Please upgrade the kernel to the following "
+                          "version: " +
+                          kernel.recommended_ver(kernel.get_kernel_desc()))
 
         if self.mitigation_supported:
             if dry_run:
-                print "Full mitigation for the following variants will be "\
-                        "enabled: " + supported_variants[:-2]
+                print("Full mitigation for the following variants will be "
+                      "enabled: " + supported_variants[:-2])
 
-                print "Please re-run this command with -y to enable these "\
-                        "mitigations and then reboot for the changes to "\
-                        "take effect."
+                print("Please re-run this command with -y to enable these "
+                      "mitigations and then reboot for the changes to "
+                      "take effect.")
             else:
                 if not yes:
-                    print "Full mitigation for the following variants "\
-                        "will be enabled: " + supported_variants[:-2]
-                    print "Would you like to enable them?"
+                    print("Full mitigation for the following variants "
+                          "will be enabled: " + supported_variants[:-2])
+                    print("Would you like to enable them?")
                     option = raw_input(
-                        "Please enter y to enable or n if you do not wish "\
+                        "Please enter y to enable or n if you do not wish "
                         "to enable them: ")
                     if option == "y":
                         yes = True
                     else:
                         yes = False
                 if yes:
-                    print "Enabling full mitigation for supported variants.."\
-                        "Please reboot for the changes to take effect"
+                    print("Enabling full mitigation for supported variants.."
+                          "Please reboot for the changes to take effect")
                     for var in (
                             self.v_1,
                             self.v_2,
@@ -302,7 +313,7 @@ class Vulnerabilities(Base):
             if self.is_xen():
                 if (var == self.v_3) or (var == self.v_4) or (var == self.v_6):
                     unsupported_variants = unsupported_variants + \
-                                           var.vname + ", "
+                        var.vname + ", "
                     self.mitigation_not_supported = 1
                 elif os.path.exists(self.sysfile.get_sysfile()):
                     self.mitigation_supported = 1
@@ -310,7 +321,7 @@ class Vulnerabilities(Base):
                         v_5 = True
                     if var != self.v_5:
                         supported_variants = supported_variants + \
-                                             var.vname + ", "
+                            var.vname + ", "
             else:
                 if os.path.exists(self.sysfile.get_sysfile()):
                     self.mitigation_supported = 1
@@ -318,57 +329,58 @@ class Vulnerabilities(Base):
                         v_5 = True
                     if var != self.v_5:
                         supported_variants = supported_variants + \
-                                             var.vname + ", "
+                            var.vname + ", "
                 else:
                     variants = variants + var.vname + ", "
                     self.mitigation_not_supported = 1
 
         if self.mitigation_not_supported:
             if self.is_xen():
-                print self.xen_machine_type + \
-                    " does not support mitigation for " + \
-                    unsupported_variants[:-2]
+                print(self.xen_machine_type +
+                      " does not support mitigation for " +
+                      unsupported_variants[:-2])
             if variants and variants.strip():
-                print "Kernel does not support mitigation for " + \
-                    variants[:-2]
+                print("Kernel does not support mitigation for " +
+                      variants[:-2])
                 if ((kernel.get_kernel_desc() == "UEK3") or (
                         kernel.get_kernel_desc() == "UEK2")):
-                    print "Kernels older than UEK4 do not support mitigation "\
-                          "for SSBD"
-                    print "Please upgrade the kernel to UEK4 version "\
-                          "4.1.12-124.33.2 to enable support for all mitigations"
+                    print("Kernels older than UEK4 do not support mitigation "
+                          "for SSBD")
+                    print(
+                        "Please upgrade the kernel to UEK4 version "
+                        "4.1.12-124.33.2 to enable support for all mitigations")
                 else:
-                    print "Please upgrade the kernel to the "\
-                          "following version: " + \
-                        kernel.recommended_ver(kernel.get_kernel_desc())
+                    print("Please upgrade the kernel to the "
+                          "following version: " +
+                          kernel.recommended_ver(kernel.get_kernel_desc()))
 
         if self.mitigation_supported:
             if dry_run:
-                print "The mitigations for the following variants will be "\
-                      "disabled: " + supported_variants[:-2]
-                print "Please re-run this command with  -y to disable "\
-                      "these mitigations and then reboot for the "\
-                      "changes to take effect."
+                print("The mitigations for the following variants will be "
+                      "disabled: " + supported_variants[:-2])
+                print("Please re-run this command with  -y to disable "
+                      "these mitigations and then reboot for the "
+                      "changes to take effect.")
                 if v_5:
-                    print "Please note that PTE inversion mitigation is "\
-                          "unconditionally enabled for L1TF"
-                    print "l1tf=off only disables hypervisor mitigations "\
-                          "if any"
+                    print("Please note that PTE inversion mitigation is "
+                          "unconditionally enabled for L1TF")
+                    print("l1tf=off only disables hypervisor mitigations "
+                          "if any")
             else:
                 if not yes:
-                    print "The mitigations for the following variants will be "\
-                          "disabled: " + supported_variants[:-2]
-                    print "Would you like to disable them?"
+                    print("The mitigations for the following variants will be "
+                          "disabled: " + supported_variants[:-2])
+                    print("Would you like to disable them?")
                     option = raw_input(
-                        "Please enter y to disable or n if you do not wish "\
+                        "Please enter y to disable or n if you do not wish "
                         "to disable them: ")
                     if option == "y":
                         yes = True
                     else:
                         yes = False
                 if yes:
-                    print "Disabling mitigations for supported variants.." \
-                          "Please reboot for the changes to take effect"
+                    print("Disabling mitigations for supported variants.."
+                          "Please reboot for the changes to take effect")
                     for var in (
                             self.v_1,
                             self.v_2,
@@ -387,10 +399,10 @@ class Vulnerabilities(Base):
                                 continue
 
                         if var == self.v_5:
-                            print "Please note that PTE inversion mitigation "\
-                                  "is unconditionally enabled for L1TF"
-                            print "l1tf=off only disables hypervisor "\
-                                  "mitigations if any"
+                            print("Please note that PTE inversion mitigation "
+                                  "is unconditionally enabled for L1TF")
+                            print("l1tf=off only disables hypervisor "
+                                  "mitigations if any")
 
                         if os.path.exists(self.sysfile.get_sysfile()):
                             var.disable_variant_boot()
@@ -434,21 +446,22 @@ class Vulnerabilities(Base):
 
         if self.mitigation_not_supported:
             if self.is_xen():
-                print self.xen_machine_type + \
-                    " does not support runtime mitigations"
+                print(self.xen_machine_type +
+                      " does not support runtime mitigations")
             if variants and variants.strip():
-                print "Kernel does not support mitigation for " + variants[:-2]
+                print("Kernel does not support mitigation for " +
+                      variants[:-2])
                 if ((kernel.get_kernel_desc() == "UEK3") or (
                         kernel.get_kernel_desc() == "UEK2")):
-                    print "Kernels older than UEK4 do not support "\
-                          "mitigation for SSBD"
-                    print "Please upgrade the kernel to UEK4 version "\
-                          "4.1.12-124.33.2 to enable support for all"\
-                          "mitigations"
+                    print("Kernels older than UEK4 do not support "
+                          "mitigation for SSBD")
+                    print("Please upgrade the kernel to UEK4 version "
+                          "4.1.12-124.33.2 to enable support for all"
+                          "mitigations")
                 else:
-                    print "Please upgrade the kernel to the "\
-                          "following version: " + \
-                          kernel.recommended_ver(kernel.get_kernel_desc())
+                    print("Please upgrade the kernel to the "
+                          "following version: " +
+                          kernel.recommended_ver(kernel.get_kernel_desc()))
         return
 
     def disable_vulnerabilities_runtime(self, yes):
@@ -473,7 +486,7 @@ class Vulnerabilities(Base):
             if self.is_xen():
                 if (var == self.v_3) or (var == self.v_4) or (var == self.v_6):
                     unsupported_variants = unsupported_variants + \
-                                           var.vname + ", "
+                        var.vname + ", "
                     self.mitigation_not_supported = 1
                 elif os.path.exists(self.sysfile.get_sysfile()):
                     self.mitigation_supported = 1
@@ -488,22 +501,22 @@ class Vulnerabilities(Base):
 
         if self.mitigation_not_supported:
             if self.is_xen():
-                print self.xen_machine_type + \
-                    " does not support runtime mitigations"
+                print(self.xen_machine_type +
+                      " does not support runtime mitigations")
             if variants and variants.strip():
-                print "Kernel does not support mitigation for " + \
-                    variants[:-2]
+                print("Kernel does not support mitigation for " +
+                      variants[:-2])
                 if ((kernel.get_kernel_desc() == "UEK3") or (
                         kernel.get_kernel_desc() == "UEK2")):
-                    print "Kernels older than UEK4 do not support "\
-                          "mitigation for SSBD"
-                    print "Please upgrade the kernel to UEK4 version "\
-                          "4.1.12-124.33.2 to enable support for all "\
-                          "mitigations"
+                    print("Kernels older than UEK4 do not support "
+                          "mitigation for SSBD")
+                    print("Please upgrade the kernel to UEK4 version "
+                          "4.1.12-124.33.2 to enable support for all "
+                          "mitigations")
                 else:
-                    print "Please upgrade the kernel to the "\
-                          "following version: " + \
-                          kernel.recommended_ver(kernel.get_kernel_desc())
+                    print("Please upgrade the kernel to the "
+                          "following version: " +
+                          kernel.recommended_ver(kernel.get_kernel_desc()))
 
     def reset_vulnerabilities(self, dry_run, yes):
         """
@@ -554,49 +567,49 @@ class Vulnerabilities(Base):
 
         if self.mitigation_not_supported:
             if self.is_xen():
-                print self.xen_machine_type + \
-                    " does not support mitigation for " + \
-                    unsupported_variants[:-2]
+                print(self.xen_machine_type +
+                      " does not support mitigation for " +
+                      unsupported_variants[:-2])
             if variants and variants.strip():
-                print "Kernel does not support mitigation for " + \
-                    variants[:-2]
+                print("Kernel does not support mitigation for " +
+                      variants[:-2])
                 if ((kernel.get_kernel_desc() == "UEK3") or (
                         kernel.get_kernel_desc() == "UEK2")):
-                    print "Kernels older than UEK4 do not support "\
-                          "mitigation for SSBD"
-                    print "Please upgrade the kernel to UEK4 version "\
-                          "4.1.12-124.33.2 to enable support for all "\
-                          "mitigations"
+                    print("Kernels older than UEK4 do not support "
+                          "mitigation for SSBD")
+                    print("Please upgrade the kernel to UEK4 version "
+                          "4.1.12-124.33.2 to enable support for all "
+                          "mitigations")
                 else:
-                    print "Please upgrade the kernel to the "\
-                          "following version: " + \
-                          kernel.recommended_ver(kernel.get_kernel_desc())
+                    print("Please upgrade the kernel to the "
+                          "following version: " +
+                          kernel.recommended_ver(kernel.get_kernel_desc()))
 
         if self.mitigation_supported:
             if dry_run:
-                print "The default mitigations for the following variants "\
-                      "will be enabled: " + \
-                      supported_variants[:-2]
-                print "Please re-run this command with  -y to enable default "\
-                      "mitigations and then reboot for the changes to "\
-                      "take effect"
+                print("The default mitigations for the following variants "
+                      "will be enabled: " +
+                      supported_variants[:-2])
+                print("Please re-run this command with  -y to enable default "
+                      "mitigations and then reboot for the changes to "
+                      "take effect")
             else:
                 if not yes:
-                    print "The default mitigations for the following "\
-                          "variants will be enabled: " + \
-                          supported_variants[:-2]
-                    print "Would you like to enable them?"
+                    print("The default mitigations for the following "
+                          "variants will be enabled: " +
+                          supported_variants[:-2])
+                    print("Would you like to enable them?")
                     option = raw_input(
-                        "Please enter y to enable or n if you do not "\
+                        "Please enter y to enable or n if you do not "
                         "wish to enable them: ")
                     if option == "y":
                         yes = True
                     else:
                         yes = False
                 if yes:
-                    print "Enabling default mitigations for supported "\
-                          "variants..Please reboot for the changes to take "\
-                          "effect"
+                    print("Enabling default mitigations for supported "
+                          "variants..Please reboot for the changes to take "
+                          "effect")
                     for var in (
                             self.v_1,
                             self.v_2,

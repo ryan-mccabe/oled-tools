@@ -30,40 +30,14 @@ fix for all vulnerabilities and get the current
 microcode version.
 
 """
-import parser
-
-from base import Base
-
-
-def log(msg):
-    """
-    Logs messages if the variable
-    VERBOSE is set.
-
-    """
-    if parser.VERBOSE:
-        print msg,
-    return
-
-
-def logn(msg):
-    """
-    Logs messages if the variable
-    VERBOSE is set.
-
-    """
-    if parser.VERBOSE:
-        print msg
-    return
-
-
-def error(msg):
-    """
-    Logs error messages.
-
-    """
-    print "ERROR: " + msg
-    return
+import sys
+if (sys.version_info[0] == 3):
+    from . import parser
+    from .base import Base
+else:
+    import parser
+    from base import Base
+    from command import Cmd
 
 
 class Microcode(Base):
@@ -228,8 +202,9 @@ class Microcode(Base):
         is currently running.
 
         """
-        cmd = ["cat /proc/cpuinfo | grep microcode"]
-        microcode = self.run_command(cmd, True)
+        cmd = "cat /proc/cpuinfo | grep microcode"
+
+        microcode = self.run_command(cmd)
         if microcode != "":
             cur_ver = microcode.split("\n")[0].split(":")[1].strip()
             if cur_ver.find("0x") != -1:
@@ -250,17 +225,19 @@ class Microcode(Base):
         for the specific vulnerability.
 
         """
-        cmd = ["cat /proc/cpuinfo | grep stepping"]
-        stepping = self.run_command(cmd, True)
+        cmd = "cat /proc/cpuinfo | grep stepping"
+        stepping = self.run_command(cmd)
+
         stepping_val = stepping.split("\n")[0].split(":")[1].strip()
 
-        cmd = ["cat /proc/cpuinfo | grep model"]
-        model = self.run_command(cmd, True)
+        cmd = "cat /proc/cpuinfo | grep model"
+
+        model = self.run_command(cmd)
         model_id = model.split("\n")[0].split(":")[1].strip()
         model_stepping_string = model_id + "_" + stepping_val
 
         if vtype == self.SPECTRE_V2:
-            if model_stepping_string in self.SPECTRE_V2_MICROCODE.keys():
+            if model_stepping_string in list(self.SPECTRE_V2_MICROCODE.keys()):
                 min_microcode_ver = int(
                     self.SPECTRE_V2_MICROCODE[model_stepping_string][0].
                     split("0x")[1], 16)
@@ -268,7 +245,7 @@ class Microcode(Base):
             return False
 
         if vtype == self.SSBD:
-            if model_stepping_string in self.SSBD_MICROCODE.keys():
+            if model_stepping_string in list(self.SSBD_MICROCODE.keys()):
                 min_microcode_ver = int(
                     self.SSBD_MICROCODE[model_stepping_string][0].
                     split("0x")[1], 16)
@@ -276,7 +253,7 @@ class Microcode(Base):
             return False
 
         if vtype == self.L1TF:
-            if model_stepping_string in self.L1TF_MICROCODE.keys():
+            if model_stepping_string in list(self.L1TF_MICROCODE.keys()):
                 min_microcode_ver = int(
                     self.L1TF_MICROCODE[model_stepping_string][0].
                     split("0x")[1], 16)
@@ -284,7 +261,7 @@ class Microcode(Base):
             return False
 
         if vtype == self.MDS:
-            if model_stepping_string in self.MDS_MICROCODE.keys():
+            if model_stepping_string in list(self.MDS_MICROCODE.keys()):
                 min_microcode_ver = int(
                     self.MDS_MICROCODE[model_stepping_string][0].
                     split("0x")[1], 16)
@@ -292,7 +269,7 @@ class Microcode(Base):
             return False
 
         if vtype == self.TSX_ASYNC_ABORT:
-            if model_stepping_string in self.TAA_MICROCODE.keys():
+            if model_stepping_string in list(self.TAA_MICROCODE.keys()):
                 min_microcode_ver = int(
                     self.TAA_MICROCODE[model_stepping_string][0].
                     split("0x")[1], 16)

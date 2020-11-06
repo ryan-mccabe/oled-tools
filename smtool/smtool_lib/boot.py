@@ -33,14 +33,21 @@ different kernel/distribution types.
 import os
 import re
 import subprocess
-import parser
+import sys
 
 from tempfile import mkstemp
 from shutil import move
 from os import fdopen, remove
-from base import Base
-from sysfile import Sysfile
 
+
+if (sys.version_info[0] == 3):
+    from . import parser
+    from .base import Base
+    from .sysfile import Sysfile
+else:
+    import parser
+    from base import Base
+    from sysfile import Sysfile
 
 
 def log(msg):
@@ -50,18 +57,7 @@ def log(msg):
 
     """
     if parser.VERBOSE:
-        print msg,
-    return
-
-
-def logn(msg):
-    """
-    Logs messages if the variable
-    VERBOSE is set.
-
-    """
-    if parser.VERBOSE:
-        print msg
+        print(msg)
     return
 
 
@@ -70,7 +66,7 @@ def error(msg):
     Logs error messages.
 
     """
-    print "ERROR: " + msg
+    print("ERROR: " + msg)
     return
 
 
@@ -128,6 +124,9 @@ class Boot(Base):
         if re.search("^4.14.35", self.kver) is not None:
             self.ktype = "UEK5"
 
+        if re.search("^5.4.17", self.kver) is not None:
+            self.ktype = "UEK6"
+
         if re.search("^2.6.32", self.kver) is not None:
             self.ktype = "RHCK6"
 
@@ -148,8 +147,8 @@ class Boot(Base):
         returns False.
 
         """
-        print "Boot off"
-        print self.boot_off
+        print("Boot off")
+        print(self.boot_off)
         if self.boot_on:
             return True
         elif self.boot_off:
@@ -451,15 +450,15 @@ class Boot(Base):
         for specific variant.
 
         """
-        kernel_ver = self.run_command("uname -r", True)
+        kernel_ver = self.run_command("uname -r")
         string_to_match = '/vmlinuz-' + kernel_ver.strip()
         grub_info = ''
         boot_file = ''
 
-        if (os.path.exists('boot/grub2/grub.cfg')):
-             boot_file = '/boot/grub2/grub.cfg'
+        if (os.path.exists('/boot/grub2/grub.cfg')):
+            boot_file = '/boot/grub2/grub.cfg'
         elif (os.path.exists('/boot/efi/EFI/redhat/grub.cfg')):
-             boot_file = '/boot/efi/EFI/redhat/grub.cfg'
+            boot_file = '/boot/efi/EFI/redhat/grub.cfg'
 
         with open(boot_file) as old_file:
             for line in old_file:
@@ -482,9 +481,8 @@ class Boot(Base):
         str: tstr: Commandline options and their values.
 
         """
-        log("        /proc/cmdline..............:")
-        cmd = ["cat", "/proc/cmdline"]
-        out = self.run_command(cmd, False)
+        cmd = "cat /proc/cmdline"
+        out = self.run_command(cmd)
 
         arr = out.replace('"', '').split()
         for i in range(len(arr)):
@@ -492,9 +490,9 @@ class Boot(Base):
         tstr = self.get_cmdline_options()
 
         if tstr != "":
-            logn(tstr)
+            log("        /proc/cmdline..............:" + tstr)
         else:
-            logn("None")
+            log("        /proc/cmdline..............:" + "None")
 
         return tstr
 
@@ -522,22 +520,21 @@ class Boot(Base):
         variants.
 
         """
-        log("        grub settings..............:")
 
         # On some systems, grubby is not supported, use alternate ways of
         # updating grub cmdline
         if self.is_grubby_supported():
-            cmd = ["grubby", "--info=/boot/vmlinuz-" + self.kver]
-            out = self.run_command(cmd, False)
+            cmd = "grubby --info=/boot/vmlinuz-" + self.kver
+            out = self.run_command(cmd)
             for line in out.splitlines():
                 arr = line.replace('"', '').split()
                 for opt in range(len(arr)):
                     self.scan_param(self.GRUB, arr, opt, len(arr))
             tstr = self.get_grub_options()
             if tstr != "":
-                logn(tstr)
+                log("        grub settings..............:" + tstr)
             else:
-                logn("None")
+                log("        grub settings..............:" + "None")
             return tstr
         else:
             self.get_grub_info_xen()
@@ -558,7 +555,7 @@ class Boot(Base):
         mitigation_string = ''
         mitigation_type = ''
 
-        kernel_ver = self.run_command("uname -r", True)
+        kernel_ver = self.run_command("uname -r")
         string_to_match = '/vmlinuz-' + kernel_ver.strip()
         if args.startswith("--args"):
             mitigation_string = args[7:].replace('"', '')
@@ -574,7 +571,7 @@ class Boot(Base):
         if not self.is_grubby_supported():
             f_h, abs_path = mkstemp()
             boot_file = ''
-            if (os.path.exists('boot/grub2/grub.cfg')):
+            if (os.path.exists('/boot/grub2/grub.cfg')):
                 boot_file = '/boot/grub2/grub.cfg'
             elif (os.path.exists('/boot/efi/EFI/redhat/grub.cfg')):
                 boot_file = '/boot/efi/EFI/redhat/grub.cfg'
@@ -612,9 +609,9 @@ class Boot(Base):
                 args
             try:
                 out = os.system(cmd)
-                logn(out)
+                log(out)
             except ValueError as err:
-                print err
+                print(err)
                 raise ValueError("ERROR: updating grub")
 
     def display(self):
@@ -623,7 +620,7 @@ class Boot(Base):
 
         """
         for i in range(len(self.options)):
-            print self.options[i]
+            print(self.options[i])
 
     def enable_mitigation(self, variant):
         """

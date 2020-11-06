@@ -29,18 +29,14 @@ helper functions.
 """
 import os
 import subprocess
+import sys
 
+if(sys.version[0] == "3"):
+    from .command import Cmd
+else:
+    from command import Cmd
 
-def error(msg):
-    """
-    Logs error messages.
-
-    """
-    print "ERROR: " + msg
-    return
-
-
-class Base:
+class Base(object):
     """
     Base class for the script.
     Contains definitions for various vulnerabilities,
@@ -50,6 +46,7 @@ class Base:
 
     """
     # spectre/meltdown variants
+
     def __init__(self):
         """
         Init method for Base class.
@@ -95,7 +92,7 @@ class Base:
     sdesc = ["Unknown", "Bare Metal", "Xen Hypervisor", "Xen PV", "Xen HVM",
              "KVM_HOST", "KVM_GUEST"]
 
-    def run_command(self, cmd, shell):
+    def run_command(self, cmd):
         """
         Execute command and return the result
         Parameters:
@@ -107,21 +104,10 @@ class Base:
         executed.
 
         """
-        try:
-            if shell:
-                res = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                                       stderr=subprocess.PIPE, shell=True)
-            else:
-                res = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                                       stderr=subprocess.PIPE)
+        mycmd = Cmd()
+        mycmd.run(cmd)
+        return mycmd.out
 
-            out, err_res = res.communicate()
-            if err_res != "":
-                raise ValueError("Command Failed: " + err_res)
-        except BaseException:
-            raise ValueError("Invalid Command:  " + " ".join(cmd))
-
-        return out.strip()
 
     def read_file(self, file_path):
         """
