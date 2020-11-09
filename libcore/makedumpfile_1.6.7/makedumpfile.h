@@ -1880,6 +1880,91 @@ struct offset_table {
 	struct cpu_spec_s {
 		long	mmu_features;
 	} cpu_spec;
+
+	struct file_system_type {
+		long    next;
+		long    fs_supers;
+		long    name;
+	} file_system_type;
+
+	struct super_block {
+		long s_instances;
+		long s_inodes;
+		long s_mounts;
+		long s_type;
+	} super_block;
+
+	struct inode {
+		long i_sb_list;
+		long i_mapping;
+		long i_dentry;
+		long i_sb;
+		long i_ino;
+	} inode;
+
+	struct address_space {
+		long nrpages;
+		long page_tree;
+		long i_pages;
+	} address_space;
+
+	struct dentry {
+		long d_alias;
+		long d_u;
+		long d_parent;
+		long d_name;
+		long d_sb;
+		long d_inode;
+		long d_hash;
+	} dentry;
+
+	struct qstr {
+		long len;
+		long name;
+	} qstr;
+
+	struct hlist_node {
+		long next;
+	} hlist_node;
+
+	struct mount {
+		long mnt;
+		long mnt_mp;
+		long mnt_instance;
+	} mount;
+
+	struct mountpoint {
+		long m_dentry;
+	} mountpoint;
+
+	struct vfsmount {
+		long mnt_flags;
+	} vfsmount;
+
+	struct radix_tree_root {
+		long rnode;
+		long height;
+	} radix_tree_root;
+
+	struct radix_tree_node {
+		long slots;
+	} radix_tree_node;
+
+	struct xarray {
+		long xa_head;
+	} xarray;
+
+	struct xa_node {
+		long slots;
+	} xa_node;
+
+	struct hlist_bl_head {
+		long first;
+	} hlist_bl_head;
+
+	struct hlist_bl_node {
+		long next;
+	} hlist_bl_node;
 };
 
 /*
@@ -1941,6 +2026,14 @@ struct number_table {
 	unsigned long	PHYS_OFFSET;
 	unsigned long	kimage_voffset;
 #endif
+	long	MNT_INTERNAL;
+	long	NODES_PGSHIFT;
+	long	NODES_MASK;
+	long	RADIX_TREE_ENTRY_MASK;
+	long	RADIX_TREE_INTERNAL_NODE;
+	long	RADIX_TREE_EXCEPTIONAL_ENTRY;
+	long	RADIX_TREE_MAP_SIZE;
+	long	XA_CHUNK_SIZE;
 };
 
 struct srcfile_table {
@@ -2011,7 +2104,7 @@ struct memory_range crash_reserved_mem[CRASH_RESERVED_MEM_NR];
 int crash_reserved_mem_nr;
 
 unsigned long read_vmcoreinfo_symbol(char *str_symbol);
-int readmem(int type_addr, unsigned long long addr, void *bufptr, size_t size);
+extern int readmem(int type_addr, unsigned long long addr, void *bufptr, size_t size);
 int get_str_osrelease_from_vmlinux(void);
 int read_vmcoreinfo_xen(void);
 int exclude_xen_user_domain(void);
@@ -2388,5 +2481,13 @@ ulong htol(char *s, int flags);
 int hexadecimal(char *s, int count);
 int decimal(char *s, int count);
 int file_exists(char *file);
+void initialize_tables(void);
+int check_param_for_creating_dumpfile(int argc, char *argv[]);
+int check_dump_file(const char *path);
+int open_files_for_creating_dumpfile(void);
+int get_page_offset(void);
+int get_sys_kernel_vmcoreinfo(uint64_t *addr, uint64_t *len);
+int initial(void);
+int find_kaslr_offsets();
 
 #endif /* MAKEDUMPFILE_H */

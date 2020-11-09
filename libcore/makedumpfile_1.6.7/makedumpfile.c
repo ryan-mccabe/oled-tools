@@ -11306,7 +11306,7 @@ int is_crashkernel_mem_reserved(void)
 	return !!crash_reserved_mem_nr;
 }
 
-static int get_page_offset(void)
+int get_page_offset(void)
 {
 	if (!populate_kernel_version())
 		return FALSE;
@@ -11317,7 +11317,7 @@ static int get_page_offset(void)
 }
 
 /* Returns the physical address of start of crash notes buffer for a kernel. */
-static int get_sys_kernel_vmcoreinfo(uint64_t *addr, uint64_t *len)
+int get_sys_kernel_vmcoreinfo(uint64_t *addr, uint64_t *len)
 {
 	char line[BUFSIZE_FGETS];
 	int count;
