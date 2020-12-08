@@ -1087,11 +1087,6 @@ get_kernel_version(char *release)
 
 	version = KERNEL_VERSION(maj, min, rel);
 
-	if ((version < OLDEST_VERSION) || (LATEST_VERSION < version)) {
-		MSG("The kernel version is not supported.\n");
-		MSG("The makedumpfile operation may be incomplete.\n");
-	}
-
 	return version;
 }
 
