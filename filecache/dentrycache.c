@@ -20,7 +20,7 @@ int dentrycache_dump(int limit, int negative_only,
 	unsigned int d_hash_shift_val, file_idx = 0;
 	char *path;
 
-	MSG("dentrycache, limit=%d netative_only=%d\n", limit, negative_only);
+	MSG("dentrycache, limit=%d negative_only=%d\n", limit, negative_only);
 	MSG("kernel version: %s\n", info->release);
 	MSG("dentrycache version: %s\n", version_str);
 	if (!is_supported_kernel())
@@ -45,9 +45,6 @@ int dentrycache_dump(int limit, int negative_only,
 	MSG("-------------------------------------------------------------\n");
 	for (i = 0; i < max_idx; i++) {
 		addr = dentry_hashtable +  i * sizeof(void *);
-		addr = read_pointer(addr, "hlist_bl_head");
-		if (!addr)
-			continue;
 
 		/* hlist_bl_head->first */
 		addr += OFFSET(hlist_bl_head.first);
