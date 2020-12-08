@@ -3,9 +3,10 @@
 #include "print_info.h"
 #include "lib.h"
 
-const char *version_str = "1.0";
+const char *version_str = "1.1";
 /* version history:
  * 1.0	-- the first version
+ * 1.1  -- fix dentry hash walking
  */
 
 /*
