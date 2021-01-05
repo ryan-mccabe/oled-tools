@@ -1,6 +1,6 @@
 Name:		oled-tools
 Version:	0.1
-Release:	5%{?dist}
+Release:	6%{?dist}
 Summary:	Diagnostic tools for more efficient and faster debugging on Oracle Linux
 
 Group:		Development/Tools
@@ -160,7 +160,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man8/oled-lkce.8.gz
 
 %changelog
-* Tue Jan 5 2021 Mridula Shastry <mridula.c.shastry@oracle.com>
+* Tue Jan 5 2021 Mridula Shastry <mridula.c.shastry@oracle.com> [0.1-6]
 - Enable smtool on OL8. Also verification for boothole [Orabug: 30441144]
 - Enabled kdump-utils and lkce to run on OL8. [Orabug: 32299961]
 
