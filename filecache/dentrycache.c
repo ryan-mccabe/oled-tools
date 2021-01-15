@@ -1,3 +1,4 @@
+#include <limits.h>
 #include "makedumpfile.h"
 #include "elf_info.h"
 #include "print_info.h"
@@ -7,6 +8,7 @@ const char *version_str = "1.1";
 /* version history:
  * 1.0	-- the first version
  * 1.1  -- fix dentry hash walking
+ * 1.1  -- no-limit support
  */
 
 /*
@@ -27,6 +29,8 @@ int dentrycache_dump(int limit, int negative_only,
 	if (!is_supported_kernel())
 		return -1;
 
+	if (limit == 0)
+		limit = INT_MAX;
 	hardcode_offsets();
 
 	dentry_hashtable = read_pointer(dentry_hashtable, "dentry_hashtable");
@@ -87,7 +91,7 @@ static void show_help()
 	MSG("Use -kexec option when run in kexec mode, look at the panicked production kernel");
 	MSG ("rather than current running kernel\n");
 	MSG("parameters and options:\n");
-	MSG("   -l, --limit <number>       list at most <number> dentries, 10000 by default\n");
+	MSG("   -l, --limit <number>       list at most <number> dentries, 0 for no limit, 10000 by default\n");
 	MSG("   -n, --negative             list negative dentries only, disabled by default\n");
 	MSG("   -k, --kexec                run in kexec mode\n");
 	MSG("   -h, --help                 show this information\n");
