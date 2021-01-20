@@ -175,7 +175,7 @@ main(int argc, char *argv[])
 	}
 
 	if (version) {
-		MSG("filecache version: %s\n", version_str);
+		MSG("dentrycache version: %s\n", version_str);
 		return 0;
 	}
 
