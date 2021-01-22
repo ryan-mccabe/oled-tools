@@ -123,15 +123,22 @@ main(int argc, char *argv[])
 	unsigned long long r_addresses[NR_SYM];
 	// original addresses
 	unsigned long long o_addresses[NR_SYM];
-
 	char *real_args[12];
 	int kexec_mode = 0;
 	int core_idx;
 	int ret = -1;
+	uid_t uid;
 
 	message_level = DEFAULT_MSG_LEVEL;
 	if (argc > 8) {
 		MSG("Commandline parameter is invalid.\n");
+		return -1;
+	}
+
+	/* user check, root only */
+	uid = getuid();
+	if (uid != 0) {
+		MSG("run as root only.\n");
 		return -1;
 	}
 

@@ -1,3 +1,6 @@
+#include <unistd.h>
+#include <sys/types.h>
+
 #include "makedumpfile.h"
 #include "elf_info.h"
 #include "print_info.h"
@@ -387,10 +390,18 @@ main(int argc, char *argv[])
 	int kexec_mode = 0;
 	int core_idx;
 	int ret = -1;
+	uid_t uid;
 
 	message_level = DEFAULT_MSG_LEVEL;
 	if (argc > 8) {
 		MSG("Commandline parameter is invalid.\n");
+		return -1;
+	}
+
+	/* user check, root only */
+	uid = getuid();
+	if (uid != 0) {
+		MSG("run as root only.\n");
 		return -1;
 	}
 
