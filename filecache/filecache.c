@@ -348,14 +348,11 @@ static void show_help()
 	MSG("On Numa system, the page source (Numa nodes) can be printed too when required. ");
 	MSG("Add _numa_ option to enable page source dumping. On None-Numa system, page source");
 	MSG("information is skipped even _numa_ is specified because all the pages come from");
-	MSG(" the only node\n");
-	MSG("With -kexec option when run in kexec mode, look at the panicked production kernel");
-	MSG ("rather than current running kernel\n");
+	MSG(" the only node.\n");
 	MSG("parameters and options:\n");
 	MSG("   -n, --topn <number>        report top <number> files, 50 by default\n");
 	MSG("   -m, --min <number>         report files with <number> or more pages in the cache, 1000 by default\n");
 	MSG("   -u, --numa                 report per-NUMA-node statistics\n");
-	MSG("   -k, --kexec                run in kexec mode\n");
 	MSG("   -h, --help                 show this information\n");
 	MSG("   -V, --version              show version\n");
 	MSG("\n");

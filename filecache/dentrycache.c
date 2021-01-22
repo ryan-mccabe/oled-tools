@@ -88,12 +88,10 @@ static void show_help()
 	MSG("Output is one dentry per line.\n");
 	MSG("Use --limit option to sepecify the max number of dentries to list\n");
 	MSG("Use --negative option to output negative dentries only\n");
-	MSG("Use -kexec option when run in kexec mode, look at the panicked production kernel");
 	MSG ("rather than current running kernel\n");
 	MSG("parameters and options:\n");
 	MSG("   -l, --limit <number>       list at most <number> dentries, 0 for no limit, 10000 by default\n");
 	MSG("   -n, --negative             list negative dentries only, disabled by default\n");
-	MSG("   -k, --kexec                run in kexec mode\n");
 	MSG("   -h, --help                 show this information\n");
 	MSG("   -V, --version              show version\n");
 	MSG("\n");
