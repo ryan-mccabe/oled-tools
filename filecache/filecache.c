@@ -385,6 +385,7 @@ main(int argc, char *argv[])
 	unsigned long long o_addresses[NR_SYM];
 	char *real_args[12];
 	int kexec_mode = 0;
+	int opt_args = 0;
 	int core_idx;
 	int ret = -1;
 	uid_t uid;
@@ -402,41 +403,52 @@ main(int argc, char *argv[])
 		return -1;
 	}
 
-	for (i = 0; i < argc; i++)
-		real_args[i] = argv[i];
-	core_idx = i;
-	real_args[i++] = "/proc/kcore";
-	real_args[i] = "x";
-	argc += 2;
-
-	while ((opt = getopt_long(argc, real_args, shortopts, longopts,
+	while ((opt = getopt_long(argc, argv, shortopts, longopts,
 	    NULL)) != -1) {
 		switch (opt) {
 		case 'n':
 			topn = atoi(optarg);
+			opt_args += 2;
 			break;
 		case 'm':
 			pagelimit = atoi(optarg);
+			opt_args += 2;
 			break;
 		case 'u':
 			numa = 1;
+			opt_args += 1;
 			break;
 		case 'h':
 			help = 1;
+			opt_args += 1;
 			break;
 		case 'V':
 			version = 1;
+			opt_args += 1;
 			break;
 		case 'k':
 			kexec_mode = 1;
+			opt_args += 1;
 			break;
 
-		case '?':
-			MSG("Commandline parameter is invalid.\n");
-			MSG("Try `filecache --help' for more information.\n");
+		default:
+			MSG("Invalid parameters, try with -h for help.");
 			goto out;
 		}
 	}
+
+	if (argc - opt_args > 1) {
+		MSG("Invalid parameters, try with -h for help.");
+		goto out;
+	}
+
+	for (i = 0; i < argc; i++)
+		real_args[i] = argv[i];
+	core_idx = i;
+
+	real_args[i++] = "/proc/kcore";
+	real_args[i] = "x";
+	argc += 2;
 
 	if (help) {
 		show_help();
