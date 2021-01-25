@@ -86,7 +86,7 @@ static void show_help()
 {
 	MSG("dentrycache is a tool that dumps the dentry path on live systems.\n");
 	MSG("Output is one dentry per line.\n");
-	MSG("Use --limit option to sepecify the max number of dentries to list\n");
+	MSG("Use --limit option to specify the max number of dentries to list\n");
 	MSG("Use --negative option to output negative dentries only\n");
 	MSG ("rather than current running kernel\n");
 	MSG("parameters and options:\n");
