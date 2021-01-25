@@ -371,6 +371,42 @@ static void init_path(struct path *path)
 	path->idx = MAX_FILE_PATH_LEN - 1;
 }
 
+static int is_btrfs_sub_volume(unsigned long long dentry)
+{
+	unsigned long long parent, sb, fst;
+	char *name;
+
+	parent = read_pointer(dentry + OFFSET(dentry.d_parent),
+			"dentry.d_parent");
+	if (!parent) {
+		// shouldn't happen
+		MSG("no parent\n");
+		return 0;
+	}
+
+	dentry = parent;
+	parent = read_pointer(dentry + OFFSET(dentry.d_parent),
+			"dentry.d_parent");
+
+	if (parent != dentry)
+		return 0;
+
+	sb = read_pointer(dentry + OFFSET(dentry.d_sb), "dentry.d_sb");
+	if (!sb) {
+		// shouldn't happen
+		MSG("No sb\n");
+		return 0;
+	}
+
+	fst = read_pointer(sb + OFFSET(super_block.s_type),
+		"super_block.s_type");
+
+	name = fst_name(fst);
+	if (strcmp(name, "btrfs") != 0)
+		return 0;
+	return 1;
+}
+
 /* returns positive value indicating error happened or
  * the path buffer is full and should stop.
  * make use of global data, multiple thread not safe.
@@ -378,34 +414,41 @@ static void init_path(struct path *path)
 static int add_dentry_to_path(unsigned long long dentry, struct path *path)
 {
 	unsigned long long dname = dentry + OFFSET(dentry.d_name);
-	unsigned long long name_addr;
 	int len = read_unsigned(dname + OFFSET(qstr.len));
 	char *name, tmp[MAX_FILE_NAME_LEN+1];
+	unsigned long long name_addr;
 	int err = 0;
+
+	/* btrfs is a special case. It has sub-volume dentries which shouldn't
+	   be used to build file path.
+	*/
+	if (is_btrfs_sub_volume(dentry))
+		return 0;
 
 	if (len == 0) {
 		name = "BAD_NAME_LEN_0";
 		len = strlen(name);
 		ERRMSG("Unexpected 0 length file name\n");
 		ERRMSG("dentry=%llx\n", dentry);
-		err = 1;
-	} else {
-		if (len > MAX_FILE_NAME_LEN) {
-			ERRMSG("File name is too long: %d, cutting to %d\n",
-				len, MAX_FILE_NAME_LEN);
-			len = MAX_FILE_NAME_LEN;
-		}
-		name_addr = read_pointer(dname + OFFSET(qstr.name), "qstr.name");
-		if (name_addr && readmem(VADDR, name_addr, &tmp[1], len)) {
-			name = tmp;
-			name[0] = '/';
-			len += 1; /* for the extra / */
-		} else {
-			name = "NO NAME";
-			len = strlen(name);
-			err = 1;
-		}
+		return 1;
 	}
+
+	if (len > MAX_FILE_NAME_LEN) {
+		ERRMSG("File name is too long: %d, cutting to %d\n",
+			len, MAX_FILE_NAME_LEN);
+		len = MAX_FILE_NAME_LEN;
+	}
+	name_addr = read_pointer(dname + OFFSET(qstr.name), "qstr.name");
+	if (name_addr && readmem(VADDR, name_addr, &tmp[1], len)) {
+		name = tmp;
+		name[0] = '/';
+		len += 1; /* for the extra / */
+	} else {
+		name = "NO NAME";
+		len = strlen(name);
+		err = 1;
+	}
+
 	if (len > (path->idx + 1)) {
 		len = path->idx + 1;
 		ERRMSG("Too long file path, over 4096");
