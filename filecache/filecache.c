@@ -263,8 +263,15 @@ int filecache_dump(int topN, int pageLimit, int numa,
 		}
 	}
 
-	MSG("top %d files with biggest page cache usage:\n", len_sort_entries);
-	MSG("-----------------------------------------\n");
+	MSG("Top %d page cache consumer files:\n", len_sort_entries);
+	if (numa) {
+		MSG("PAGES  SIZE    FS_TYPE   FILE    NUMA_STATS\n");
+		MSG("-----  ------  -------   ------  ------------\n");
+	} else {
+		MSG("PAGES  SIZE    FS_TYPE   FILE\n");
+		MSG("-----  ------  -------   ------\n");
+	}
+
 	offset = OFFSET(dentry.d_alias);
 	if (offset == NOT_FOUND_LONG_VALUE)
 		offset = OFFSET(dentry.d_u);
@@ -301,10 +308,10 @@ int filecache_dump(int topN, int pageLimit, int numa,
 			path = tmp_path;
 		}
 
-		MSG("%d pages %s %s %s", e->nrpages,
+		MSG("%d  %s  %s  %s", e->nrpages,
 		    page_size_good_unit(e->nrpages),
-		    path,
-		    fst_name_by_inode(inode));
+		    fst_name_by_inode(inode),
+		    path);
 
 		if (!numa || !numa_pages ||!dentry)
 			continue;
