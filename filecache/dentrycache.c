@@ -44,11 +44,16 @@ int dentrycache_dump(int limit, int negative_only,
 		return -1;
 	}
 
+	if (is_uek4 || is_uek5)
+		;
+	else // uek6(+)
+		d_hash_shift_val = 32 - d_hash_shift_val;
 	max_idx = 1 << d_hash_shift_val;
 
 	MSG("Listing dentry path:\n");
 	MSG("-------------------------------------------------------------\n");
 	for (i = 0; i < max_idx; i++) {
+		// hlist_bl_head contains a pointer only
 		addr = dentry_hashtable +  i * sizeof(void *);
 
 		/* hlist_bl_head->first */
