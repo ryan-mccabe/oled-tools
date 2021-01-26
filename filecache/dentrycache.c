@@ -29,8 +29,6 @@ int dentrycache_dump(int limit, int negative_only,
 	if (!is_supported_kernel())
 		return -1;
 
-	if (limit == 0)
-		limit = INT_MAX;
 	hardcode_offsets();
 
 	dentry_hashtable = read_pointer(dentry_hashtable, "dentry_hashtable");
@@ -53,6 +51,9 @@ int dentrycache_dump(int limit, int negative_only,
 	MSG("Listing dentry path:\n");
 	MSG("-------------------------------------------------------------\n");
 	for (i = 0; i < max_idx; i++) {
+		if (file_idx >= limit)
+			break;
+
 		// hlist_bl_head contains a pointer only
 		addr = dentry_hashtable +  i * sizeof(void *);
 
@@ -79,9 +80,6 @@ int dentrycache_dump(int limit, int negative_only,
 			if (file_idx >= limit)
 				break;
 		} while ((addr = next));
-
-		if (file_idx >= limit)
-			break;
 	}
 
 	return 0;
@@ -91,11 +89,8 @@ static void show_help()
 {
 	MSG("dentrycache is a tool that dumps the dentry path on live systems.\n");
 	MSG("Output is one dentry per line.\n");
-	MSG("Use --limit option to specify the max number of dentries to list\n");
-	MSG("Use --negative option to output negative dentries only\n");
-	MSG ("rather than current running kernel\n");
-	MSG("parameters and options:\n");
-	MSG("   -l, --limit <number>       list at most <number> dentries, 0 for no limit, 10000 by default\n");
+	MSG("Parameters and options:\n");
+	MSG("   -l, --limit <number>       list at most <number> dentries, 10000 by default\n");
 	MSG("   -n, --negative             list negative dentries only, disabled by default\n");
 	MSG("   -h, --help                 show this information\n");
 	MSG("   -V, --version              show version\n");
