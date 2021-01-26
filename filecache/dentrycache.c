@@ -23,7 +23,6 @@ int dentrycache_dump(int limit, int negative_only,
 	unsigned int d_hash_shift_val, file_idx = 0;
 	char *path;
 
-	MSG("dentrycache, limit=%d negative_only=%d\n", limit, negative_only);
 	MSG("kernel version: %s\n", info->release);
 	MSG("dentrycache version: %s\n", version_str);
 	if (!is_supported_kernel())
@@ -48,7 +47,10 @@ int dentrycache_dump(int limit, int negative_only,
 		d_hash_shift_val = 32 - d_hash_shift_val;
 	max_idx = 1 << d_hash_shift_val;
 
-	MSG("Listing dentry path:\n");
+	if (negative_only)
+		MSG("Listing negative dentries, up to a limit of %d\n", limit);
+	else
+		MSG("Listing dentries, up to a limit of %d\n", limit);
 	MSG("-------------------------------------------------------------\n");
 	for (i = 0; i < max_idx; i++) {
 		if (file_idx >= limit)

@@ -212,9 +212,6 @@ int filecache_dump(int topN, int pageLimit, int numa,
 	int i, *numa_pages = NULL;
 	unsigned long offset;
 
-	MSG("filecache, topn=%d pagelimit=%d, numa=%d\n",
-	    topN, pageLimit, numa);
-
 	MSG("kernel version: %s\n", info->release);
 	MSG("filecache version: %s\n", version_str);
 
@@ -240,11 +237,8 @@ int filecache_dump(int topN, int pageLimit, int numa,
 
 	for (; fst; fst = next_fst(fst)) {
 		const char *type_name = fst_name(fst);
-		if (should_skip_fs(type_name)) {
-			MSG("File system %s is skipped\n", type_name);
+		if (should_skip_fs(type_name))
 			continue;
-		}
-		MSG("walking file system: %s\n", type_name);
 		fst_dump(fst, pageLimit);
 	}
 
@@ -485,11 +479,6 @@ main(int argc, char *argv[])
 		}
 	}
 
-	MSG("symbol addresses for kcore:\n");
-	for (i = 0; i < NR_SYM; i++) {
-		MSG("%llx %llx %s\n", r_addresses[i], o_addresses[i], sym_names[i]);
-	}
-
 	if (kexec_mode) {
 		/*
 		 * in kexec mode, we look at /proc/vmcore instead of /proc/kcore,
@@ -518,10 +507,6 @@ main(int argc, char *argv[])
 			r_addresses[i] = o_addresses[i] + info->kaslr_offset;
 		}
 #endif
-		MSG("symbol addresses for vmcore:\n");
-		for (i = 0; i < NR_SYM; i++) {
-			MSG("%llx %llx %s\n", r_addresses[i], o_addresses[i], sym_names[i]);
-		}
 	}
 
 	ret = filecache_dump(topn, pagelimit, numa, r_addresses);
