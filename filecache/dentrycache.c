@@ -90,10 +90,12 @@ int dentrycache_dump(int limit, int negative_only,
 static void show_help()
 {
 	MSG("dentrycache is a tool that dumps the dentry path on live systems.\n");
+	MSG("to run kexec mode, kdump kernel should be same binary as production kernel.\n");
 	MSG("Output is one dentry per line.\n");
 	MSG("Parameters and options:\n");
 	MSG("   -l, --limit <number>       list at most <number> dentries, 10000 by default\n");
 	MSG("   -n, --negative             list negative dentries only, disabled by default\n");
+	MSG("	-k, --kexec		   list dentries for crashed production kernel\n");
 	MSG("   -h, --help                 show this information\n");
 	MSG("   -V, --version              show version\n");
 	MSG("\n");
@@ -215,6 +217,10 @@ main(int argc, char *argv[])
 	}
 
 	if (kexec_mode) {
+		if (access("/proc/vmcore", R_OK) != 0) {
+			MSG("kexec mode doesn't apply on live system.\n");
+			goto out;
+		}
 		MSG("Running in kexec mode.\n");
 
 		real_args[core_idx] = "/proc/vmcore";

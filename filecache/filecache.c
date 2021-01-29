@@ -351,9 +351,11 @@ static void show_help()
 	MSG("information is skipped even _numa_ is specified because all the pages come from");
 	MSG(" the only node.\n");
 	MSG("parameters and options:\n");
+	MSG("to run kexec mode, kdump kernel should be same binary as production kernel.\n");
 	MSG("   -n, --topn <number>        report top <number> files, 50 by default\n");
 	MSG("   -m, --min <number>         report files with <number> or more pages in the cache, 1000 by default\n");
 	MSG("   -u, --numa                 report per-NUMA-node statistics\n");
+	MSG("	-k, --kexec		   report top files for crashed production kernel\n");
 	MSG("   -h, --help                 show this information\n");
 	MSG("   -V, --version              show version\n");
 	MSG("\n");
@@ -487,6 +489,10 @@ main(int argc, char *argv[])
 		 * we then calculated the randomized addresses in /proc/vmcore by
 		 * r_address[i] = o_address[i] + info->kaslr_offset (for vmcore)
 		 */
+		if (access("/proc/vmcore", R_OK) != 0) {
+			MSG("kexec mode doesn't apply on live system.\n");
+			goto out;
+		}
 		MSG("Running in kexec mode.\n");
 		real_args[core_idx] = "/proc/vmcore";
 
