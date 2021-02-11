@@ -450,7 +450,7 @@ main(int argc, char *argv[])
 	core_idx = i;
 
 	real_args[i++] = "/proc/kcore";
-	real_args[i] = "x";
+	real_args[i] = "dummy_dumpfile";
 	argc += 2;
 
 	if (help) {
