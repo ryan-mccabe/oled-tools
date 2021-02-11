@@ -804,11 +804,6 @@ struct DumpInfo *init_core(int argc, char *argv[], int kexec_mode)
 		goto bad_out;
 	}
 
-	if (!check_dump_file(info->name_dumpfile)) {
-		ERRMSG("check_dump_file failed\n");
-		goto bad_out;
-	}
-
 	if (!open_files_for_creating_dumpfile()) {
 		ERRMSG("open_files_for_creating_dumpfile failed\n");
 		goto bad_out;
