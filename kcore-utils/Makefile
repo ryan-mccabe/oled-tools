@@ -35,6 +35,8 @@ LINK_TEST_PROG="int main() { return 0; }"
 LIBS := $(LIBS) $(call try-run,\
 	echo $(LINK_TEST_PROG) | $(CC) -o "$$TMP" -x c - -lebl,-lebl,)
 
+SBINDIR := $(DESTDIR)/usr/sbin
+
 all: build_libcore filecache filecache_uek4 dentrycache dentrycache_uek4
 
 build_libcore:
@@ -59,3 +61,18 @@ dentrycache_uek4:
 clean:
 	make -C libcore clean
 	rm -f $(OBJ_PART) $(OBJ_ARCH) filecache filecache_uek4 dentrycache dentrycache_uek4 filecache.o dentrycache.o lib.o
+
+install:
+	@echo "install:$(CURDIR)"
+	mkdir -p $(SBINDIR)
+	install -m 755 filecache $(SBINDIR)/filecache
+	install -m 755 filecache_uek4 $(SBINDIR)/filecache_uek4
+	install -m 755 dentrycache $(SBINDIR)/dentrycache
+	install -m 755 dentrycache_uek4 $(SBINDIR)/dentrycache_uek4
+
+uninstall:
+	@echo "uninstall:$(CURDIR)"
+	rm -f $(SBINDIR)/filecache
+	rm -f $(SBINDIR)/filecache_uek4
+	rm -f $(SBINDIR)/dentrycache
+	rm -f $(SBINDIR)/dentrycache_uek4
