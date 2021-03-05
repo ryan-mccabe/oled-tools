@@ -267,8 +267,6 @@ good_pointer(unsigned long long p)
 {
 	if ((POINTER_PREFIX & p) == POINTER_PREFIX)
 		return p;
-	if (p)
-		ERRMSG("%llx is not good pointer\n", p);
 	return 0;
 }
 
