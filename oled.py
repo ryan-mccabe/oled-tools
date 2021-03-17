@@ -36,6 +36,12 @@ GATHER = BINDIR + "/gather"
 LKCE = BINDIR + "/lkce"
 SMTOOL = BINDIR + "/smtool"
 OLED_KDUMP = BINDIR + "/kdump"
+# for uek4
+FILECACHE_UEK4 = BINDIR + "/filecache_uek4"
+DENTRYCACHE_UEK4 = BINDIR + "/dentrycache_uek4"
+# for uek5 and higher
+FILECACHE = BINDIR + "/filecache"
+DENTRYCACHE = BINDIR + "/dentrycache"
 
 def dist():
     os_release = float(platform.linux_distribution()[1])
@@ -57,12 +63,20 @@ def help(error):
         print("     gather          -- system data gather")
     print("     lkce            -- Linux Kernel Core Extractor")
     print("     kdump           -- configure oled related kdump options")
+    print("     filecache       -- filecache tool")
+    print("     dentrycache     -- dentrycache tool")
     print("     help            -- show this help message")
     print("     version         -- print oled version")
 
     if (error):
         sys.exit(1)
     sys.exit(0)
+
+def is_uek4():
+    kernel_ver = os.uname()[2]
+    if kernel_ver.find("4.1.12") == 0:
+        return True
+    return False
 
 def run_as_root():
     if (getpass.getuser()) != "root":
@@ -101,6 +115,26 @@ def cmd_kdump(args):
     ret = os.system(cmdline)
     return ret
 
+def cmd_filecache(args):
+    if is_uek4():
+        cmdline = FILECACHE_UEK4
+    else:
+        cmdline = FILECACHE
+
+    cmdline = cmdline + " " + " ".join(args)
+    ret = os.system(cmdline)
+    return ret
+
+def cmd_dentrycache(args):
+    if is_uek4():
+        cmdline = DENTRYCACHE_UEK4
+    else:
+        cmdline = DENTRYCACHE
+
+    cmdline = cmdline + " " + " ".join(args)
+    ret = os.system(cmdline)
+    return ret
+
 def cmd_help(args):
     help(False)
 
@@ -128,6 +162,12 @@ def main():
         sys.exit(ret)
     elif cmd == "kdump":
         ret = cmd_kdump(args)
+        sys.exit(ret)
+    elif cmd == "filecache":
+        ret = cmd_filecache(args)
+        sys.exit(ret)
+    elif cmd == "dentrycache":
+        ret = cmd_dentrycache(args)
         sys.exit(ret)
     elif cmd == "version" or cmd == "--version":
         ret = cmd_version()
