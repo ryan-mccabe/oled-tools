@@ -6,8 +6,8 @@ DATE=02 Sep 2020
 # Honour the environment variable CC
 CC	= gcc
 
-LIBMAKEDUMPFILE_PATH167=../libcore/makedumpfile_1.6.7
-LIBMAKEDUMPFILE_PATH157=../libcore/makedumpfile_1.5.7
+LIBMAKEDUMPFILE_PATH167=libcore/makedumpfile_1.6.7
+LIBMAKEDUMPFILE_PATH157=libcore/makedumpfile_1.5.7
 CFLAGS_BASE := $(CFLAGS) -g -O2 -Wall -D_FILE_OFFSET_BITS=64 \
 		-D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE
 CFLAGS      := $(CFLAGS_BASE) -DVERSION='"$(VERSION)"' -DRELEASE_DATE='"$(DATE)"'
@@ -35,7 +35,10 @@ LINK_TEST_PROG="int main() { return 0; }"
 LIBS := $(LIBS) $(call try-run,\
 	echo $(LINK_TEST_PROG) | $(CC) -o "$$TMP" -x c - -lebl,-lebl,)
 
-all: filecache filecache_uek4 dentrycache dentrycache_uek4
+all: build_libcore filecache filecache_uek4 dentrycache dentrycache_uek4
+
+build_libcore:
+	make -C libcore all
 
 filecache:
 	rm -f filecache.o
@@ -54,4 +57,5 @@ dentrycache_uek4:
 	$(CC) $(CFLAGS) -I${LIBMAKEDUMPFILE_PATH157} -L${LIBMAKEDUMPFILE_PATH157} $(SRC_PART_DENTRYCACHE) $(LDFLAGS) -rdynamic -o $@ -lcore $< $(LIBS)
 
 clean:
+	make -C libcore clean
 	rm -f $(OBJ_PART) $(OBJ_ARCH) filecache filecache_uek4 dentrycache dentrycache_uek4 filecache.o dentrycache.o lib.o
