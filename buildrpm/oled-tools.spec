@@ -16,7 +16,7 @@ Source0:	%{name}-%{version}.tar.gz
 %description
 oled-tools is a collection of command line tools, scripts, config files, etc.,
 that will aid in faster and better debugging of problems on Oracle Linux. It
-contains: lkce, gather and smtool presently
+contains: lkce, gather, smtool, filecache and dentrycache.
 
 # avoid OL8 build error. We have to fix this eventually
 %if 0%{?el8}
@@ -159,7 +159,16 @@ rm -rf $RPM_BUILD_ROOT
 %{oled_d}/lkce-kdump
 %{_mandir}/man8/oled-lkce.8.gz
 
+# kcore-utils
+%{_sbindir}/dentrycache
+%{_sbindir}/dentrycache_uek4
+%{_sbindir}/filecache
+%{_sbindir}/filecache_uek4
+
 %changelog
+* Fri Mar 19 2021 Aruna Ramakrishna <aruna.ramakrishna@oracle.com>
+- Add filecache and dentrycache to oled-tools rpm build.
+
 * Tue Jan 5 2021 Mridula Shastry <mridula.c.shastry@oracle.com>
 - Enable smtool on OL8. Also verification for boothole [Orabug: 30441144]
 - Enabled kdump-utils and lkce to run on OL8. [Orabug: 32299961]

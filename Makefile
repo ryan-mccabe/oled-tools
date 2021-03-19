@@ -78,6 +78,7 @@ rpm:
 	cp -R smtool oled-tools-0.1/
 	cp -R lkce oled-tools-0.1/
 	cp -R gather oled-tools-0.1/
+	cp -R kcore-utils oled-tools-0.1/
 	tar chozf oled-tools-0.1.tar.gz oled-tools-0.1
 	#rpmbuild
 	mkdir -p `pwd`/rpmbuild/{RPMS,BUILD{,ROOT},SRPMS}
