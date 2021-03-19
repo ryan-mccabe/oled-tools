@@ -26,9 +26,13 @@ export SPECFILE
 export DESTDIR
 
 ifeq ("$(DIST)",".el8")
-subdirs := smtool kdump-utils lkce
+# filecache has dependency on libcore, make sure libcore
+# is built prior to filecache.
+subdirs := kdump-utils lkce smtool libcore filecache
 else
-subdirs := kdump-utils lkce gather smtool
+# filecache has dependency on libcore, make sure libcore
+# is built prior to filecache.
+subdirs := kdump-utils lkce gather smtool libcore filecache
 endif
 rev_subdirs := $(shell echo -n "$(subdirs) " | tac -s ' ')
 OLEDDIR := $(DESTDIR)/etc/oled
