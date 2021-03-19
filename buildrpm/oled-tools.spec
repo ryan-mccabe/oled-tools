@@ -2,6 +2,10 @@ Name:		oled-tools
 Version:	0.1
 Release:	LATEST_UNSTABLE%{?dist}
 Summary:	Diagnostic tools for more efficient and faster debugging on Oracle Linux
+Requires:	zlib
+Requires:	bzip2-libs
+BuildRequires:	zlib-devel
+BuildRequires:	bzip2-devel
 
 Group:		Development/Tools
 License:	UPL
