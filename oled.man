@@ -20,15 +20,19 @@ Usage:
 
 Valid commands
      smtool      -- security mitigation tool
+     memstate    -- captures and analyzes memory usage data
      gather      -- system data gather
      lkce        -- Linux Kernel Core Extractor
      kdump       -- configure oled related kdump options
      help        -- show this help message
-    version      -- show oled-tools version
+     version     -- show oled-tools version
 
 .SH OPTIONS
 .TP
 smtool - run security mitigation tool
+
+.TP
+memstate - captures and analyzes memory usage data
 
 .TP
 gather - run system data gather
@@ -53,13 +57,6 @@ USAGE: /usr/sbin/oled-tools/gather [-h|-y|-v|-t DIR|-d DATE]
    -y = Answer yes when prompted.
    -v = Verbose
 
-.SH MISC
-[to be filled]
-
 .SH AUTHOR
 .TP
 Manjunath Patil <manjunath.b.patil@oracle.com>
-
-.SH COPYRIGHT
-.TP
-[to be filled]

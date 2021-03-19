@@ -1,6 +1,6 @@
 Name:		oled-tools
 Version:	0.1
-Release:	LATEST_UNSTABLE%{?dist}
+Release:	6.bug32425345v5%{?dist}
 Summary:	Diagnostic tools for more efficient and faster debugging on Oracle Linux
 Requires:	zlib
 Requires:	bzip2-libs
@@ -51,8 +51,10 @@ make install DESTDIR=$RPM_BUILD_ROOT DIST=%{?dist} SPECFILE="1"
 %define oled_etc_d /etc/oled/
 %if 0%{?el8}
 %define smtool_lib %{python3_sitearch}/smtool_lib/
+%define memstate_lib %{python3_sitearch}/memstate_lib/
 %else
 %define smtool_lib %{python_sitelib}/smtool_lib/
+%define memstate_lib %{python_sitelib}/memstate_lib/
 %endif
 %define lkce_d %{oled_etc_d}/lkce
 %define kdump_pre_d %{oled_etc_d}/kdump_pre.d
@@ -95,6 +97,14 @@ else
 	%else
 		rm -f %{smtool_lib}/*.pyc || :
 		rm -f %{smtool_lib}/*.pyo || :
+	%endif
+
+	#memstate
+	%if 0%{?el8}
+		rm -rf %{memstate_lib}/__pycache__
+	%else
+		rm -f %{memstate_lib}/*.pyc || :
+		rm -f %{memstate_lib}/*.pyo || :
 	%endif
 
 	#lkce
@@ -151,6 +161,27 @@ rm -rf $RPM_BUILD_ROOT
 %{smtool_lib}/__init__.py
 %{_mandir}/man8/oled-smtool.8.gz
 
+# memstate
+%if 0%{?el8}
+%exclude %{memstate_lib}/__pycache__/*.pyc
+%else
+%exclude %{memstate_lib}/*.pyc
+%exclude %{memstate_lib}/*.pyo
+%endif
+%{oled_d}/memstate
+%{memstate_lib}/base.py
+%{memstate_lib}/buddyinfo.py
+%{memstate_lib}/constants.py
+%{memstate_lib}/hugepages.py
+%{memstate_lib}/logfile.py
+%{memstate_lib}/meminfo.py
+%{memstate_lib}/numa.py
+%{memstate_lib}/pss.py
+%{memstate_lib}/slabinfo.py
+%{memstate_lib}/swap.py
+%{memstate_lib}/__init__.py
+%{_mandir}/man8/oled-memstate.8.gz
+
 %if 0%{?el6}%{?el7}
 #gather
 %{oled_d}/gather
@@ -172,6 +203,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_sbindir}/filecache_uek4
 
 %changelog
+* Fri Mar 19 2021 Aruna Ramakrishna <aruna.ramakrishna@oracle.com>
+- Integrate memstate into oled-tools [Orabug: 32425345]
+
 * Fri Mar 19 2021 Aruna Ramakrishna <aruna.ramakrishna@oracle.com>
 - Add filecache and dentrycache to oled-tools rpm build.
 

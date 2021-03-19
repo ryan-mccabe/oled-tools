@@ -36,6 +36,7 @@ GATHER = BINDIR + "/gather"
 LKCE = BINDIR + "/lkce"
 SMTOOL = BINDIR + "/smtool"
 OLED_KDUMP = BINDIR + "/kdump"
+MEMSTATE = BINDIR + "/memstate"
 # for uek4
 FILECACHE_UEK4 = BINDIR + "/filecache_uek4"
 DENTRYCACHE_UEK4 = BINDIR + "/dentrycache_uek4"
@@ -62,6 +63,7 @@ def help(error):
     if (dist() != "el8") :
         print("     gather          -- system data gather")
     print("     lkce            -- Linux Kernel Core Extractor")
+    print("     memstate        -- Capture and analyze memory usage statistics")
     print("     kdump           -- configure oled related kdump options")
     print("     filecache       -- filecache tool")
     print("     dentrycache     -- dentrycache tool")
@@ -89,6 +91,13 @@ def cmd_version():
 
 def cmd_smtool(args):
     cmdline = SMTOOL
+    for arg in args:
+        cmdline = cmdline + " %s" % arg
+    ret = os.system(cmdline)
+    return ret
+
+def cmd_memstate(args):
+    cmdline = MEMSTATE
     for arg in args:
         cmdline = cmdline + " %s" % arg
     ret = os.system(cmdline)
@@ -157,6 +166,9 @@ def main():
         else :
             print ("%s not supported for this distribution" % cmd)
             sys.exit(1)
+    elif cmd == "memstate":
+        ret = cmd_memstate(args)
+        sys.exit(ret)
     elif cmd == "lkce":
         ret = cmd_lkce(args)
         sys.exit(ret)
