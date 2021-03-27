@@ -120,10 +120,8 @@ class Numa(Base):
             return
         for line in self.numa_maps.splitlines():
             if not line[:1].isdigit() and len(line.split()) == 1 and line[-1] == ":":
-            # TODO is this the best pattern match? This needs to find strings like:
+            # This needs to find both these patterns of strings (with or without pid):
             # "oracle_105390_w:" as well as "systemd-journal(pid:3187):"
-            #if line.find("pid:") != -1:
-                #pid = line.split(":")[1][:-1]
                 header_str = line + "\n"
                 if found_something:
                     matched = matched + "\n" + printstr
@@ -183,7 +181,8 @@ class Numa(Base):
             comm = n.split()[0].strip()
             if comm in comm_ignore: # Check if this comm/pid has already been printed
                 continue
-            per_pid_val = dict([elem for elem in list(nlist_sorted.items()) if comm == elem[0].split()[0].strip()])
+            per_pid_val = dict([elem for elem in list(nlist_sorted.items()) \
+                    if comm == elem[0].split()[0].strip()])
             if not per_pid_val:
                 continue
             per_pid_sorted = OrderedDict(sorted(list(per_pid_val.items()), key=lambda x:x[0]))

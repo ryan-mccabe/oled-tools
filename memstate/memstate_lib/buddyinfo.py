@@ -126,14 +126,12 @@ class Buddyinfo(Base):
         if vmstat == "":
             self.print_cmd_err("cat /proc/vmstat")
             return
+        interesting = ['compact', 'allocstall_normal', 'kswapd_low_wmark_hit_quickly',\
+                'kswapd_high_wmark_hit_quickly', 'drop_', 'oom_', 'zone_reclaim_failed']
         print("")
         self.print_header_l2("vmstat")
         for line in vmstat.splitlines():
-            if line.startswith("compact") or line.startswith("allocstall_normal") or \
-                    line.startswith("kswapd_low_wmark_hit_quickly") or \
-                    line.startswith("kswapd_high_wmark_hit_quickly") or \
-                    line.startswith("drop_") or line.startswith("oom_") or \
-                    line.startswith("zone_reclaim_failed"):
+            if any(line.startswith(word) for word in interesting):
                 print(line)
         print("")
         return

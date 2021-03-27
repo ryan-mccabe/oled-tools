@@ -55,22 +55,24 @@ class Pss(Base):
             files_path = os.listdir(proc_root)
             for elem in files_path:
                 abspath = os.path.join(proc_root, elem)
-                if os.path.isdir(abspath):
-                    smaps_file = os.path.join(abspath, "smaps")
-                    if os.path.exists(smaps_file):
-                        pid = smaps_file.split("/")[2]
-                        data = ""
-                        with open(smaps_file, 'r') as f:
-                            data = f.read()
-                            f.close()
-                            num_files_scanned = num_files_scanned + 1
-                        for line in data.splitlines():
-                            if line.startswith("Pss:"):
-                                segment_mem = line.split(":")[1].strip().split()[0].strip()
-                                if pid in list(mem.keys()):
-                                    mem[pid] = int(mem[pid]) + int(segment_mem)
-                                else:
-                                    mem[pid] = int(segment_mem)
+                if not os.path.isdir(abspath):
+                    continue
+                smaps_file = os.path.join(abspath, "smaps")
+                if not os.path.exists(smaps_file):
+                    continue
+                pid = smaps_file.split("/")[2]
+                data = ""
+                with open(smaps_file, 'r') as f:
+                    data = f.read()
+                    f.close()
+                    num_files_scanned = num_files_scanned + 1
+                for line in data.splitlines():
+                    if line.startswith("Pss:"):
+                        segment_mem = line.split(":")[1].strip().split()[0].strip()
+                        if pid in list(mem.keys()):
+                            mem[pid] = int(mem[pid]) + int(segment_mem)
+                        else:
+                            mem[pid] = int(segment_mem)
                 time.sleep(0.01) # Sleep for 10 ms, to avoid hogging CPU
         except IOError:
             pass

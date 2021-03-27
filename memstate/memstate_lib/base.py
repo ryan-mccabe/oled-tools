@@ -41,7 +41,7 @@ class Base:
         if not os.path.exists(parent_dir):
             try:
                 os.makedirs(parent_dir, mode=0o700)
-            except Exception as e:
+            except IOError as e:
                 self.log_debug("Could not create directory " + parent_dir + ": " + str(e))
 
     def exec_cmd(self, cmd):
@@ -176,7 +176,7 @@ class Base:
     def open_file(filename, mode):
         try:
             f = open(filename, mode)
-        except Exception:
+        except IOError as e:
             # Ignore if file does not exist
             f = ""
         return f
@@ -204,7 +204,7 @@ class LockFile(Base):
         if not os.path.exists(parent_dir):
             try:
                 os.makedirs(parent_dir, mode=0o700)
-            except Exception as e:
+            except IOError as e:
                 self.log_debug("Could not create directory " + parent_dir + ": " + str(e))
                 return
         self.lock_filename = os.path.join(parent_dir, "lock")

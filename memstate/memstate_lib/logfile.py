@@ -41,8 +41,8 @@ class Logfile(Base):
                 os.makedirs(parent_dir)
 
             if not self.__disk_space_available(parent_dir):
-                msg = "There is not enough disk space available in " + str(parent_dir) + ";" \
-                        " check the man page for more details."
+                msg = "Exiting! Unable to verify that there is enough disk space available in " \
+                        + str(parent_dir) + "; check the man page for more details."
                 self.log_debug(msg)
                 print(msg)
                 sys.exit(1)
@@ -56,11 +56,17 @@ class Logfile(Base):
 
     def __disk_space_available(self, path):
         out = self.exec_cmd("df -Ph " + path)
+        line = ""
         for line in out.splitlines():
             if "Use" in line:
                 pos_use = line.split().index("Use%")
                 pos_avail = line.split().index("Avail")
                 continue
+        if not line:
+            msg = "Unable to compute disk utilization for " + path + "."
+            self.log_debug(msg)
+            print(msg)
+            return False
         util = line.split()[pos_use][:-1]
         avail = line.split()[pos_avail][:-1]
         avail_unit = line.split()[pos_avail][-1]
