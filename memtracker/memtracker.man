@@ -11,8 +11,19 @@ oled memtracker [-h] [interval]
 Memtracker collects memory usage data periodically on a running system.
 This tool is meant to be run continuously. It logs the raw contents of
 relevant procfs or sysfs files or the output of commands such as numastat, etc.
-into /var/oled/memtracker file. This log file is rotated and compressed daily
-by logrotate, and by default at most 15 days worth of data is stored.
+into /var/oled/memtracker/memtracker.log file. This log file is rotated and
+compressed periodically, by logrotate. Each file can grow to a max size of
+20 MB, and at most 20 files are retained.
+
+After compresssion, the size of /var/oled/memtracker/ directory on disk will be
+around 20 - 40 MB. The tool tries not to fill up the partition, so it checks
+before running if there is at least 50 MB available in that file system and if
+the disk utilization is <= 85% (see Use% below). If not, it will exit with an
+error message.
+
+# df -h /var/oled/memtracker
+Filesystem           Size  Used Avail Use% Mounted on
+/dev/mapper/ol-root   50G   19G   32G  38% /
 
 .SH OPTIONS
 .TP
@@ -31,6 +42,7 @@ The tool can be run on any Oracle Linux 6, 7 or 8 server.
 .SH AUTHOR
 .TP
 Khalid Aziz <khalid.aziz@oracle.com>
+Aruna Ramakrishna <aruna.ramakrishna@oracle.com>
 
 .SH SEE ALSO
 .TP
