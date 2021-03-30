@@ -37,6 +37,7 @@ LKCE = BINDIR + "/lkce"
 SMTOOL = BINDIR + "/smtool"
 OLED_KDUMP = BINDIR + "/kdump"
 MEMSTATE = BINDIR + "/memstate"
+MEMTRACKER = BINDIR + "/memtracker"
 # for uek4
 FILECACHE_UEK4 = BINDIR + "/filecache_uek4"
 DENTRYCACHE_UEK4 = BINDIR + "/dentrycache_uek4"
@@ -64,6 +65,7 @@ def help(error):
         print("     gather          -- system data gather")
     print("     lkce            -- Linux Kernel Core Extractor")
     print("     memstate        -- Capture and analyze memory usage statistics")
+    print("     memtracker      -- Capture memory usage data for offline debug")
     print("     kdump           -- configure oled related kdump options")
     print("     filecache       -- filecache tool")
     print("     dentrycache     -- dentrycache tool")
@@ -105,6 +107,13 @@ def cmd_memstate(args):
 
 def cmd_gather(args):
     cmdline = GATHER
+    for arg in args:
+        cmdline = cmdline + " %s" % arg
+    ret = os.system(cmdline)
+    return ret
+
+def cmd_memtracker(args):
+    cmdline = MEMTRACKER
     for arg in args:
         cmdline = cmdline + " %s" % arg
     ret = os.system(cmdline)
@@ -171,6 +180,9 @@ def main():
         sys.exit(ret)
     elif cmd == "lkce":
         ret = cmd_lkce(args)
+        sys.exit(ret)
+    elif cmd == "memtracker":
+        ret = cmd_memtracker(args)
         sys.exit(ret)
     elif cmd == "kdump":
         ret = cmd_kdump(args)

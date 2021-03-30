@@ -26,9 +26,9 @@ export SPECFILE
 export DESTDIR
 
 ifeq ("$(DIST)",".el8")
-subdirs := kdump-utils lkce smtool kcore-utils memstate
+subdirs := kdump-utils lkce smtool kcore-utils memstate memtracker
 else
-subdirs := kdump-utils lkce gather smtool kcore-utils memstate
+subdirs := kdump-utils lkce gather smtool kcore-utils memstate memtracker
 endif
 rev_subdirs := $(shell echo -n "$(subdirs) " | tac -s ' ')
 OLEDDIR := $(DESTDIR)/etc/oled
@@ -80,6 +80,7 @@ rpm:
 	cp -R gather oled-tools-0.1/
 	cp -R kcore-utils oled-tools-0.1/
 	cp -R memstate oled-tools-0.1/
+	cp -R memtracker oled-tools-0.1/
 	tar chozf oled-tools-0.1.tar.gz oled-tools-0.1
 	#rpmbuild
 	mkdir -p `pwd`/rpmbuild/{RPMS,BUILD{,ROOT},SRPMS}

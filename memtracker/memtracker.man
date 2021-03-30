@@ -1,0 +1,37 @@
+.TH OLED MEMTRACKER 8 "Jan 2021" "Oracle Linux Enhanced Diagnostics" "0.1"
+
+.SH NAME
+oled memtracker - Captures memory usage debug data periodically on the running
+system.
+
+.SH SYNOPSIS
+oled memtracker [-h] [interval]
+
+.SH DESCRIPTION
+Memtracker collects memory usage data periodically on a running system.
+This tool is meant to be run continuously. It logs the raw contents of
+relevant procfs or sysfs files or the output of commands such as numastat, etc.
+into /var/oled/memtracker file. This log file is rotated and compressed daily
+by logrotate, and by default at most 15 days worth of data is stored.
+
+.SH OPTIONS
+.TP
+-h, --help
+        Displays a help message with all the valid options that
+can be passed to the tool.
+
+.TP
+interval
+        Delay, in minutes, between samples (default is 5).
+
+.SH MISC
+.TP
+The tool can be run on any Oracle Linux 6, 7 or 8 server.
+
+.SH AUTHOR
+.TP
+Khalid Aziz <khalid.aziz@oracle.com>
+
+.SH SEE ALSO
+.TP
+oled memstate

@@ -21,6 +21,7 @@ Usage:
 Valid commands
      smtool      -- security mitigation tool
      memstate    -- captures and analyzes memory usage data
+     memtracker  -- captures memory usage data
      gather      -- system data gather
      lkce        -- Linux Kernel Core Extractor
      kdump       -- configure oled related kdump options
@@ -36,6 +37,9 @@ memstate - captures and analyzes memory usage data
 
 .TP
 gather - run system data gather
+
+.TP
+memtracker - captures memory usage data
 
 .TP
 lkce - run Linux Kernel Core Extractor

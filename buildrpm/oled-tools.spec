@@ -1,6 +1,6 @@
 Name:		oled-tools
 Version:	0.1
-Release:	LATEST_UNSTABLE%{?dist}
+Release:	6.bug32430673v2%{?dist}
 Summary:	Diagnostic tools for more efficient and faster debugging on Oracle Linux
 Requires:	zlib
 Requires:	bzip2-libs
@@ -188,6 +188,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man8/oled-gather.8.gz
 %endif
 
+#memtracker
+%{oled_d}/memtracker
+%{_mandir}/man8/oled-memtracker.8.gz
+
 #kdump-utils
 %{oled_d}/kdump
 
@@ -203,6 +207,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_sbindir}/filecache_uek4
 
 %changelog
+* Tue Mar 30 2021 Aruna Ramakrishna <aruna.ramakrishna@oracle.com>
+- Integrate memtracker into oled-tools [Orabug: 32430673]
+
 * Fri Mar 19 2021 Aruna Ramakrishna <aruna.ramakrishna@oracle.com>
 - Integrate memstate into oled-tools [Orabug: 32425345]
 
