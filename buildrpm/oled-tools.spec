@@ -1,6 +1,6 @@
 Name:		oled-tools
 Version:	0.1
-Release:	LATEST_UNSTABLE%{?dist}
+Release:	6.bug32461332v1%{?dist}
 Summary:	Diagnostic tools for more efficient and faster debugging on Oracle Linux
 Requires:	zlib
 Requires:	bzip2-libs
@@ -22,7 +22,7 @@ Source0:	%{name}-%{version}.tar.gz
 %description
 oled-tools is a collection of command line tools, scripts, config files, etc.,
 that will aid in faster and better debugging of problems on Oracle Linux. It
-contains: lkce, gather, smtool, filecache and dentrycache.
+contains: lkce, smtool, filecache and dentrycache.
 
 # avoid OL8 build error. We have to fix this eventually
 %if 0%{?el8}
@@ -182,12 +182,6 @@ rm -rf $RPM_BUILD_ROOT
 %{memstate_lib}/__init__.py
 %{_mandir}/man8/oled-memstate.8.gz
 
-%if 0%{?el6}%{?el7}
-#gather
-%{oled_d}/gather
-%{_mandir}/man8/oled-gather.8.gz
-%endif
-
 #memtracker
 %{oled_d}/memtracker
 %{_mandir}/man8/oled-memtracker.8.gz
@@ -207,6 +201,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_sbindir}/filecache_uek4
 
 %changelog
+* Wed Mar 31 2021 Aruna Ramakrishna <aruna.ramakrishna@oracle.com>
+- Remove gather from oled-tools [Orabug: 32461332]
+
 * Tue Mar 30 2021 Aruna Ramakrishna <aruna.ramakrishna@oracle.com>
 - Integrate memtracker into oled-tools [Orabug: 32430673]
 

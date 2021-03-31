@@ -32,7 +32,6 @@ MINOR = "1"
 BINDIR="/usr/lib/oled-tools"
 
 # cmds
-GATHER = BINDIR + "/gather"
 LKCE = BINDIR + "/lkce"
 SMTOOL = BINDIR + "/smtool"
 OLED_KDUMP = BINDIR + "/kdump"
@@ -61,8 +60,6 @@ def help(error):
     print("  %s <command> <subcommand>" % sys.argv[0])
     print("Valid commands:")
     print("     smtool          -- Spectre-Meltdown tool")
-    if (dist() != "el8") :
-        print("     gather          -- system data gather")
     print("     lkce            -- Linux Kernel Core Extractor")
     print("     memstate        -- Capture and analyze memory usage statistics")
     print("     memtracker      -- Capture memory usage data for offline debug")
@@ -100,13 +97,6 @@ def cmd_smtool(args):
 
 def cmd_memstate(args):
     cmdline = MEMSTATE
-    for arg in args:
-        cmdline = cmdline + " %s" % arg
-    ret = os.system(cmdline)
-    return ret
-
-def cmd_gather(args):
-    cmdline = GATHER
     for arg in args:
         cmdline = cmdline + " %s" % arg
     ret = os.system(cmdline)
@@ -168,13 +158,6 @@ def main():
     if cmd == "smtool":
         ret = cmd_smtool(args)
         sys.exit(ret)
-    elif cmd == "gather":
-        if (dist() != "el8") :
-            ret = cmd_gather(args)
-            sys.exit(ret)
-        else :
-            print ("%s not supported for this distribution" % cmd)
-            sys.exit(1)
     elif cmd == "memstate":
         ret = cmd_memstate(args)
         sys.exit(ret)
