@@ -195,12 +195,15 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man8/oled-lkce.8.gz
 
 # kcore-utils
-%{_sbindir}/dentrycache
-%{_sbindir}/dentrycache_uek4
-%{_sbindir}/filecache
-%{_sbindir}/filecache_uek4
+%{oled_d}/dentrycache
+%{oled_d}/dentrycache_uek4
+%{oled_d}/filecache
+%{oled_d}/filecache_uek4
 
 %changelog
+* Thu Apr 1 2021 Aruna Ramakrishna <aruna.ramakrishna@oracle.com>
+- Fix kcore-utils Jenkins build issues
+
 * Wed Mar 31 2021 Aruna Ramakrishna <aruna.ramakrishna@oracle.com>
 - Remove gather from oled-tools [Orabug: 32461332]
 
