@@ -72,13 +72,13 @@ class Logfile(Base):
         avail_unit = line.split()[pos_avail][-1]
         avail_space_mb = 0
         if avail_unit == "T":
-            avail_space_mb = round(int(avail) * constants.ONE_MB)
+            avail_space_mb = round(float(avail) * constants.ONE_MB)
         elif avail_unit == "G":
-            avail_space_mb = round(int(avail) * constants.ONE_KB)
+            avail_space_mb = round(float(avail) * constants.ONE_KB)
         elif avail_unit == "M":
-            avail_space_mb = int(avail)
+            avail_space_mb = round(float(avail))
         elif avail_unit == "K":
-            avail_space_mb = round(int(avail) / constants.ONE_KB)
+            avail_space_mb = round(float(avail) / constants.ONE_KB)
 
         self.log_debug("Disk utilization of the partition for " + path + " is " + util + "%.")
         self.log_debug("Available space on disk is " + str(avail_space_mb) + " MB.")

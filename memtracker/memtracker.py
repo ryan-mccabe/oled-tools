@@ -32,7 +32,7 @@ from datetime import datetime
 OUTFILE="/var/oled/memtracker/memtracker.log"
 LOGROTATEFILE="/etc/logrotate.d/memtracker"
 VERSION=1.2
-DEF_DELAY=5
+DEF_DELAY=30
 LOCK_FILE_DIR = "/run/lock/"
 LOCK_FILE_DIR_OL6 = "/var/run/"
 
@@ -141,13 +141,13 @@ def disk_space_available(path):
     avail_unit = line.split()[pos_avail][-1]
     avail_space_mb = 0
     if avail_unit == "T":
-        avail_space_mb = round(int(avail) * 1024 * 1024)
+        avail_space_mb = round(float(avail) * 1024 * 1024)
     elif avail_unit == "G":
-        avail_space_mb = round(int(avail) * 1024)
+        avail_space_mb = round(float(avail) * 1024)
     elif avail_unit == "M":
-        avail_space_mb = int(avail)
+        avail_space_mb = round(float(avail))
     elif avail_unit == "K":
-        avail_space_mb = round(int(avail) / 1024)
+        avail_space_mb = round(float(avail) / 1024)
 
     print("Disk utilization of the partition for " + path + " is " + util \
             + "%; available space is " + str(avail_space_mb) + " MB.")
@@ -211,10 +211,10 @@ if not os.geteuid()==0:
 parser = argparse.ArgumentParser(description =
         "Log memory usage data continuously.")
 parser.add_argument("interval", type=int, default=DEF_DELAY, nargs='?',
-            help="delay in minutes between samples (default is 5)")
+            help="delay, in seconds, between samples (default is 30s)")
 args = parser.parse_args()
-if args.interval < 1:
-    print("Invalid interval argument.")
+if args.interval < 5:
+    print("Invalid interval argument; the lowest valid interval is 5 seconds.")
     parser.print_help()
     sys.exit(1)
 
@@ -224,7 +224,7 @@ create_lock()
 
 
 print("Capturing memtracker data in file " + OUTFILE + " every " + str(args.interval) \
-        + " minute(s); press Ctrl-c to exit.")
+        + " seconds; press Ctrl-c to exit.")
 
 
 # Trap ctrl-c and other termination signals
@@ -268,7 +268,7 @@ outf.write("\n")
 outf.flush()
 
 
-# Now loop forever logging information every "interval" minutes
+# Now loop forever logging information every "interval" seconds
 while True:
     get_files(outf)
     if CMD1 != "":
@@ -283,5 +283,5 @@ while True:
         run_cmd(CMD5, outf)
     outf.write("==============================\n")
     outf.flush()
-    time.sleep(args.interval*60)
+    time.sleep(args.interval)
     rotate_logfile()

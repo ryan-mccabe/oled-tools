@@ -18,31 +18,26 @@ compressed periodically, by logrotate. Each file can grow to a max size of
 After compresssion, the size of /var/oled/memtracker/ directory on disk will be
 around 20 - 40 MB. The tool tries not to fill up the partition, so it checks
 before running if there is at least 50 MB available in that file system and if
-the disk utilization is <= 85% (see Use% below). If not, it will exit with an
-error message.
-
-# df -h /var/oled/memtracker
-Filesystem           Size  Used Avail Use% Mounted on
-/dev/mapper/ol-root   50G   19G   32G  38% /
+the disk utilization is <= 85%. If not, it will exit with an error message.
 
 .SH OPTIONS
 .TP
 -h, --help
-        Displays a help message with all the valid options that
+    Displays a help message with all the valid options that
 can be passed to the tool.
 
 .TP
 interval
-        Delay, in minutes, between samples (default is 5).
+    Delay, in seconds, between samples (default is 30s). Note that the lowest
+valid interval value is 5 seconds.
 
 .SH MISC
 .TP
 The tool can be run on any Oracle Linux 6, 7 or 8 server.
 
-.SH AUTHOR
+.SH REPORTING BUGS
 .TP
-Khalid Aziz <khalid.aziz@oracle.com>
-Aruna Ramakrishna <aruna.ramakrishna@oracle.com>
+Please contact Oracle Linux Support to report any bugs for OLED tools.
 
 .SH SEE ALSO
 .TP

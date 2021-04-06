@@ -276,8 +276,8 @@ def validate_args(args):
 
 def main():
     parser = argparse.ArgumentParser(
-        prog='memstate.py',
-        description='memstate.py (version 0.1): gathers data about memory usage on this system')
+        prog='memstate',
+        description='memstate (version 0.1): gathers data about memory usage on this system')
 
     parser.add_argument("-p", "--pss", help="display per-process memory usage", action="store_true")
     parser.add_argument("-w", "--swap", help="display per-process swap usage", action="store_true")
@@ -333,9 +333,15 @@ def main():
         opt_verbose = True
 
     # If this is to be run periodically, redirect stdout to logfile.
-    if interval > 0:
+    if interval >= 5:
         logfile = Logfile(interval)
         sys.stdout = logfile
+    elif interval < 0:
+        print("Invalid interval value; please specify a positive number (unit: seconds).")
+        return
+    elif interval > 0 and interval < 5:
+        print("Invalid interval value; the lowest valid interval is 5 seconds.")
+        return
 
     # Start live memstate data capture on this system; run in a loop until terminated
     # by user.
