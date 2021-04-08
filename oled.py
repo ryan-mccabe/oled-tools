@@ -38,6 +38,7 @@ OLED_KDUMP = BINDIR + "/kdump"
 MEMSTATE = BINDIR + "/memstate"
 MEMTRACKER = BINDIR + "/memtracker"
 KSTACK = BINDIR + "/kstack"
+TOPSTACK = BINDIR + "/topstack"
 # for uek4
 FILECACHE_UEK4 = BINDIR + "/filecache_uek4"
 DENTRYCACHE_UEK4 = BINDIR + "/dentrycache_uek4"
@@ -68,6 +69,7 @@ def help(error):
     print("     filecache       -- filecache tool")
     print("     dentrycache     -- dentrycache tool")
     print("     kstack          -- Gathers kernel stack based on the process status or PID")
+    print("     topstack        -- Gathers kernel stack and more based on the CPU utilization")
     print("     help            -- show this help message")
     print("     version         -- print oled version")
 
@@ -155,13 +157,18 @@ def cmd_filecache(args):
     ret = os.system(cmdline)
     return ret
 
-
 def cmd_kstack(args):
     cmdline = KSTACK
     cmdline = cmdline + " " + " ".join(args)
     ret = os.system(cmdline)
     return ret
 
+def cmd_topstack(args):
+    cmdline = TOPSTACK
+    for arg in args:
+        cmdline = cmdline + " " + " ".join(args)
+    ret = os.system(cmdline)
+    return ret
 
 def cmd_help(args):
     help(False)
@@ -198,6 +205,9 @@ def main():
         sys.exit(ret)
     elif cmd == "kstack":
         ret = cmd_kstack(args)
+        sys.exit(ret)
+    elif cmd == "topstack":
+        ret = cmd_topstack(args)
         sys.exit(ret)
     elif cmd == "version" or cmd == "--version":
         ret = cmd_version()

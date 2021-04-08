@@ -25,6 +25,7 @@ Valid commands
      lkce        -- Linux Kernel Core Extractor
      kdump       -- configure oled related kdump options
      kstack      -- gathers kernel stack based on the process status or PID
+     topstack    -- gathers kernel stack and more based on the CPU utilization
      help        -- show this help message
      version     -- show oled-tools version
 
@@ -46,6 +47,9 @@ kdump - configure oled related kdump options
 
 .TP
 kstack - gathers kernel stack based on the process status or PID
+
+.TP
+topstack - Gathers kernel stack and more based on the CPU utilization
 
 .SH EXAMPLES
 .TP

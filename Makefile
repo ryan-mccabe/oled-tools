@@ -25,7 +25,7 @@ export PYTHON_SITEDIR
 export SPECFILE
 export DESTDIR
 
-subdirs := kdump-utils lkce smtool kcore-utils memstate memtracker kstack
+subdirs := kdump-utils lkce smtool kcore-utils memstate memtracker kstack topstack
 rev_subdirs := $(shell echo -n "$(subdirs) " | tac -s ' ')
 OLEDDIR := $(DESTDIR)/etc/oled
 SBINDIR := $(DESTDIR)/usr/sbin
@@ -77,6 +77,7 @@ rpm:
 	cp -R memstate oled-tools-0.1/
 	cp -R memtracker oled-tools-0.1/
 	cp -R kstack oled-tools-0.1/
+	cp -R topstack oled-tools-0.1/
 	tar chozf oled-tools-0.1.tar.gz oled-tools-0.1
 	#rpmbuild
 	mkdir -p `pwd`/rpmbuild/{RPMS,BUILD{,ROOT},SRPMS}
