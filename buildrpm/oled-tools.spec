@@ -1,6 +1,6 @@
 Name:		oled-tools
 Version:	0.1
-Release:	6.bug32461332v1%{?dist}
+Release:	6.bug32545451v1%{?dist}
 Summary:	Diagnostic tools for more efficient and faster debugging on Oracle Linux
 Requires:	zlib
 Requires:	bzip2-libs
@@ -22,7 +22,7 @@ Source0:	%{name}-%{version}.tar.gz
 %description
 oled-tools is a collection of command line tools, scripts, config files, etc.,
 that will aid in faster and better debugging of problems on Oracle Linux. It
-contains: lkce, smtool, filecache and dentrycache.
+contains: lkce, smtool, kstack, filecache and dentrycache.
 
 # avoid OL8 build error. We have to fix this eventually
 %if 0%{?el8}
@@ -200,7 +200,14 @@ rm -rf $RPM_BUILD_ROOT
 %{oled_d}/filecache
 %{oled_d}/filecache_uek4
 
+#kstack
+%{oled_d}/kstack
+%{_mandir}/man8/oled-kstack.8.gz
+
 %changelog
+* Thu Apr 8 2021 Cesar Roque <cesar.roque@oracle.com>
+- Integrate kstack into oled-tools [Orabug: 32545451]
+
 * Thu Apr 1 2021 Aruna Ramakrishna <aruna.ramakrishna@oracle.com>
 - Fix kcore-utils Jenkins build issues
 

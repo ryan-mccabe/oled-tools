@@ -9,7 +9,7 @@ oled [options]
 .SH DESCRIPTION
 oled program is used to invoke other diagnostic tools of oled-tool package.
 
-Ex: oled can be used to invoke smtool, lkce etc
+Ex: oled can be used to invoke smtool, lkce, kstack, etc
 
 .TP
 # oled help
@@ -24,6 +24,7 @@ Valid commands
      memtracker  -- captures memory usage data
      lkce        -- Linux Kernel Core Extractor
      kdump       -- configure oled related kdump options
+     kstack      -- gathers kernel stack based on the process status or PID
      help        -- show this help message
      version     -- show oled-tools version
 
@@ -42,6 +43,9 @@ lkce - run Linux Kernel Core Extractor
 
 .TP
 kdump - configure oled related kdump options
+
+.TP
+kstack - gathers kernel stack based on the process status or PID
 
 .SH EXAMPLES
 .TP
