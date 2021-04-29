@@ -357,7 +357,7 @@ static void show_help()
 	MSG("   -u, --numa                 report per-NUMA-node statistics\n");
 	MSG("	-k, --kexec		   report top files for crashed production kernel\n");
 	MSG("   -h, --help                 show this information\n");
-	MSG("   -V, --version              show version\n");
+	MSG("   -v, --version              show version\n");
 	MSG("\n");
 	MSG("Note: works on Oracle UEK4/UEK5/UEK6 kernels only\n");
 	MSG("\n");
