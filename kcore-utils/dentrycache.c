@@ -95,7 +95,7 @@ static void show_help()
 	MSG("Parameters and options:\n");
 	MSG("   -l, --limit <number>       list at most <number> dentries, 10000 by default\n");
 	MSG("   -n, --negative             list negative dentries only, disabled by default\n");
-	MSG("	-k, --kexec		   list dentries for crashed production kernel\n");
+	MSG("   -k, --kexec                list dentries for crashed production kernel\n");
 	MSG("   -h, --help                 show this information\n");
 	MSG("   -v, --version              show version\n");
 	MSG("\n");
@@ -107,12 +107,12 @@ static struct option longopts[] = {
 	{"limit", required_argument, NULL, 'l'},
 	{"negative", no_argument, NULL, 'n'},
 	{"help", no_argument, NULL, 'h'},
-	{"version", no_argument, NULL, 'V'},
+	{"version", no_argument, NULL, 'v'},
 	{"kexec", no_argument, NULL, 'k'},
 	{0, 0, 0, 0}
 };
 
-static char *shortopts = "l:nhVk";
+static char *shortopts = "l:nhvk";
 
 int
 main(int argc, char *argv[])
@@ -160,7 +160,7 @@ main(int argc, char *argv[])
 			help = 1;
 			opt_args += 1;
 			break;
-		case 'V':
+		case 'v':
 			version = 1;
 			opt_args += 1;
 			break;

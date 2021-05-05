@@ -355,7 +355,7 @@ static void show_help()
 	MSG("   -n, --topn <number>        report top <number> files, 50 by default\n");
 	MSG("   -m, --min <number>         report files with <number> or more pages in the cache, 1000 by default\n");
 	MSG("   -u, --numa                 report per-NUMA-node statistics\n");
-	MSG("	-k, --kexec		   report top files for crashed production kernel\n");
+	MSG("   -k, --kexec                report top files for crashed production kernel\n");
 	MSG("   -h, --help                 show this information\n");
 	MSG("   -v, --version              show version\n");
 	MSG("\n");
@@ -368,12 +368,12 @@ static struct option longopts[] = {
 	{"min", required_argument, NULL, 'm'},
 	{"numa", no_argument, NULL, 'u'},
 	{"help", no_argument, NULL, 'h'},
-	{"version", no_argument, NULL, 'V'},
+	{"version", no_argument, NULL, 'v'},
 	{"kexec", no_argument, NULL, 'k'},
 	{0, 0, 0, 0}
 };
 
-static char *shortopts = "n:m:uhVk";
+static char *shortopts = "n:m:uhvk";
 
 int
 main(int argc, char *argv[])
@@ -425,7 +425,7 @@ main(int argc, char *argv[])
 			help = 1;
 			opt_args += 1;
 			break;
-		case 'V':
+		case 'v':
 			version = 1;
 			opt_args += 1;
 			break;
