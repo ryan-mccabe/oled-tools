@@ -64,6 +64,11 @@ install:
 	install -m 755 filecache_uek4 $(BINDIR)/filecache_uek4
 	install -m 755 dentrycache $(BINDIR)/dentrycache
 	install -m 755 dentrycache_uek4 $(BINDIR)/dentrycache_uek4
+	gzip -c $(CURDIR)/filecache.man > $(MANDIR)/oled-filecache.8.gz
+	gzip -c $(CURDIR)/dentrycache.man > $(MANDIR)/oled-dentrycache.8.gz
+	chmod 644 $(MANDIR)/oled-filecache.8.gz
+	chmod 644 $(MANDIR)/oled-dentrycache.8.gz
+	@echo "filecache, dentrycache successfully installed!"
 
 uninstall:
 	@echo "uninstall:$(CURDIR)"
@@ -71,3 +76,6 @@ uninstall:
 	rm -f $(BINDIR)/filecache_uek4
 	rm -f $(BINDIR)/dentrycache
 	rm -f $(BINDIR)/dentrycache_uek4
+	rm -f $(MANDIR)/oled-filecache.8.gz
+	rm -f $(MANDIR)/oled-dentrycache.8.gz
+	@echo "filecache, dentrycache successfully uninstalled!"

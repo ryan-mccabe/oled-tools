@@ -1,6 +1,6 @@
 Name:		oled-tools
 Version:	0.1
-Release:	6.bug32734650v1%{?dist}
+Release:	LATEST_UNSTABLE
 Summary:	Diagnostic tools for more efficient and faster debugging on Oracle Linux
 Requires:	zlib
 Requires:	bzip2-libs
@@ -199,6 +199,8 @@ rm -rf $RPM_BUILD_ROOT
 %{oled_d}/dentrycache_uek4
 %{oled_d}/filecache
 %{oled_d}/filecache_uek4
+%{_mandir}/man8/oled-dentrycache.8.gz
+%{_mandir}/man8/oled-filecache.8.gz
 
 #kstack
 %{oled_d}/kstack
@@ -209,6 +211,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man8/oled-topstack.8.gz
 
 %changelog
+* Wed May 19 2021 Aruna Ramakrishna <aruna.ramakrishna@gmail.com>
+- Add man pages for filecache and dentrycache
+
 * Thu Apr 8 2021 Cesar Roque <cesar.roque@oracle.com>
 - Integrate topstack into oled-tools [Orabug: 32734650]
 
