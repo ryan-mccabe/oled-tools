@@ -208,8 +208,9 @@ if not os.geteuid()==0:
 
 
 # Parse arguments
-parser = argparse.ArgumentParser(description =
-        "Log memory usage data continuously.")
+parser = argparse.ArgumentParser(
+    prog = "oled memtracker",
+    description = "Log memory usage data continuously.")
 parser.add_argument("interval", type=int, default=DEF_DELAY, nargs='?',
             help="delay, in seconds, between samples (default is 30s)")
 args = parser.parse_args()

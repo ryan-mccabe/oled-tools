@@ -109,3 +109,9 @@ To dump the stack traces of all processes that are >= 50% CPU utilization (for 3
 .TP
 To dump the stack traces of all processes that are >= 90% CPU utilization and include /proc/buddyinfo, /proc/pagetypeinfo, and /proc/zoneinfo in the output.
 \fBtopstack --add=/proc/buddyinfo --add=/proc/pagetypeinfo --add=/proc/zoneinfo\fR
+.SH REPORTING BUGS
+.TP
+Please contact Oracle Linux Support to report any bugs for OLED tools.
+.SH SEE ALSO
+.TP
+oled kstack

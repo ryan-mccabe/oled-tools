@@ -1,71 +1,53 @@
-.TH oled 8 "Dec 2019" "0.1"
+.TH OLED 8 "Dec 2019" "Oracle Linux Enhanced Diagnostics" "0.1"
 
 .SH NAME
-oled - Program to invoke other diagnostic tools
+oled - Interface to invoke other diagnostic tools
 
 .SH SYNOPSIS
-oled [options]
+oled [sub_command] [options]
 
 .SH DESCRIPTION
-oled program is used to invoke other diagnostic tools of oled-tool package.
-
-Ex: oled can be used to invoke smtool, lkce, kstack, etc
+OLED (Oracle Linux Enhanced Diagnostics) is a collection of diagnostic tools
+and scripts. The \fBoled\fR command is used to invoke these other tools/scripts.
+See usage below, for available options.
 
 .TP
 # oled help
 Oracle Linux Enhanced Diagnostic Tools
 
 Usage:
-  /usr/sbin/oled <command> <subcommand>
+  /usr/sbin/oled <sub_command> <command_options>
 
-Valid commands
-     smtool      -- security mitigation tool
-     memstate    -- captures and analyzes memory usage data
-     memtracker  -- captures memory usage data
-     lkce        -- Linux Kernel Core Extractor
-     kdump       -- configure oled related kdump options
-     kstack      -- gathers kernel stack based on the process status or PID
-     topstack    -- gathers kernel stack and more based on the CPU utilization
-     help        -- show this help message
-     version     -- show oled-tools version
+Valid sub-commands:
+     smtool          -- Security mitigation tool
+     lkce            -- Linux Kernel Core Extractor
+     kdump           -- Configure oled related kdump options
+     memstate        -- Capture and analyze memory usage statistics
+     memtracker      -- Capture memory usage data for offline debug
+     filecache       -- List the biggest files in page cache
+     dentrycache     -- List a sample of active dentries
+     kstack          -- Gather kernel stack based on the process status or PID
+     topstack        -- Gather kernel stack and more based on the CPU utilization
+     help            -- Show this help message
+     version         -- Print version information
 
-.SH OPTIONS
-.TP
-smtool - run security mitigation tool
-
-.TP
-memstate - captures and analyzes memory usage data
-
-.TP
-memtracker - captures memory usage data
-
-.TP
-lkce - run Linux Kernel Core Extractor
-
-.TP
-kdump - configure oled related kdump options
-
-.TP
-kstack - gathers kernel stack based on the process status or PID
-
-.TP
-topstack - Gathers kernel stack and more based on the CPU utilization
+Please check the man page of each sub-command to learn more about that tool and
+its usage.
 
 .SH EXAMPLES
 .TP
 
-# oled lkce
-Usage: /usr/lib/oled-tools/lkce <options>
-options:
-        enable          -- enable lkce
-        disable         -- disable lkce
-        configure [--default]   -- configure lkce
-        configure [--show]      -- show lkce configuration
-        status          -- print status of lkce
-        clean [--all]   -- clear old crash*out files
-        list            -- list crash*out files
+# oled memtracker -h
+usage: memtracker [-h] [interval]
 
+Log memory usage data continuously.
 
-.SH AUTHOR
+positional arguments:
+  interval    delay, in seconds, between samples (default is 30s)
+
+optional arguments:
+  -h, --help  show this help message and exit
+
+.SH REPORTING BUGS
 .TP
-Manjunath Patil <manjunath.b.patil@oracle.com>
+Please contact Oracle Linux Support to report any bugs for OLED tools.

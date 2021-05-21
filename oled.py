@@ -61,17 +61,17 @@ def help(error):
     print("Usage:")
     print("  %s <command> <subcommand>" % sys.argv[0])
     print("Valid commands:")
-    print("     smtool          -- Spectre-Meltdown tool")
+    print("     smtool          -- Security mitigation tool")
     print("     lkce            -- Linux Kernel Core Extractor")
+    print("     kdump           -- Configure oled related kdump options")
     print("     memstate        -- Capture and analyze memory usage statistics")
     print("     memtracker      -- Capture memory usage data for offline debug")
-    print("     kdump           -- configure oled related kdump options")
-    print("     filecache       -- filecache tool")
-    print("     dentrycache     -- dentrycache tool")
-    print("     kstack          -- Gathers kernel stack based on the process status or PID")
-    print("     topstack        -- Gathers kernel stack and more based on the CPU utilization")
-    print("     help            -- show this help message")
-    print("     version         -- print oled version")
+    print("     filecache       -- List the biggest files in page cache")
+    print("     dentrycache     -- List a sample of active dentries")
+    print("     kstack          -- Gather kernel stack based on the process status or PID")
+    print("     topstack        -- Gather kernel stack and more based on the CPU utilization")
+    print("     help            -- Show this help message")
+    print("     version         -- Print version information")
 
     if (error):
         sys.exit(1)
@@ -90,7 +90,7 @@ def run_as_root():
 
 def cmd_version():
 	version = "%s.%s"%(MAJOR, MINOR)
-	print(version)
+	print("Oracle Linux Enhanced Diagnostics (oled): version " + version + ".")
 
 def cmd_smtool(args):
     cmdline = SMTOOL
@@ -216,7 +216,7 @@ def main():
         ret = cmd_help(args)
         sys.exit(ret)
     else:
-        print("Invalid command")
+        print("Invalid command: \"" + cmd + "\"")
         sys.exit(1)
 
     help(True)

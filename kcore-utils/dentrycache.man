@@ -5,7 +5,7 @@ oled dentrycache - Lists a sample of file paths which have active dentries
 in the dentry hash table. 
 
 .SH SYNOPSIS
-oled dentrycache [-h] [-l] [-n] [-v]
+oled dentrycache [-l] [-n] [-k] [-h] [-v]
 
 .SH DESCRIPTION
 The dentrycache tool can be used to debug the issue of large dentry slab
@@ -60,9 +60,9 @@ as the production kernel.
 .TP
 The tool can be run on any Oracle Linux 6, 7 or 8 server.
 
-.SH AUTHOR
+.SH REPORTING BUGS
 .TP
-Wengang Wang <wen.gang.wang@oracle.com>
+Please contact Oracle Linux Support to report any bugs for OLED tools.
 
 .SH SEE ALSO
 .TP

@@ -18,7 +18,7 @@
 # or visit www.oracle.com if you need additional information or have any
 # questions.
 
-# run ./configure generate oled-env.sh
+# Run ./configure to generate oled-env.sh
 -include oled-env.sh
 export DIST
 export PYTHON_SITEDIR

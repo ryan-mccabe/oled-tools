@@ -212,7 +212,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man8/oled-topstack.8.gz
 
 %changelog
-* Wed May 19 2021 Aruna Ramakrishna <aruna.ramakrishna@gmail.com>
+* Wed May 19 2021 Aruna Ramakrishna <aruna.ramakrishna@oracle.com>
 - Add man pages for filecache and dentrycache
 
 * Thu Apr 8 2021 Cesar Roque <cesar.roque@oracle.com>

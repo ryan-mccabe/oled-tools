@@ -95,3 +95,9 @@ To select all processes waiting on I/O, every 30 seconds, for 30 minutes:
 .TP
 /var/oled/kstack
 Destination directory for log files when in background mode.
+.SH REPORTING BUGS
+.TP
+Please contact Oracle Linux Support to report any bugs for OLED tools.
+.SH SEE ALSO
+.TP
+oled topstack

@@ -83,9 +83,9 @@ as the production kernel.
 .TP
 The tool can be run on any Oracle Linux 6, 7 or 8 server.
 
-.SH AUTHOR
+.SH REPORTING BUGS
 .TP
-Wengang Wang <wen.gang.wang@oracle.com>
+Please contact Oracle Linux Support to report any bugs for OLED tools.
 
 .SH SEE ALSO
 .TP

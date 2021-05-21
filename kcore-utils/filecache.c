@@ -337,29 +337,17 @@ int filecache_dump(int topN, int pageLimit, int numa,
 
 static void show_help()
 {
-	MSG("filecache is a tool that dumps the per file page cache usages on live systems.\n");
-	MSG("Output is one line per file and is sorted by page cache size in decreasing");
-	MSG(" order.\n");
-	MSG("There can be too many files to dump though most of them are not interesting ");
-	MSG("because of small use of page cache. Two parameters are provided to control ");
-	MSG("the number of files to dump. One is _topn_, it is a number used to limit the ");
-	MSG("max number of files to be printed. The other one is _pagelimit_, it is a number ");
-	MSG("which specifies the smallest amount of cached pages, only the files with that ");
-	MSG("many or more cache pages are printed.\n");
-	MSG("On Numa system, the page source (Numa nodes) can be printed too when required. ");
-	MSG("Add _numa_ option to enable page source dumping. On None-Numa system, page source");
-	MSG("information is skipped even _numa_ is specified because all the pages come from");
-	MSG(" the only node.\n");
-	MSG("parameters and options:\n");
-	MSG("to run kexec mode, kdump kernel should be same binary as production kernel.\n");
+	MSG("filecache: List the file paths of the biggest page cache consumers on this system.\n");
+	MSG("Usage: oled filecache [-n] [-m] [-u] [-k] [-h] [-v]\n");
+	MSG("Options:\n");
 	MSG("   -n, --topn <number>        report top <number> files, 50 by default\n");
 	MSG("   -m, --min <number>         report files with <number> or more pages in the cache, 1000 by default\n");
-	MSG("   -u, --numa                 report per-NUMA-node statistics\n");
+	MSG("   -u, --numa                 report per-NUMA-node statistics, disabled by default\n");
 	MSG("   -k, --kexec                report top files for crashed production kernel\n");
-	MSG("   -h, --help                 show this information\n");
+	MSG("   -h, --help                 show this message\n");
 	MSG("   -v, --version              show version\n");
 	MSG("\n");
-	MSG("Note: works on Oracle UEK4/UEK5/UEK6 kernels only\n");
+	MSG("Note: Works on Oracle UEK4/UEK5/UEK6 kernels only. Check the man page for more information.\n");
 	MSG("\n");
 }
 

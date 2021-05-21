@@ -276,8 +276,8 @@ def validate_args(args):
 
 def main():
     parser = argparse.ArgumentParser(
-        prog='memstate',
-        description='memstate (version 0.1): gathers data about memory usage on this system')
+        prog='oled memstate',
+        description='memstate: Capture and analyze memory usage data on this system.')
 
     parser.add_argument("-p", "--pss", help="display per-process memory usage", action="store_true")
     parser.add_argument("-w", "--swap", help="display per-process swap usage", action="store_true")
