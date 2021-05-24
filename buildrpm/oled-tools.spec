@@ -8,14 +8,9 @@ Requires:	elfutils-libs
 BuildRequires:	zlib-devel
 BuildRequires:	bzip2-devel
 BuildRequires:	elfutils-devel
-
 Group:		Development/Tools
 License:	UPL
-URL:		https://linux-git.us.oracle.com/oled/oled-tools
-# Run the following command to download the source as a compressed tarball:
-# git archive --format=tar.gz --prefix=oled-tools-0.1/
-#		--remote=git@linux-git.us.oracle.com:oled/oled-tools.git
-#		master -o oled-tools-0.1.tar.gz
+URL:		https://github.com/oracle/oled-tools.git
 Source0:	%{name}-%{version}.tar.gz
 
 
