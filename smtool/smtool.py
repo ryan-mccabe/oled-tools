@@ -30,6 +30,7 @@ and invoke specific actions based on them.
 The class also contains method to scan and report
 the status of vulnerabilities to the user.
 """
+import signal
 import sys
 
 from smtool_lib import Boothole
@@ -39,6 +40,22 @@ from smtool_lib import Microcode
 from smtool_lib import Distro
 from smtool_lib import Server
 from smtool_lib import Vulnerabilities
+
+
+def cleanup(signum, frame):
+    print("Received interrupt, exiting!")
+    exit(0)
+
+
+def setup_signal_handlers():
+    """
+    Catch ctrl-c and other signals that can cause this script to terminate,
+    and exit after any cleanup.
+    """
+    signal.signal(signal.SIGHUP, cleanup)
+    signal.signal(signal.SIGTERM, cleanup)
+    signal.signal(signal.SIGINT, cleanup)
+    return
 
 
 def error(msg):
@@ -361,6 +378,8 @@ class Smtool(Parser):
         argv(str): User provided option.
 
         """
+        setup_signal_handlers()
+
         if self.parse_options(argv) is False:
             raise ValueError("ERROR: parsing objects")
 
