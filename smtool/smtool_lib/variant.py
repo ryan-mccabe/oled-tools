@@ -64,17 +64,6 @@ def log(msg):
     return
 
 
-def logn(msg):
-    """
-    Logs messages if the variable
-    VERBOSE is set.
-
-    """
-    if parser.VERBOSE:
-        print(msg)
-    return
-
-
 def error(msg):
     """
     Logs error messages.
@@ -635,7 +624,7 @@ class Variant(Base):
         Also recommends upgrades if any.
 
         """
-        logn("     scanning variant..............: '" + str(self.vname) + "'")
+        log("     scanning variant..............: '" + str(self.vname) + "'")
         cpu = self.host.cpu
         kernel = self.host.kernel
         self.distro = Distro(False)                  # Oracle distro object
@@ -645,14 +634,14 @@ class Variant(Base):
         mitigation_possible = self.is_mitigation_possible()
         if cpu.is_vulnerable(self.vtype):
             self.vulnerable = True
-            logn("        CPU........................: Vulnerable")
+            log("        CPU........................: Vulnerable")
         else:
             self.vulnerable = False
-            logn("        CPU........................: Not Vulnerable")
+            log("        CPU........................: Not Vulnerable")
 
         self.sysfile = Sysfile(self.vtype)
         if os.path.exists(self.sysfile.get_sysfile()):
-            logn("        Running kernel.............: Supports Mitigation")
+            log("        Running kernel.............: Supports Mitigation")
             self.sysfile.scan_sysfile()
             self.boot = Boot(self.vtype, kernel.kver)
             # Does grub really needs to be scanned?
@@ -668,12 +657,12 @@ class Variant(Base):
                     server_type = "Xen Hypervisor"
                 elif self.server.stype == 3:
                     server_type = "Xen PV Guest"
-                logn(server_type + " doesn't support mitigation" +
+                log(server_type + " doesn't support mitigation" +
                      " for MDS, SSBD and Meltdown")
             else:
-                logn("Running kernel.............: Doesn't support" +
+                log("Running kernel.............: Doesn't support" +
                      " Mitigation")
-                logn("Please upgrade the kernel to the following version: " +
+                log("Please upgrade the kernel to the following version: " +
                      kernel.recommended_ver(kernel.get_kernel_desc()))
             return False
         return True

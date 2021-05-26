@@ -135,33 +135,33 @@ class Parser(Base):
         that the tool can be run with.
 
         """
-        opt = ""
+        opt = [ ] 
         if self.scan:
-            opt += ", scan only"
+            opt.append("scan only")
 
         if self.yes:
-            opt += ", yes"
+            opt.append("yes")
 
         if self.runtime:
-            opt += ", runtime"
+            opt.append("runtime")
 
         if self.dry_run:
-            opt += ", dry run"
+            opt.append("dry run")
 
         if self.enable_default:
-            opt += ", enable default"
+            opt.append("enable default")
 
         if self.disable_all:
-            opt += ", disable all"
+            opt.append("disable all")
 
         if self.enable_full:
-            opt += ", enable full"
+            opt.append("enable full")
 
         if self.help:
-            opt += ", help"
+            opt.append("help")
 
-        #if (opt):
-        log("   Options: " + opt)
+        if (opt):
+            log("   Options: " + ", ".join(opt))
         return
 
     def validate_options(self):

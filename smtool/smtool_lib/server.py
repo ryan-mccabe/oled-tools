@@ -157,6 +157,6 @@ class Server(Base):
         self.stype = self.scan_server(distro)
         if not self.is_valid():
             raise ValueError("ERROR: Invalid server type")
-        if (is_log is True):
+        if (is_log):
             log("           server type.............:" + str(self.get_server()))
         return

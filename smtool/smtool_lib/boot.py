@@ -504,9 +504,9 @@ class Boot(Base):
         tstr = self.get_cmdline_options()
 
         if tstr != "":
-            log("        /proc/cmdline..............:" + tstr)
+            log("        /proc/cmdline..............: " + tstr)
         else:
-            log("        /proc/cmdline..............:" + "None")
+            log("        /proc/cmdline..............: " + "None")
 
         return tstr
 
@@ -546,9 +546,9 @@ class Boot(Base):
                     self.scan_param(self.GRUB, arr, opt, len(arr))
             tstr = self.get_grub_options()
             if tstr != "":
-                log("        grub settings..............:" + tstr)
+                log("        grub settings..............: " + tstr)
             else:
-                log("        grub settings..............:" + "None")
+                log("        grub settings..............: " + "None")
             return tstr
         else:
             self.get_grub_info_xen()

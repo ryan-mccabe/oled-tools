@@ -673,7 +673,7 @@ class Cpu(Base):
                              str(self.model) +
                              "'")
 
-        log("           running cpu.............:" +
+        log("           running cpu.............: " +
             str(self.get_cpu_vendor()) +
             " (family=" +
             str(self.get_cpu_family()) +

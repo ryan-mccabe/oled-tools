@@ -156,7 +156,7 @@ class Sysfile(Base):
         self.distro = Distro(False)                  # Oracle distro object
         # Baremetal, hypervisor, VM
         self.server = Server(self.distro, False)
-        self.kernel = Kernel(self.server)       # Running kernel
+        self.kernel = Kernel(self.server, False)       # Running kernel
         return self.kernel.get_kernel_desc()
 
     def is_kvm(self):

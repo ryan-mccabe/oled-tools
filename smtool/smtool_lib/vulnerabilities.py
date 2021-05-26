@@ -656,7 +656,7 @@ class Vulnerabilities(Base):
             if var is None:
                 continue
             if not var.is_mitigated():
-                out = out + var.vname + ","
+                out = out + var.vname + ", "
         return out
 
     def is_mitigated(self):

@@ -260,8 +260,8 @@ class Smtool(Parser):
                         require_kernel_upgrade = True
 
         if (list_vuln):
-            print("System is vulnerable to " + list_vuln[:-1])
-            vuln_list = list_vuln[:-1].split(",")
+            print("System is vulnerable to " + list_vuln[:-2])
+            vuln_list = list_vuln[:-1].split(", ")
 
         if is_mitigated_cmdline:
             """ 
@@ -420,7 +420,7 @@ class Smtool(Parser):
                             "at runtime: " + enabled_mitigations_str)
                 print("Mitigation for the following variants disabled on "
                     "the cmdline: " + disabled_variants_cmdline[:-2])
-                if (list_vuln[:-2].find('ITLB_Multihit') != -1):
+                if (list_vuln[:-3].find('ITLB_Multihit') != -1):
                     vuln_list.remove('ITLB_Multihit')
                     if (not vuln_list):
                         if (server_type == self.KVM_HOST):
