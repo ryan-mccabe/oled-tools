@@ -22,364 +22,565 @@
 
 #
 # program for user-interaction
-# program to enable/disable/configure/... lkce
 #
-import os
-import re
-import subprocess
-import sys
+import sys, subprocess, os, re, platform, fcntl
 
+class Lkce:
+	def __init__(self):
+		#global variables
+		self.LKCE_HOME = "/etc/oled/lkce"
+		self.LKCE_CONFIG_FILE = self.LKCE_HOME + "/lkce.conf"
+		self.LKCE_OUT = "/var/oled/lkce"
+		self.LKCE_BINDIR = "/usr/lib/oled-tools"
 
-class LKCE:
-    def run_command(self, cmd):
-        """
-        Execute command and return the result
-        Parameters:
-        cmd (int): Command to run
-        shell (bool): If True, run command through
-        the shell
+		#vmlinux_path
+		self.KDUMP_KERNELVER = self.run_command('uname -r')
 
-        Returns string: result of the specific command
-        executed.
+		#default values
+		self.ENABLE = "no"
+		self.VMLINUX_PATH = "/usr/lib/debug/lib/modules/" + self.KDUMP_KERNELVER + "/vmlinux"
+		self.CRASH_CMDS_FILE = self.LKCE_HOME + "/crash_cmds_file"
+		self.KDUMP_REPORT = "yes"
+		self.MAX_OUT_FILES = "50"
 
-        """
-        command = subprocess.Popen(cmd,
-                               stdin=None,
-                               stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE,
-                               shell=True)
-        out,err = command.communicate()
-        if (sys.version_info[0] == 3):
-            out = out.decode("utf-8").strip()
+		#effective values
+		self.enable = self.ENABLE
+		self.vmlinux_path = self.VMLINUX_PATH
+		self.crash_cmds_file = self.CRASH_CMDS_FILE
+		self.kdump_report = self.KDUMP_REPORT
+		self.max_out_files = self.MAX_OUT_FILES
 
-        return out.strip()
+		#set values from config file
+		if os.path.exists(self.LKCE_CONFIG_FILE):
+			self.read_config(self.LKCE_CONFIG_FILE)
 
-    def __init__(self):
-        #global variables
-        self.LKCE_HOME = "/etc/oled/lkce"
-        self.LKCE_CONFIG_FILE = self.LKCE_HOME + "/lkce.conf"
-        self.LKCE_CRASH_CMDS_FILE = self.LKCE_HOME + "/crash_cmds"
-        self.LKCE_OUT = "/var/crash/lkce"
+		# lkce as a kdump_pre hook to kexec-tools
+		self.LKCE_KDUMP_SH = self.LKCE_HOME + "/lkce_kdump.sh"
+		self.LKCE_KDUMP_DIR = self.LKCE_HOME + "/lkce_kdump.d"
+		self.FSTAB = "/etc/fstab"
+		self.KDUMP_CONF = "/etc/kdump.conf"
+		self.TIMEOUT_PATH = self.run_command('which timeout')
+	#def __init__
 
-        self.SYSCONFIG_KDUMP = "/etc/sysconfig/kdump"
-        self.KDUMP_KERNELVER = self.run_command('uname -r')
+	def run_command(self, cmd):
+		"""
+		Execute command and return the result
+		Parameters:
+		cmd : Command to run
 
-        # vmlinux_path
-        file = open(self.SYSCONFIG_KDUMP, "r")
-        for line in file:
-            if re.search("^KDUMP_KERNELVER=", line):
-                line = re.sub(r"\s+", "", line)
-                entry = re.split("=", line)
-                if re.search(r"\w", entry[1]):
-                    self.KDUMP_KERNELVER = entry[1]
-            # if re.seach
-        # for
-        file.close()
+		Returns string: result of the specific command executed.
+		"""
+		command = subprocess.Popen(cmd,
+					stdin=None,
+					stdout=subprocess.PIPE,
+					stderr=subprocess.PIPE,
+					shell=True)
+		out,err = command.communicate()
+		if (sys.version_info[0] == 3):
+			out = out.decode("utf-8").strip()
 
-        # default values
-        self.enable = "yes"
-        self.vmlinux_path = "/usr/lib/debug/lib/modules/" + self.KDUMP_KERNELVER + "/"
-        self.crash_cmds_file = self.LKCE_CRASH_CMDS_FILE
-        self.max_out_files = "50"
+		return out.strip()
+	#def run_command(self, cmd):
 
-        if not os.path.isdir(self.LKCE_HOME):
-            os.mkdir(self.LKCE_HOME)
+	def configure_default(self):
+		if not os.path.isdir(self.LKCE_HOME):
+			cmd = "mkdir -p " + self.LKCE_HOME
+			os.system(cmd)
 
-        self.LKCE_KDUMP_PRE_LINK = "/etc/oled/kdump_pre.d/lkce-kdump"
-        BINDIR = "/usr/lib/oled-tools"
-        self.LKCE_KDUMP_PRE_SCRIPT = BINDIR + "/lkce-kdump"
-    # def __init__
+		if self.enable == "yes":
+			print("trying to disable lkce")
+			self.disable_lkce()
 
-    def create_crash_cmds_file(self, filename):
-        content = """#
+		#crash_cmds_file
+		filename = self.CRASH_CMDS_FILE
+		content = """#
 # This is the input file for crash utility. You can edit this manually
 # Add your own list of crash commands one per line.
 #
 bt
-bt -FF
 bt -a
+bt -FF
+dev
+kmem -s
 foreach bt
 log
+mod
+mount
+net
 ps -m
-kmem -i
+ps -S
+runq
 quit
 """
-        file = open(filename, "w")
-        file.write(content)
-        file.close()
-    # def create_crash_cmds_file
+		file = open(filename, "w")
+		file.write(content)
+		file.close()
 
-    def show_config(self, filename):
-        if not os.path.exists(filename):
-            print("%s not found.  Run 'oled lkce configure' to create one" % (filename))
-            return
-
-        print("Filename: %s" % (filename))
-        file = open(filename, "r")
-        for line in file.readlines():
-            print(line)
-        file.close()
-    # def show_config
-
-    def read_config(self, filename):
-        if not os.path.exists(filename):
-            return
-
-        file = open(filename, "r")
-        for line in file.readlines():
-            if re.search("^#", line):  # ignore lines starting with '#'
-                continue
-
-            # trim space/tab/newline from the line
-            line = re.sub(r"\s+", "", line)
-
-            entry = re.split("=", line)
-            if "enable" in entry[0] and entry[1]:
-                self.enable = entry[1]
-
-            elif "vmlinux_path" in entry[0] and entry[1]:
-                self.vmlinux_path = entry[1]
-
-            elif "crash_cmds_file" in entry[0] and entry[1]:
-                self.crash_cmds_file = entry[1]
-
-            elif "max_out_files" in entry[0] and entry[1]:
-                self.max_out_files = entry[1]
-    # def read_config
-
-    # maintain this call sequence: read_config();ask_user();write_config()
-    def ask_user(self):
-        val = raw_input("enable lkce? values(yes,no)[%s]:" % self.enable)
-        if "yes" in val or "no" in val:
-            self.enable = val
-
-        val = raw_input(
-            "Enter the path to debuginfo vmlinux[%s]:" %
-            self.vmlinux_path)
-        if val:
-            self.vmlinux_path = val
-
-        val = raw_input(
-            "Enter the path to file containing crash commands[%s]:" %
-            self.crash_cmds_file)
-        if val:
-            self.crash_cmds_file = val
-
-        val = raw_input(
-            "Enter number of output files to retain[%s]:" %
-            self.max_out_files)
-        if val:
-            self.max_out_files = val
-    # def ask_user
-
-    def write_config(self, filename):
-        content = """##
+		#config file
+		filename = self.LKCE_CONFIG_FILE
+		content = """##
 # This is configuration file for lkce
-# You can edit manually. Recommended way is to run 'oled lkce configure'
+# You can edit manually.
 ##
 
-#enable/disable(yes,no) lkce script in kdump kernel
-enable=""" + self.enable + """
+#kdump-enable/kdump-disable(yes,no) lkce script in kdump kernel
+enable=""" + self.ENABLE + """
 
 #debuginfo vmlinux path. Need to install debuginfo kernel to get it
-vmlinux_path=""" + self.vmlinux_path + """
+vmlinux_path=""" + self.VMLINUX_PATH + """
 
 #path to file containing crash commands to execute
-crash_cmds_file=""" + self.crash_cmds_file + """
+crash_cmds_file=""" + self.CRASH_CMDS_FILE + """
+
+#enable crash report in kdump kernel
+kdump_report=""" + self.KDUMP_REPORT + """
 
 #maximum number of outputfiles to retain. Older file gets deleted
-max_out_files=""" + self.max_out_files
+max_out_files=""" + self.MAX_OUT_FILES
 
-        file = open(filename, "w")
-        file.write(content)
-        file.close()
+		file = open(filename, "w")
+		file.write(content)
+		file.close()
 
-        print("wrote the values into %s" % filename)
-    # def write_config
+		print("configured with default values")
+	#def configure_default
 
-    def check_config(self, filename):
-        if not os.path.exists(filename):
-            print("%s not found.  Run 'oled lkce configure' to create one" % (filename))
-            return
+	def read_config(self, filename):
+		if not os.path.exists(filename):
+			return
 
-        self.read_config(filename)
-        proper_config = True
+		file = open(filename, "r")
+		for line in file.readlines():
+			if re.search("^#", line): #ignore lines starting with '#'
+				continue
 
-        if self.enable == "yes":
-            print("lkce is enabled to run.")
-        else:
-            print("NOTICE: lkce is disabled to run [to enable:'oled lkce enable'].")
-            proper_config = False
+			# trim space/tab/newline from the line
+			line = re.sub(r"\s+", "", line)
 
-        vmlinux_conf = self.vmlinux_path + "vmlinux"
-        if os.path.exists(vmlinux_conf):
-            tmp_path = self.LKCE_OUT + "/debug-vmlinux/" + self.KDUMP_KERNELVER + "/"
-            cmd1 = "mkdir -p " + tmp_path
-            cmd2 = "cp " + vmlinux_conf + " " + tmp_path
-            os.system(cmd1)
-            os.system(cmd2)
-            print("vmlinux found at: %s." % (vmlinux_conf))
-        else:
-            print("\nNOTICE: vmlinux not found.")
-            print("did you install debuginfo kernel package?")
-            print("correct the error and rerun 'oled lkce configure'.")
-            proper_config = False
+			entry = re.split("=", line)
+			if "enable" in entry[0] and entry[1]:
+				self.enable = entry[1]
 
-        if not os.path.exists(self.crash_cmds_file):
-            print("\n%s not found.\nManually create it or Run 'oled lkce configure --default' to create the default one" % (self.crash_cmds_file))
-            proper_config = False
+			elif "vmlinux_path" in entry[0] and entry[1]:
+				self.vmlinux_path = entry[1]
 
-        crash_bin_file = self.run_command('which crash 2> /dev/null')
-        if not os.path.exists(crash_bin_file):
-            print("\ncrash not found. Please install crash [yum install crash]")
-            proper_config = False
+			elif "crash_cmds_file" in entry[0] and entry[1]:
+				self.crash_cmds_file = entry[1]
 
-        if proper_config:
-            print("configuration is correct")
-        else:
-            print("configuration is incorrect")
+			elif "kdump_report" in entry[0] and entry[1]:
+				self.kdump_report = entry[1]
 
-    # def check_config
+			elif "max_out_files" in entry[0] and entry[1]:
+				self.max_out_files = entry[1]
+	#def read_config
 
-###########################################
-# lkce option related functions
-###########################################
+	def create_lkce_kdump(self):
+		filename = self.LKCE_KDUMP_SH
+		cmd = "mkdir -p " + self.LKCE_KDUMP_DIR
+		os.system(cmd)
 
-    def enable_lkce(self):
-        filename = self.LKCE_CONFIG_FILE
+		#for OL7 and above
+		mount_cmd = "mount -o bind /sysroot"
 
-        if not os.path.exists(filename):
-            print("%s not found.  Run 'oled lkce configure' to create one" % (filename))
-            return
+		dist = self.get_dist()
+		if dist == ".el6": #for OL6
+			# get the root device
+			cmd = "awk '/^[ \t]*[^#]/ { if ($2 == \"/\") { print $1; }}' " + self.FSTAB
+			rootdev = self.run_command(cmd)
+			if "LABEL=" in rootdev or "UUID=" in rootdev:
+				cmd = "/sbin/findfs " + rootdev
+				rootdev = self.run_command(cmd)
+			cmd = "blkid -sUUID -o value " + rootdev
+			root_uuid = self.run_command(cmd)
+			mount_cmd = "mount UUID=" + root_uuid
+		#if dist
 
-        cmd = "sed -i 's/enable=.*/enable=yes/' " + filename
-        os.system(cmd)
-        print("enabled")
-    # def enable_lkce
+		# create lkce_kdump.sh script
+		content = """#!/bin/sh
+# This is a kdump_pre script
+# /etc/kdump.conf is used to configure kdump_pre script
 
-    def disable_lkce(self):
-        filename = self.LKCE_CONFIG_FILE
+# Generate vmcore post lkce_kdump scripts execution
+LKCE_VMCORE="yes"
 
-        if not os.path.exists(filename):
-            print("%s not found.  Run 'oled lkce configure' to create one" % (filename))
-            return
+# Timeout for lkce_kdump scripts in seconds
+LKCE_TIMEOUT="120"
 
-        cmd = "sed -i 's/enable=.*/enable=no/' " + filename
-        os.system(cmd)
-        print("disabled")
-    # def disable_lkce
+# Temporary directory to mount the actual root partition
+LKCE_DIR="/lkce_kdump"
 
-    def configure(self, subarg):
-        if subarg == "--show":
-            self.show_config(self.LKCE_CONFIG_FILE)
-            return
-        elif subarg == "--default":
-            self.create_crash_cmds_file(self.LKCE_CRASH_CMDS_FILE)
-        else:
-            if not os.path.exists(self.LKCE_CRASH_CMDS_FILE):
-                self.create_crash_cmds_file(self.LKCE_CRASH_CMDS_FILE)
-            self.read_config(self.LKCE_CONFIG_FILE)
-            self.ask_user()
+mkdir $LKCE_DIR
+""" + mount_cmd + """ $LKCE_DIR
+mount -o bind /proc $LKCE_DIR/proc
+mount -o bind /dev $LKCE_DIR/dev
 
-        self.write_config(self.LKCE_CONFIG_FILE)
-        print("checking configuration")
-        self.check_config(self.LKCE_CONFIG_FILE)
+LKCE_KDUMP_SCRIPTS=$LKCE_DIR""" + self.LKCE_KDUMP_DIR + """/*
 
-        # create a link to lkce-kdump.py script
-        cmd = "ln -sf " + self.LKCE_KDUMP_PRE_SCRIPT + " " + self.LKCE_KDUMP_PRE_LINK
-        os.system(cmd)
-    # def configure
+#get back control after $LKCE_TIMEOUT to proceed
+export LKCE_KDUMP_SCRIPTS
+export LKCE_DIR
+""" + self.TIMEOUT_PATH + """ $LKCE_TIMEOUT /bin/sh -c '
+echo "LKCE_KDUMP_SCRIPTS=$LKCE_KDUMP_SCRIPTS";
+for file in $LKCE_KDUMP_SCRIPTS;
+do
+	cmd=${file#$LKCE_DIR};
+	echo "Executing $cmd";
+	chroot $LKCE_DIR $cmd;
+done;'
 
-    def status(self):
-        self.check_config(self.LKCE_CONFIG_FILE)
-    # def status
+umount $LKCE_DIR/dev
+umount $LKCE_DIR/proc
+umount $LKCE_DIR
 
-    def clean(self, subarg):
-        if subarg == "--all":
-            val = raw_input(
-                "lkce removes all the files in %s dir. do you want to proceed(yes/no)? [no]:" %
-                (self.LKCE_OUT))
-            if "yes" in val:  # avoiding riskier rm -rf purposefully.
-                cmd1 = "rm " + self.LKCE_OUT + "/crash*out 2> /dev/null"
-                cmd2 = "find " + self.LKCE_OUT + " -name vmlinux | xargs rm 2> /dev/null"
-                cmd3 = "find " + self.LKCE_OUT + "/debug-vmlinux -type d -empty -delete 2> /dev/null"
-                os.system(cmd1)
-                os.system(cmd2)
-                os.system(cmd3)
-            # if "yes"
-        else:
-            val = raw_input(
-                "lkce deletes all but last three %s/crash*out files. do you want to proceed(yes/no)? [no]:" %
-                (self.LKCE_OUT))
-            if "yes" in val:
-                cmd1 = "ls -r " + self.LKCE_OUT + \
-                    "/crash*out 2>/dev/null| tail -n +4 | xargs rm 2> /dev/null"
-                os.system(cmd1)  # start removing from 4th entry
-    # def clean
+unset LKCE_KDUMP_SCRIPTS
+unset LKCE_DIR
 
-    def list(self):
-        dirname = self.LKCE_OUT
-        if not os.path.exists(dirname):
-            print("Path %s does not exist" % (dirname))
-            return
-        else:
-            print("List of crash*out found in %s:" % (dirname))
+if [ "$LKCE_VMCORE" != "yes" ]; then
+	echo "lkce_kdump.sh: vmcore generation is disabled"
+	exit 1
+fi
 
-        for file in os.listdir(dirname):
-            if re.search("crash.*out", file):
-                print("%s/%s" % (self.LKCE_OUT, file))
-    # def list
-
-    def usage(self):
-        usage = """Usage: """ + sys.argv[0] + """ <options>
-options:
-	enable		-- enable lkce
-	disable 	-- disable lkce
-	configure [--default] 	-- configure lkce
-	configure [--show] 	-- show lkce configuration
-	status 		-- print status of lkce
-	clean [--all]	-- clear old crash*out files
-	list		-- list crash*out files
+exit 0
 """
-        print(usage)
-        sys.exit()
-    # def usage
-# class LKCE
+		file = open(filename, "w")
+		file.write(content)
+		file.close()
 
+		cmd = "chmod a+x " + filename
+		os.system(cmd)
+	# def create_lkce_kdump
+
+	def remove_lkce_kdump(self):
+		return self.update_kdump_conf("--remove")
+	#def remove_lkce_kdump()
+
+	# enable lkce_kdump in /etc/kdump.conf
+	def update_kdump_conf(self, arg):
+		KUDMP_PRE_LINE = "kdump_pre " + self.LKCE_KDUMP_SH
+		KUDMP_TIMEOUT_LINE = "extra_bins " + self.TIMEOUT_PATH
+
+		if arg == "--remove":
+			cmd = "grep -q '^" + KUDMP_PRE_LINE + "$' " + self.KDUMP_CONF
+			ret = os.system(cmd)
+			if (ret):  # not present
+				print("lkce_kdump entry not set in %s") % (self.KDUMP_CONF)
+				return 1
+			cmd = "sed --in-place '/""" + \
+			KUDMP_PRE_LINE.replace("/", r"\/") + """/d' """ + self.KDUMP_CONF
+			cmd = cmd + "; sed --in-place '/""" + \
+			KUDMP_TIMEOUT_LINE.replace("/", r"\/") + """/d' """ + self.KDUMP_CONF
+			os.system(cmd)
+			self.restart_kdump_service()
+			return 0
+
+		#arg == "--add"
+		cmd = "grep -q '^kdump_pre' " + self.KDUMP_CONF
+		ret = os.system(cmd)
+		if (ret):  # not present
+			cmd = "echo '" + KUDMP_PRE_LINE + "' >> " + self.KDUMP_CONF
+			cmd = cmd + "; echo 'extra_bins " + self.TIMEOUT_PATH + "' >> " + self.KDUMP_CONF
+			os.system(cmd)
+			self.restart_kdump_service()
+		else:
+			cmd = "grep -q '^" + KUDMP_PRE_LINE + "$' " + self.KDUMP_CONF
+			if (os.system(cmd)):  # kdump_pre is enabled, but it is not our lkce_kdump script
+				print("lkce_kdump entry not set in %s (manual setting needed)") % (self.KDUMP_CONF)
+				print("\npresent entry in kdump.conf")
+				cmd = "grep ^kdump_pre " + self.KDUMP_CONF
+				os.system(cmd)
+				print("\nHint:")
+				print("edit the present kdump_pre script and make it run %s")%(self.LKCE_KDUMP_SH)
+				return 1
+			else:
+				print("lkce_kdump is already enabled to run lkce scripts")
+				return 0
+	# def update_kdump_conf
+
+	def get_dist(self):
+		dist = None
+		if (platform.linux_distribution()[0] == "Oracle VM server"):
+			dist = ".el6"
+		else:
+			os_release = float(platform.linux_distribution()[1])
+			if os_release > 6.0 and os_release < 7.0 :
+				dist = ".el6"
+			elif os_release > 7.0:
+				dist = ".el7"
+		return dist
+	#def get_dist
+
+	def restart_kdump_service(self):
+		dist = self.get_dist()
+		if dist == ".el6":
+			cmd = "service kdump restart"
+		else: #OL7 and above
+			cmd = "systemctl restart kdump"
+
+		print("Restarting kdump service..."),
+		os.system(cmd)
+		print("done!")
+	# def restart_kdump_service
+
+	def report(self, subargs):
+		if not subargs:
+			print("error: report option need additional arguments [oled lkce help]")
+			return
+
+		vmcore = ""
+		vmlinux = ""
+		crash_cmds_file = ""
+		outfile = ""
+		for subarg in subargs:
+			subarg = re.sub(r"\s+", "", subarg)
+			entry = re.split("=", subarg)
+			if len(entry) < 2:
+				print("error: unknown report option %s" % subarg)
+				continue
+
+			if "--vmcore" in entry[0]:
+				vmcore = entry[1]
+
+			elif "--vmlinux" in entry[0]:
+				vmlinux = entry[1]
+
+			elif "--crash_cmds" in entry[0]:
+				crash_cmds_file = "/tmp/crash_cmds_file"
+				file = open(crash_cmds_file, "w")
+				for cmd in entry[1].split(","):
+					cmd  = cmd + "\n"
+					file.write(cmd)
+				#for
+				file.write("quit")
+				file.close()
+
+			elif "--outfile" in entry[0]:
+				outfile = entry[1]
+
+			else:
+				print("error: unknown report option %s" % subarg)
+				break
+		#for
+
+		if vmcore == "":
+			print("error: vmcore not specified")
+			return
+
+		if vmlinux == "": vmlinux = self.vmlinux_path
+		if not os.path.exists(vmlinux):
+			print("error: %s not found" % vmlinux)
+			return
+
+		if crash_cmds_file == "": crash_cmds_file = self.crash_cmds_file
+		if not os.path.exists(crash_cmds_file):
+			print("%s not found" % crash_cmds_file)
+			return
+
+		cmd = "crash " + vmcore + " " + vmlinux + " -i " + crash_cmds_file
+		if outfile != "": cmd = cmd + " > " + outfile
+		print("lkce: executing '%s'" % cmd)
+		os.system(cmd)
+
+		if crash_cmds_file == "/tmp/crash_cmds_file":
+			os.remove(crash_cmds_file)
+	#def report
+
+	def configure(self, subargs):
+		if not subargs: #default
+			subargs = ["--show"]
+
+		filename = self.LKCE_CONFIG_FILE
+		for subarg in subargs:
+			if subarg == "--default":
+				self.configure_default()
+			elif subarg == "--show":
+				if not os.path.exists(filename):
+					print("config file not found")
+					return
+
+				print("%15s : %s" % ("lkce enabled", self.enable))
+				print("%15s : %s" % ("vmlinux path", self.vmlinux_path))
+				print("%15s : %s" %("crash_cmds_file", self.crash_cmds_file))
+				print("%15s : %s" %("kdump_report", self.kdump_report))
+				print("%15s : %s" %("max_out_files", self.max_out_files))
+			else:
+				subarg = re.sub(r"\s+", "", subarg)
+				entry = re.split("=", subarg)
+				if len(entry) < 2:
+					print("error: unknown configure option %s" % subarg)
+					continue
+
+				if "--vmlinux_path" in entry[0]:
+					cmd = "sed -i 's/vmlinux_path=.*/vmlinux_path= " + entry[1] +"/' " + filename
+					os.system(cmd);
+					print("lkce: set vmlinux_path to %s" % entry[1])
+
+				elif "--crash_cmds_file" in entry[0]:
+					cmd = "sed -i 's/crash_cmds_file=.*/crash_cmds_file= " + entry[1] +"/' " + filename
+					os.system(cmd);
+					print("lkce: set crash_cmds_file to %s" % entry[1])
+
+				elif "--kdump_report" in entry[0]:
+					cmd = "sed -i 's/kdump_report=.*/kdump_report= " + entry[1] +"/' " + filename
+					os.system(cmd);
+					print("lkce: set kdump_report to %s" % entry[1])
+
+				elif "--max_out_files" in entry[0]:
+					cmd = "sed -i 's/max_out_files=.*/max_out_files= " + entry[1] +"/' " + filename
+					os.system(cmd);
+					print("lkce: set max_out_files to %s" % entry[1])
+				else:
+					print("error: unknown configure option %s" % subarg)
+		#for
+	#def configure
+
+	def enable_lkce(self):
+		filename = self.LKCE_KDUMP_SH
+		if not os.path.exists(filename):
+			self.create_lkce_kdump()
+
+		if self.update_kdump_conf("--add") == 1:
+			return
+
+		filename = self.LKCE_CONFIG_FILE
+		cmd = "sed -i 's/enable=.*/enable=yes/' " + filename
+		os.system(cmd);
+		print("enabled")
+	# def enable_lkce
+
+	def disable_lkce(self):
+		filename = self.LKCE_CONFIG_FILE
+		if not os.path.exists(filename):
+			print("config file not found")
+			return
+
+		if self.update_kdump_conf("--remove") == 1:
+			return
+
+		cmd = "sed -i 's/enable=.*/enable=no/' " + filename
+		os.system(cmd);
+
+		filename = self.LKCE_KDUMP_SH
+		if os.path.exists(filename):
+			cmd = "rm -f " + self.LKCE_KDUMP_SH
+			os.system(cmd)
+		print("disabled")
+	#def disable_lkce
+
+	def status(self):
+		self.configure(subargs=["--show"])
+	#def status
+
+	def clean(self, subarg):
+		if "--all" in subarg:
+			val = raw_input("lkce removes all the files in %s dir. do you want to proceed(yes/no)? [no]:" %self.LKCE_OUT)
+			if "yes" in val:
+				cmd = "rm " + self.LKCE_OUT + "/crash*out 2> /dev/null"
+				os.system(cmd)
+			#if "yes"
+		else:
+			val = raw_input("lkce deletes all but last three %s/crash*out files. do you want to proceed(yes/no)? [no]:" % self.LKCE_OUT)
+			if "yes" in val:
+				cmd = "ls -r " + self.LKCE_OUT + "/crash*out 2>/dev/null| tail -n +4 | xargs rm 2> /dev/null"
+				os.system(cmd) #start removing from 4th entry
+	#def clean
+
+	def listfiles(self):
+		dirname = self.LKCE_OUT
+		if not os.path.exists(dirname):
+			cmd = "mkdir -p " + dirname
+			os.system(cmd)
+
+		print("Followings are the crash*out found in %s dir:" % dirname)
+		for filename in os.listdir(dirname):
+			if re.search("crash.*out", filename):
+				print("%s/%s" % (dirname, filename))
+		#for
+	#def listfiles
+
+	def usage(self):
+		usage = """Usage: """ + os.path.basename(sys.argv[0]) + """ <options>
+options:
+	report <report-options> -- Generate a report from vmcore
+	report-options:
+		--vmcore=/path/to/vmcore 		- path to vmcore
+		[--vmlinux=/path/to/vmlinux] 		- path to vmlinux
+		[--crash_cmds=cmd1,cmd2,cmd3,..]	- crash commands to include
+		[--outfile=/path/to/outfile] 		- write output to a file
+
+	configure [--default] 	-- configure lkce with default values
+	configure [--show] 	-- show lkce configuration -- default
+	configure [config-options]
+	config-options:
+		[--vmlinux_path=/path/to/vmlinux] 	- set vmlinux_path
+		[--crash_cmds_file=/path/to/file] 	- set crash_cmds_file
+		[--kdump_report=yes/no]			- set crash report in kdump kernel
+		[--max_out_files=<number>] 		- set max_out_files
+
+	enable	-- enable lkce in kdump kernel
+	disable -- disable lkce in kdump kernel
+	status 	-- status of lkce
+
+	clean [--all]	-- clear crash report files
+	list		-- list crash report files
+"""
+		print(usage)
+		sys.exit()
+	#def usage
+#class LKCE
 
 def main():
-    lkce = LKCE()
+	lkce = Lkce()
 
-    if len(sys.argv) < 2 or 'help' in sys.argv or '-help' in sys.argv or '--help' in sys.argv:
-        lkce.usage()
+	if len(sys.argv) < 2:
+		lkce.usage()
 
-    arg = sys.argv[1]
-    subarg = None
-    if len(sys.argv) > 2:
-        subarg = sys.argv[2]
+	arg = sys.argv[1]
+	if arg == "report":
+		lkce.report(sys.argv[2:])
 
-    if arg == "enable":
-        lkce.enable_lkce()
+	elif arg == "configure":
+		lkce.configure(sys.argv[2:])
 
-    elif arg == "disable":
-        lkce.disable_lkce()
+	elif arg == "enable":
+		lkce.enable_lkce()
 
-    elif arg == "configure":
-        lkce.configure(subarg)
+	elif arg == "disable":
+		lkce.disable_lkce()
 
-    elif arg == "status":
-        lkce.status()
+	elif arg == "status":
+		lkce.status()
 
-    elif arg == "clean":
-        lkce.clean(subarg)
+	elif arg == "clean":
+		lkce.clean(sys.argv[2:])
 
-    elif arg == "list":
-        lkce.list()
+	elif arg == "list":
+		lkce.listfiles()
 
-    else:
-        lkce.usage()
-# def main
+	elif arg == "help" or arg == "-help" or arg == "--help":
+		lkce.usage()
 
+	else:
+		print("Invalid option: %s")%(arg)
+		print("Try 'oled lkce help' for more information")
+#def main
 
 if __name__ == '__main__':
-    main()
+	if not os.geteuid() == 0:
+		print("Please run lkce as root user.")
+		sys.exit()
+
+	lockdir = "/var/run/oled-tools"
+	if not os.path.isdir(lockdir):
+		os.makedirs(lockdir)
+	lockfile = lockdir + "/lkce.lock"
+	fh = open(lockfile, "w")
+	try: #try lock
+		fcntl.flock(fh, fcntl.LOCK_EX | fcntl.LOCK_NB)
+	except: #no lock
+		print("another instance of lkce is running.")
+		sys.exit()
+
+	main()
+
+	fh.close()
+	os.remove(lockfile)

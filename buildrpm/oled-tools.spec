@@ -1,6 +1,6 @@
 Name:		oled-tools
 Version:	0.1
-Release:	LATEST_UNSTABLE
+Release:	LATEST_UNSTABLE%{?dist}
 Summary:	Diagnostic tools for more efficient and faster debugging on Oracle Linux
 Requires:	zlib
 Requires:	bzip2-libs
@@ -58,39 +58,19 @@ make install DESTDIR=$RPM_BUILD_ROOT DIST=%{?dist} SPECFILE="1"
 %define memstate_lib %{python_sitelib}/memstate_lib/
 %endif
 %define lkce_d %{oled_etc_d}/lkce
-%define kdump_pre_d %{oled_etc_d}/kdump_pre.d
+%define lkce_kdump_d %{lkce_d}/lkce_kdump.d
 
 %post
-#kdump-utils
-oled kdump --add > /dev/null || :
-%if 0%{?el6}
-service kdump restart > /dev/null || :
-%else
-systemctl restart kdump > /dev/null || :
-%endif
+[ -f %{lkce_d}/lkce.conf ] || oled lkce configure --default > /dev/null
 
 %preun
-#kdump-utils
-oled kdump --remove > /dev/null || :
-%if 0%{?el6}
-service kdump restart > /dev/null || :
-%else
-systemctl restart kdump > /dev/null || :
-%endif
+if [ $1 -lt 1 ] ; then
+# package uninstall, not upgrade
+	oled lkce disable > /dev/null || :
+fi
 
 %postun
-if [ $1 -ge 1 ] ; then
-# package upgrade, not uninstall
-
-	#kdump-utils
-	oled kdump --add > /dev/null || :
-
-	%if 0%{?el6}
-		service kdump restart > /dev/null || :
-	%else
-		systemctl restart kdump > /dev/null || :
-	%endif
-else
+if [ $1 -lt 1 ] ; then
 # package uninstall, not upgrade
 	#smtool
 	%if 0%{?el8}
@@ -109,17 +89,8 @@ else
 	%endif
 
 	#lkce
-	if [ -f %{lkce_d}/lkce.conf ]
-	then
-		rm -f %{kdump_pre_d}/lkce-kdump || :
-		rm -f %{lkce_d}/crash_cmds || :
-		rm -f %{lkce_d}/lkce.conf || :
-		fi
-	rmdir %{lkce_d} || :
-
-	#kdump-utils
-	rm -f %{oled_etc_d}/kdump_pre.sh || :
-	rmdir %{kdump_pre_d} || :
+	rm -rf %{lkce_kdump_d} || :
+	rm -rf %{lkce_d} || :
 
 	#oled
 	rmdir %{oled_etc_d} || :
@@ -187,12 +158,9 @@ rm -rf $RPM_BUILD_ROOT
 %{oled_d}/memtracker
 %{_mandir}/man8/oled-memtracker.8.gz
 
-#kdump-utils
-%{oled_d}/kdump
-
 # lkce
 %{oled_d}/lkce
-%{oled_d}/lkce-kdump
+%{lkce_kdump_d}/kdump_report
 %{_mandir}/man8/oled-lkce.8.gz
 
 # kcore-utils
@@ -212,6 +180,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man8/oled-topstack.8.gz
 
 %changelog
+* Mon May 31 2021 Manjunath Patil <manjunath.b.patil@oracle.com>
+- rewrite lkce
+
 * Wed May 19 2021 Aruna Ramakrishna <aruna.ramakrishna@oracle.com>
 - Add man pages for filecache and dentrycache
 

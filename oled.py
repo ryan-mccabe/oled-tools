@@ -34,7 +34,6 @@ BINDIR="/usr/lib/oled-tools"
 # cmds
 LKCE = BINDIR + "/lkce"
 SMTOOL = BINDIR + "/smtool"
-OLED_KDUMP = BINDIR + "/kdump"
 MEMSTATE = BINDIR + "/memstate"
 MEMTRACKER = BINDIR + "/memtracker"
 KSTACK = BINDIR + "/kstack"
@@ -63,7 +62,6 @@ def help(error):
     print("Valid commands:")
     print("     smtool          -- Security mitigation tool")
     print("     lkce            -- Linux Kernel Core Extractor")
-    print("     kdump           -- Configure oled related kdump options")
     print("     memstate        -- Capture and analyze memory usage statistics")
     print("     memtracker      -- Capture memory usage data for offline debug")
     print("     filecache       -- List the biggest files in page cache")
@@ -115,13 +113,6 @@ def cmd_memtracker(args):
 
 def cmd_lkce(args):
     cmdline = LKCE
-    for arg in args:
-        cmdline = cmdline + " %s" % arg
-    ret = os.system(cmdline)
-    return ret
-
-def cmd_kdump(args):
-    cmdline = OLED_KDUMP
     for arg in args:
         cmdline = cmdline + " %s" % arg
     ret = os.system(cmdline)
@@ -193,9 +184,6 @@ def main():
         sys.exit(ret)
     elif cmd == "memtracker":
         ret = cmd_memtracker(args)
-        sys.exit(ret)
-    elif cmd == "kdump":
-        ret = cmd_kdump(args)
         sys.exit(ret)
     elif cmd == "filecache":
         ret = cmd_filecache(args)

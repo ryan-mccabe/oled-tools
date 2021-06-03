@@ -1,70 +1,141 @@
-.TH oled lkce 8 "Feb 2020" "0.1"
+.TH oled lkce 1 "Dec 2020" "0.1"
 
 .SH NAME
-oled lkce - Program to manage Linux Kernel Core Extractor
+oled lkce \- Linux Kernel Core Extractor
 
 .SH SYNOPSIS
-oled lkce [options]
+\fB oled lkce\fR [report \fIreport-options\fR] [configure \fIconfig-options\fR] [enable|disable|status] [clean|list|help]
 
 .SH DESCRIPTION
-lkce command can be used to enable or disable the lkce-kdump script inside the
-kdump kernel.  This can also be used to configure and check the status of
-lkce-kdump.
+\fBlkce command\fR is used to interact with Linux Kernel Core Extractor[LKCE]. It is used to generate report from vmcore. lkce can run user scripts in kdump kernel. 
 
-The lkce command is a utility program to alter the behavior of lkce-kdump
-script, which runs inside kdump kernel.  [lkce-kdump script runs the crash
-utility inside the kdump kernel and information about panic is collected.]
-
-Ex: lkce-kdump can be configured to capture any or most of the crash utility
-commands like log, bt, log, ps, kmem etc.
+Once configured it can generate a report from a kdump kernel when system crashes. This is useful if the size of vmcore is too large to copy or send across for analysis or when generating vmcore is not preferred.
 
 .SH OPTIONS
 .TP
-enable	- enable lkce-kdump script inside kdump kernel.
+\fBreport <report-options>\fR
+.RS 3
+report-options:
+.RE
+.RS 3
+\fB\-\-vmcore=\fI/path/to/vmcore\fR	- path to vmcore file for report generation [Required]
+.RE
+.RS 3
+[\fB\-\-vmlinux=\fI/path/to/vmlinux\fR]	- use this vmlinux instead of already configured value
+.RE
+.RS 3
+[\fB\-\-crash_cmds=\fIcmd1,cmd2,...\fR]	- comma seperated crash cmds to be used in report generation instead of configured commands
+.RE
+.RS 3
+[\fB\-\-outfile=\fI/path/to/outfile\fR]	- write output to outfile. By default output goes to stdout
+.RE
 
 .TP
-disable	- disable lkce-kdump script inside kdump kernel.
+\fBconfigure --default\fR - Configure with default values overwriting the existing.
+.TP
+\fBconfigure [--show]\fR  - Show the configured values. This is default when no config-options are given.
 
 .TP
-status 	- check if the lkce-kdump script is configured properly to run inside
-kdump kernel.
+\fBconfigure [config-options]\fR - other possible options
+.RS 3
+config-options:
+.RE
+.RS 3
+[\fB\-\-vmlinux_path=\fI/path/to/vmlinux\fR]  - set vmliux_path to given value
+.RE
+.RS 3
+[\fB\-\-crash_cmds_file=\fI/path/to/file\fR]  - set crash_cmds_file to given value
+.RE
+.RS 3
+[\fB\-\-kdump_report=\fIyes/no\fR]  	- set kdump_report to given value
+.RE
+.RS 3
+[\fB\-\-max_out_files=\fI<number>\fR]	- set max_out_files to given value
+.RE
 
 .TP
-config 	- configure the lkce-kdump script. This will ask the users to enter the
-config values.  Once user provides the values, it creates/updates lkce.conf
-file.
+\fBenable\fR - enable lkce to run user scripts in kdump kernel.
 
 .TP
-config --default - do not prompt user for values. Configure with default values
-overwriting the existing.  Re-creates kdump_pre.sh and crash_cmds files.
-Updates /etc/kdump.conf file. Restarts the kdump service.
+\fBdisable\fR - disable lkce to run user scripts in kdump kernel.
 
 .TP
-config --show - show the configured values for lkce
+\fBstatus\fR - check the status of lkce configuration
 
 .TP
-clean	- remove all but last 3 crash*out files result directory.
+\fBclean\fR - remove all but last 3 kdump_report files.
 
 .TP
-clean --all - remove all the files from result directory.
+\fBclean --all\fR - remove all the kdump_report files.
 
 .TP
-list - list the crash*out files.
+\fBlist\fR - list the kdump_report files.
+
+.SH HOW TO SETUP LKCE TO GENERATE KDUMP REPORT:
+Make sure kexec-tools pkg is installed and you can generate vmcore. Post that run below commands:
+.RS 0
+# yum install oled-tools
+.RE
+.RS 0
+# oled lkce enable
+.RE
+
+Crash the system manually. Once the machine is booted run 'oled lkce list'. Verify the listed file for output. Keep the system in configured state to generate the report when it crashes.
 
 .SH EXAMPLES
-.TP
-[to be filled]
+.RS 0
+# oled lkce report --vmcore=/var/crash/127.0.0.1-2020-12-29-17\:17\:45/vmcore
+.RE
+.RS 0
+# oled lkce report --vmcore=/var/crash/127.0.0.1-2020-12-29-17\:17\:45/vmcore --crash_cmds=bt,sys
+.RE
+.RS 0
+# oled lkce report --vmcore=/var/crash/127.0.0.1-2020-12-29-17\:17\:45/vmcore --crash_cmds=bt,sys --outfile=/tmp/outfile.txt
+.RE
+
+.RS 0
+# oled lkce configure --default
+.RE
+.RS 0
+# oled lkce configure --show
+.RE
+.RS 0
+# oled lkce configure --vmlinux_path=/usr/lib/debug/lib/modules/4.14.35-1902.3.1.el7uek.x86_64/vmlinux
+.RE
+.RS 0
+# oled lkce configure --kdump_report=yes
+.RE
+
+# oled lkce help
+.RE
+.RS 0
+# oled lkce enable
+.RE
+.RS 0
+# oled lkce disable
+.RE
+.RS 0
+# oled lkce status
+.RE
+
+.RS 0
+# oled lkce clean
+.RE
+.RS 0
+# oled lkce list
+.RE
 
 .SH MISC
 .TP
-kdump kernel is a secondary kernel used to collect the memory image[vmcore] of
-the first kernel when system crashes. kexec-tools is used to configure the
-kdump kernel.
+kdump kernel is a secondary kernel used to collect the memory image[vmcore] of the first kernel when system crashes. kexec-tools pkg is used to configure the kdump kernel.
+
+.TP
+LKCE provides an environment inside kdump kernel to run user scrips. kdump_report is one such user script used here to generate the vmcore report when the system crashes. LKCE links with kdump[of kexec-tools] service as kdump_pre hook to run scripts inside kdump kernel.
 
 .SH AUTHOR
 .TP
 Manjunath Patil <manjunath.b.patil@oracle.com>
 
-.SH COPYRIGHT
+.SH FILES
 .TP
-[to be filled]
+/etc/oled/lkce/lkce.conf

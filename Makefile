@@ -25,7 +25,7 @@ export PYTHON_SITEDIR
 export SPECFILE
 export DESTDIR
 
-subdirs := kdump-utils lkce smtool kcore-utils memstate memtracker kstack topstack
+subdirs := lkce smtool kcore-utils memstate memtracker kstack topstack
 rev_subdirs := $(shell echo -n "$(subdirs) " | tac -s ' ')
 OLEDDIR := $(DESTDIR)/etc/oled
 SBINDIR := $(DESTDIR)/usr/sbin
@@ -70,7 +70,6 @@ rpm:
 	rm -f ./oled-tools-0.1.tar.gz
 	mkdir oled-tools-0.1
 	cp -R Makefile configure oled-env.sh oled.man oled.py oled-tools-0.1/
-	cp -R kdump-utils oled-tools-0.1/
 	cp -R smtool oled-tools-0.1/
 	cp -R lkce oled-tools-0.1/
 	cp -R kcore-utils oled-tools-0.1/
