@@ -23,7 +23,6 @@
 import sys
 if (sys.version_info[0] == 3):
     from .boot import Boot
-    from .boothole import Boothole
     from .command import Cmd
     from .cpu import Cpu
     from .distro import Distro
@@ -37,7 +36,6 @@ if (sys.version_info[0] == 3):
     from .vulnerabilities import Vulnerabilities
 else:
     from boot import Boot
-    from boothole import Boothole
     from command import Cmd
     from cpu import Cpu
     from distro import Distro

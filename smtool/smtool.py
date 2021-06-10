@@ -33,7 +33,6 @@ the status of vulnerabilities to the user.
 import signal
 import sys
 
-from smtool_lib import Boothole
 from smtool_lib import Parser
 from smtool_lib import Host
 from smtool_lib import Microcode
@@ -82,8 +81,6 @@ class Smtool(Parser):
     version required by scan routine.
 
     """
-
-    boothole = None
 
     def get_variant_type(self, vname):
         """
@@ -188,8 +185,6 @@ class Smtool(Parser):
         disabled_variants_kernel_xen = ""
         recommended_ver = kernel.recommended_ver(kernel.get_kernel_desc())
         kernel_ver = kernel.get_kernel()
-
-        self.boothole = Boothole()
 
         if not h.is_vulnerable():
             print("System is not vulnerable")

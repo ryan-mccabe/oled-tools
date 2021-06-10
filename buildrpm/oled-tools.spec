@@ -127,7 +127,6 @@ rm -rf $RPM_BUILD_ROOT
 %{smtool_lib}/distro.py
 %{smtool_lib}/cpu.py
 %{smtool_lib}/command.py
-%{smtool_lib}/boothole.py
 %{smtool_lib}/boot.py
 %{smtool_lib}/base.py
 %{smtool_lib}/__init__.py
@@ -180,6 +179,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man8/oled-topstack.8.gz
 
 %changelog
+* Thu Jun 10 2021 Mridula Shastry <mridula.c.shastry@oracle.com>
+- Smtool: Remove boothole module [Orabug: 32921120]
+
 * Thu Jun 10 2021 Mridula Shastry <mridula.c.shastry@oracle.com>
 - Smtool: Misc bug fixes [Orabug: 32920986]
 

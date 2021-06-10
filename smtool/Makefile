@@ -36,7 +36,6 @@ install:
 	install -m 755 $(CUR_LIB)/__init__.py $(SMTOOL_LIB)/__init__.py
 	install -m 755 $(CUR_LIB)/base.py $(SMTOOL_LIB)/base.py
 	install -m 755 $(CUR_LIB)/boot.py $(SMTOOL_LIB)/boot.py
-	install -m 755 $(CUR_LIB)/boothole.py $(SMTOOL_LIB)/boothole.py
 	install -m 755 $(CUR_LIB)/command.py $(SMTOOL_LIB)/command.py
 	install -m 755 $(CUR_LIB)/cpu.py $(SMTOOL_LIB)/cpu.py
 	install -m 755 $(CUR_LIB)/distro.py $(SMTOOL_LIB)/distro.py
@@ -66,7 +65,6 @@ uninstall:
 	rm -f $(SMTOOL_LIB)/distro.py
 	rm -f $(SMTOOL_LIB)/cpu.py
 	rm -f $(SMTOOL_LIB)/command.py
-	rm -f $(SMTOOL_LIB)/boothole.py
 	rm -f $(SMTOOL_LIB)/boot.py
 	rm -f $(SMTOOL_LIB)/base.py
 	rm -f $(SMTOOL_LIB)/__init__.py
