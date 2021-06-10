@@ -71,7 +71,7 @@ class Parser(Base):
 
     """
     verbose = False
-    scan_only = False
+    scan = False
     yes = False
     help = False
     runtime = False
@@ -118,8 +118,9 @@ class Parser(Base):
         print("oled smtool <option>")
         print("OPTIONS:")
         print("    -h, --help       help")
-        print("    -v, --verbose    verbose")
-        print("    -s, --scan-only  scan current state of the host")
+        print("    -s [-v] --scan  scans current state of the host")
+        print("where:")
+        print("    -s -v, --verbose    verbose scan")
         print("    --enable-default-mitigations [-y] [-d]")
         print("    --disable-mitigations [-y] [-r] [-d]")
         print("    --enable-full-mitigations [-y] [-r] [-d]")
@@ -135,10 +136,7 @@ class Parser(Base):
 
         """
         opt = ""
-        if self.verbose:
-            opt += "verbose"
-
-        if self.scan_only:
+        if self.scan:
             opt += ", scan only"
 
         if self.yes:
@@ -162,6 +160,7 @@ class Parser(Base):
         if self.help:
             opt += ", help"
 
+        #if (opt):
         log("   Options: " + opt)
         return
 
@@ -172,7 +171,7 @@ class Parser(Base):
         any mismatch to the user.
 
         """
-        if self.scan_only:
+        if self.scan:
             if (self.dry_run or self.disable_all or self.enable_full or
                     self.runtime or self.enable_default):
                 error("No action(s) during scan")
@@ -212,9 +211,15 @@ class Parser(Base):
                     " enable-default-mitigation")
                 return False
 
+        if (self.verbose):
+            if (not self.scan):
+                error("This option needs to be specified in conjunction "
+                      "with scan")
+                return False
+
         if (not self.disable_all and not self.enable_full
                 and not self.enable_default and
-                not self.scan_only and not self.verbose
+                not self.scan
                 and not self.help):
             error("No action specified")
 
@@ -228,7 +233,7 @@ class Parser(Base):
         """
         global VERBOSE
         try:
-            options = ['help', 'scan-only', 'yes', 'runtime',
+            options = ['help', 'scan', 'yes', 'runtime',
                        'disable-mitigations', 'enable-full-mitigation',
                        'enable-default-mitigation', 'dry-run']
 
@@ -251,10 +256,9 @@ class Parser(Base):
             if opt == '-v' or opt == '--verbose':
                 VERBOSE = True
                 self.verbose = True
-                log("Parsing options: ")
 
-            if opt == '-s' or opt == '--scan-only':
-                self.scan_only = True
+            if opt == '-s' or opt == '--scan':
+                self.scan = True
 
             if opt == '-r' or opt == '--runtime-only':
                 self.runtime = True

@@ -97,7 +97,7 @@ class Kernel(Base):
         elif kernel_ver == "RHCK7":
             return "3.10.0-1062.4.2"
         elif kernel_ver == "RHCK8":
-            return "4.18.0-147"
+            return "4.18.0-193"
 
     def get_kernel_desc(self):
         """

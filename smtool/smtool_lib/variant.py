@@ -314,13 +314,13 @@ class Variant(Base):
                             self.sysfile.runtime_files_array[7] + ": ")
                     self.write_file(
                         self.sysfile.runtime_files_array[7], str(option))
-                else:
-                    if os.path.isfile(self.sysfile.runtime_files_array[6]):
-                        self.write_file(
-                            self.sysfile.runtime_files_array[6], '0')
-                    if os.path.isfile(self.sysfile.runtime_files_array[7]):
-                        self.write_file(
-                            self.sysfile.runtime_files_array[7], '0')
+            else:
+                if os.path.isfile(self.sysfile.runtime_files_array[6]):
+                    self.write_file(
+                        self.sysfile.runtime_files_array[6], '0')
+                if os.path.isfile(self.sysfile.runtime_files_array[7]):
+                    self.write_file(
+                        self.sysfile.runtime_files_array[7], '0')
 
         # itlb_multihit control files
         if (self.vtype == 7) and is_kvm:
@@ -337,13 +337,10 @@ class Variant(Base):
                             self.sysfile.runtime_files_array[8] + ": ")
                     self.write_file(
                         self.sysfile.runtime_files_array[8], str(option))
-                else:
-                    if os.path.isfile(self.sysfile.runtime_files_array[8]):
-                        self.write_file(
-                            self.sysfile.runtime_files_array[8], 'off')
-                        self.write_file(
-                            self.sysfile.runtime_files_array[8], '0')
-
+            else:
+                if os.path.isfile(self.sysfile.runtime_files_array[8]):
+                    self.write_file(
+                        self.sysfile.runtime_files_array[8], 'off')
         return
 
     def enable_variant_runtime(self, yes):
@@ -373,6 +370,9 @@ class Variant(Base):
                 len_arr = 2
 
             for i in range(len_arr):
+                if (i == 0) or (i == 1):
+                    if self.sysfile.is_ibrs_tunable() is False:
+                        continue
                 if self.sysfile.read_kernel_ver().find("UEK") != -1:
                     if self.cpu.is_skylake():
                         if (i == 2) or (i == 3):
@@ -382,13 +382,11 @@ class Variant(Base):
                             continue
                 if not yes:
                     if kernel_version.find("RHCK") != -1:
-                        if (i == 0) or (i == 1):
-                            if self.sysfile.is_ibrs_tunable() is False:
-                                continue
-                            if (i == 0) and (kernel_version == "RHCK6"):
+                        if (i == 0):
+                            if (kernel_version == "RHCK6"):
                                 print("Please enter 1,2 or 3 to "
                                       "enable mitigation")
-                            if (i == 0) and (kernel_version == "RHCK7"):
+                            elif (kernel_version == "RHCK7"):
                                 print("Please enter 1,2,3 or 4 to "
                                       "enable mitigation")
                         else:
@@ -407,24 +405,20 @@ class Variant(Base):
                             self.sysfile.runtime_files_array_RHCK[int(i)],
                             str(option))
                     else:
-                        if (i == 0) or (i == 1):
-                            if self.sysfile.is_ibrs_tunable() is False:
-                                continue
-                        else:
-                            print("Please enter 1 to enable mitigation")
+                        print("Please enter 1 to enable mitigation")
+                        option = raw_input(
+                            self.sysfile.runtime_files_array[int(i)] +
+                            ": ")
+                        while (
+                                not self.sysfile.is_option_valid(
+                                    int(i), option, kernel_version)):
+                            print("Please enter a valid option")
                             option = raw_input(
                                 self.sysfile.runtime_files_array[int(i)] +
                                 ": ")
-                            while (
-                                    not self.sysfile.is_option_valid(
-                                        int(i), option, kernel_version)):
-                                print("Please enter a valid option")
-                                option = raw_input(
-                                    self.sysfile.runtime_files_array[int(i)] +
-                                    ": ")
-                            self.write_file(
-                                self.sysfile.runtime_files_array[int(i)],
-                                str(option))
+                        self.write_file(
+                            self.sysfile.runtime_files_array[int(i)],
+                            str(option))
                 else:
                     if kernel_version.find("RHCK") != -1:
                         self.write_file(
@@ -525,13 +519,13 @@ class Variant(Base):
                             self.sysfile.runtime_files_array[7] + ": ")
                     self.write_file(
                         self.sysfile.runtime_files_array[7], str(option))
-                else:
-                    if os.path.isfile(self.sysfile.runtime_files_array[6]):
-                        self.write_file(
-                            self.sysfile.runtime_files_array[6], '1')
-                    if os.path.isfile(self.sysfile.runtime_files_array[7]):
-                        self.write_file(
-                            self.sysfile.runtime_files_array[7], '1')
+            else:
+                if os.path.isfile(self.sysfile.runtime_files_array[6]):
+                    self.write_file(
+                        self.sysfile.runtime_files_array[6], '1')
+                if os.path.isfile(self.sysfile.runtime_files_array[7]):
+                    self.write_file(
+                        self.sysfile.runtime_files_array[7], '1')
 
         # itlb_multihit control files
         if (self.vtype == 7) and is_kvm:
@@ -548,13 +542,10 @@ class Variant(Base):
                             self.sysfile.runtime_files_array[8] + ": ")
                     self.write_file(
                         self.sysfile.runtime_files_array[8], str(option))
-                else:
-                    if os.path.isfile(self.sysfile.runtime_files_array[8]):
-                        self.write_file(
-                            self.sysfile.runtime_files_array[8], 'force')
-                        self.write_file(
-                            self.sysfile.runtime_files_array[8], '0')
-
+            else:
+                if os.path.isfile(self.sysfile.runtime_files_array[8]):
+                    self.write_file(
+                        self.sysfile.runtime_files_array[8], 'force')
         return
 
     def reset_variant_boot(self):
@@ -596,11 +587,18 @@ class Variant(Base):
 
         """
         cpu = self.host.cpu
+        server = self.host.server
         if (cpu.is_vulnerable(self.vtype)) and (not self.mitigated_kernel):
             return False
-        if ((cpu.is_vulnerable(self.vtype)) and (
+        if ((server.stype == self.XEN_PV) or (
+                server.stype == self.XEN_HVM) or
+                (server.stype == self.KVM_GUEST)):
+           if (not self.sysfile.is_mitigated()):
+               return False
+        else:
+            if ((cpu.is_vulnerable(self.vtype)) and (
                 not self.sysfile.is_mitigated())):
-            return False
+                return False
         return True
 
     def is_mitigation_possible(self):

@@ -107,7 +107,8 @@ class Server(Base):
                 return self.XEN_HVM
             if server_type[1] == "xen-domU":
                 return self.XEN_PV
-        elif server_type[0] == "kvm":
+        elif (server_type[0] == "kvm" or
+              server_type[1] == "kvm"):
             return self.KVM_GUEST
 
         return self.UNKNOWN

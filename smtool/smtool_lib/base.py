@@ -71,7 +71,7 @@ class Base(object):
         "L1TF",
         "MDS",
         "ITLB_Multihit",
-        "TSC_Async_Abort"]
+        "TSX_Async_Abort"]
 
     # runtime settings
     IBRS_ENABLED = 1
@@ -104,9 +104,9 @@ class Base(object):
         executed.
 
         """
-        mycmd = Cmd()
-        mycmd.run(cmd)
-        return mycmd.out
+        command = Cmd()
+        command.run(cmd)
+        return command.out
 
 
     def read_file(self, file_path):

@@ -265,6 +265,7 @@ class Vulnerabilities(Base):
                             self.v_4,
                             self.v_5,
                             self.v_6,
+                            self.v_7,
                             self.v_8):
                         self.sysfile = Sysfile(self.get_vtype(var))
                         if var is None:
@@ -388,6 +389,7 @@ class Vulnerabilities(Base):
                             self.v_4,
                             self.v_5,
                             self.v_6,
+                            self.v_7,
                             self.v_8):
                         self.sysfile = Sysfile(self.get_vtype(var))
                         if var is None:
@@ -617,6 +619,7 @@ class Vulnerabilities(Base):
                             self.v_4,
                             self.v_5,
                             self.v_6,
+                            self.v_7,
                             self.v_8):
                         self.sysfile = Sysfile(self.get_vtype(var))
                         if var is None:
@@ -653,7 +656,7 @@ class Vulnerabilities(Base):
             if var is None:
                 continue
             if not var.is_mitigated():
-                out = out + var.vname + ", "
+                out = out + var.vname + ","
         return out
 
     def is_mitigated(self):

@@ -347,7 +347,8 @@ class Sysfile(Base):
         in the sysfile for the specific variant, else
         returns False.
         """
-        if (self.svalue.startswith("Vulnerable")
+        if (self.svalue.startswith("Vulnerable") or
+                self.svalue.startswith("KVM: Vulnerable")
                 or self.svalue.startswith("Unknown")):
             return False
 
