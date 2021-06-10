@@ -26,14 +26,17 @@ Also checks and reports vulnerabilities that
 various CPU models are susceptible to.
 
 """
+import os
 import sys
 
 if (sys.version_info[0] == 3):
     from . import parser
     from .base import Base
+    from .sysfile import Sysfile
 else:
     import parser
     from base import Base
+    from sysfile import Sysfile
 
 VERBOSE = False  # type: bool
 
@@ -603,6 +606,13 @@ class Cpu(Base):
         else returns False.
 
         """
+        self.sysfile = Sysfile(vtype)
+        if(self.sysfile.get_sysfile() != None):
+            if (os.path.exists(self.sysfile.get_sysfile())):
+                if (self.sysfile.read_file(self.sysfile.get_sysfile())
+                    == "Not affected"):
+                    return False
+
         if vtype == self.SPECTRE_V1:
             return self.v_1
 

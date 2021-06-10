@@ -180,6 +180,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man8/oled-topstack.8.gz
 
 %changelog
+* Thu Jun 10 2021 Mridula Shastry <mridula.c.shastry@oracle.com>
+- Smtool: Misc bug fixes [Orabug: 32920986]
+
 * Mon May 31 2021 Manjunath Patil <manjunath.b.patil@oracle.com>
 - rewrite lkce
 
