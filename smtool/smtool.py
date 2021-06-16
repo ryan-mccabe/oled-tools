@@ -341,7 +341,7 @@ class Smtool(Parser):
                     print("Mitigation for the following "
                           "variants have been disabled at runtime: " +
                           variants[:-1].strip())
-                    print("They can be enabled at runtime "
+                    print("Please try enabling them at runtime "
                           "using the tool")
 
         """ 

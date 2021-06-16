@@ -234,8 +234,8 @@ class Parser(Base):
         global VERBOSE
         try:
             options = ['help', 'scan', 'yes', 'runtime',
-                       'disable-mitigations', 'enable-full-mitigation',
-                       'enable-default-mitigation', 'dry-run']
+                       'disable-mitigations', 'enable-full-mitigations',
+                       'enable-default-mitigations', 'dry-run']
 
             opts, args = getopt.getopt(argv[1:], 'hvyrsd', options)
         except getopt.GetoptError as err:
@@ -272,10 +272,10 @@ class Parser(Base):
             if opt == '--disable-mitigations':
                 self.disable_all = True
 
-            if opt == '--enable-full-mitigation':
+            if opt == '--enable-full-mitigations':
                 self.enable_full = True
 
-            if opt == '--enable-default-mitigation':
+            if opt == '--enable-default-mitigations':
                 self.enable_default = True
 
         if self.verbose:
