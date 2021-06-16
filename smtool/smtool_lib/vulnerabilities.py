@@ -200,7 +200,8 @@ class Vulnerabilities(Base):
                 continue
 
             if self.is_xen():
-                if (var == self.v_3) or (var == self.v_4) or (var == self.v_6):
+                if ((var == self.v_3) or (var == self.v_4) or
+                    (var == self.v_6) or (var == self.v_7)):
                     unsupported_variants = unsupported_variants + var.vname + \
                         ", "
                     self.mitigation_not_supported = 1
@@ -273,7 +274,7 @@ class Vulnerabilities(Base):
 
                         if self.is_xen():
                             if ((var == self.v_3) or (var == self.v_4)
-                                    or (var == self.v_6)):
+                                    or (var == self.v_6) or (var == self.v_7)):
                                 continue
 
                         if os.path.exists(self.sysfile.get_sysfile()):
@@ -312,7 +313,8 @@ class Vulnerabilities(Base):
                 continue
 
             if self.is_xen():
-                if (var == self.v_3) or (var == self.v_4) or (var == self.v_6):
+                if ((var == self.v_3) or (var == self.v_4)
+                    or (var == self.v_6) or (var == self.v_7)):
                     unsupported_variants = unsupported_variants + \
                         var.vname + ", "
                     self.mitigation_not_supported = 1
@@ -397,7 +399,7 @@ class Vulnerabilities(Base):
 
                         if self.is_xen():
                             if ((var == self.v_3) or (var == self.v_4)
-                                    or (var == self.v_6)):
+                                 or (var == self.v_6) or (var == self.v_7)):
                                 continue
 
                         if var == self.v_5:
@@ -431,7 +433,8 @@ class Vulnerabilities(Base):
                 continue
 
             if self.is_xen():
-                if (var == self.v_3) or (var == self.v_4) or (var == self.v_6):
+                if ((var == self.v_3) or (var == self.v_4) or
+                    (var == self.v_6) or (var == self.v_7)):
                     unsupported_variants = unsupported_variants + var.vname +\
                         ", "
                     self.mitigation_not_supported = 1
@@ -486,7 +489,8 @@ class Vulnerabilities(Base):
                 continue
 
             if self.is_xen():
-                if (var == self.v_3) or (var == self.v_4) or (var == self.v_6):
+                if ((var == self.v_3) or (var == self.v_4)
+                     or (var == self.v_6) or (var == self.v_7)):
                     unsupported_variants = unsupported_variants + \
                         var.vname + ", "
                     self.mitigation_not_supported = 1
@@ -550,7 +554,8 @@ class Vulnerabilities(Base):
                 continue
 
             if self.is_xen():
-                if (var == self.v_3) or (var == self.v_4) or (var == self.v_6):
+                if ((var == self.v_3) or (var == self.v_4)
+                    or (var == self.v_6) or (var == self.v_7)):
                     unsupported_variants = unsupported_variants + var.vname + \
                         ", "
                     self.mitigation_not_supported = 1
@@ -627,7 +632,7 @@ class Vulnerabilities(Base):
 
                         if self.is_xen():
                             if ((var == self.v_3) or (var == self.v_4)
-                                    or (var == self.v_6)):
+                                 or (var == self.v_6) or (var == self.v_7)):
                                 continue
 
                         elif os.path.exists(self.sysfile.get_sysfile()):

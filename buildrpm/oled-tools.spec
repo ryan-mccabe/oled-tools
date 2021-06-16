@@ -181,6 +181,8 @@ rm -rf $RPM_BUILD_ROOT
 %changelog
 * Mon Jun 14 2021 Mridula Shastry <mridula.c.shastry@oracle.com>
 - Smtool: Minor bug fixes [Orabug: 32999593]
+- Smtool: Fix scan/verbose scan and enable/disable mitigations
+  on Oracle VM Servers [Orabug: 33005737]
 
 * Thu Jun 10 2021 Mridula Shastry <mridula.c.shastry@oracle.com>
 - Smtool: Remove boothole module [Orabug: 32921120]

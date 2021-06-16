@@ -646,8 +646,6 @@ class Variant(Base):
             self.boot = Boot(self.vtype, kernel.kver)
             # Does grub really needs to be scanned?
             self.boot.scan_grub()
-            if not self.boot.is_grubby_supported():
-                self.boot.scan_cmdline()
             self.check_mitigations()
             self.mitigation_str = [self.mitigated_sys, self.mitigated_boot]
         else:

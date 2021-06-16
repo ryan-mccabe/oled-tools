@@ -328,7 +328,7 @@ class Smtool(Parser):
         and would require runtime upgrades.
        
         """ 
-        if require_runtime_update:
+        if (require_runtime_update and not xen):
             if variant_list_rt_disabled:
                 variants = ""
                 for i in range(0, len(variant_list_rt_disabled)):
@@ -369,19 +369,21 @@ class Smtool(Parser):
         
         """ 
         if require_microcode_update:
+            variants_mc = []
             if (server_type == self.BARE_METAL or server_type ==
                     self.KVM_HOST or server_type == self.XEN_HYPERVISOR):
                 if "Spectre V2 " in variant_list_mc:
                     i = variant_list_mc.index("Spectre V2 ")
                     variant_list[i] = "Spectre V2 (IBRS-based) "
-                if xen:
-                    for i in variant_list_mc:
+                for i in variant_list_mc:
+                    if xen:
                         if (self.is_variant_xen(i)):
                             variants_mc.append(i)
-                    variant_list_mc = list(variants)
-                if (variant_list_mc):
+                    else:
+                        variants_mc.append(i)
+                if (variants_mc):
                     print("Microcode is too old to support "
-                      "mitigation for " + ' '.join(variant_list_mc))
+                      "mitigation for " + ' '.join(variants_mc))
                     print("Please upgrade the microcode to "
                       "the latest version using "
                       "yum upgrade microcode_ctl")
