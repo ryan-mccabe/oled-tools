@@ -226,7 +226,7 @@ class Boot(Base):
         if self.vtype == self.TSX_ASYNC_ABORT:
             self.sysfile = Sysfile(self.vtype)
             if os.path.exists(self.sysfile.get_sysfile()):
-                return ["tsx_async_abort"]
+                return ["tsx", "tsx_async_abort"]
 
         return []
 
@@ -261,8 +261,17 @@ class Boot(Base):
             else:
                 if arr[3] == self.ON:
                     tstr = tstr + str(arr[2]) + "=on "
+                    if (arr[2] == "tsx" and not
+                        (arr[2] == "tsx_async_abort")):
+                        tstr = tstr + str(arr[2]) + "=off "
+                    else:
+                        tstr = tstr + str(arr[2]) + "=on "
                 else:
-                    tstr = tstr + str(arr[2]) + "=off "
+                    if (arr[2] == "tsx" and not
+                        (arr[2] == "tsx_async_abort")):
+                        tstr = tstr + str(arr[2]) + "=on "
+                    else:
+                        tstr = tstr + str(arr[2]) + "=off "
         return tstr
 
     def get_grub_options(self):
@@ -280,13 +289,21 @@ class Boot(Base):
         for arr in self.options:
             if arr[0] != self.GRUB:
                 continue
+            if arr[1] != self.vtype:
+                continue
             if arr[3] is None:
                 tstr = tstr + arr[2]
             else:
                 if arr[3] == self.ON:
-                    tstr = tstr + str(arr[2]) + "=on "
+                    if (arr[2] == "tsx"):
+                        tstr = tstr + str(arr[2]) + "=off "
+                    else:
+                        tstr = tstr + str(arr[2]) + "=on "
                 else:
-                    tstr = tstr + str(arr[2]) + "=off "
+                    if (arr[2] == "tsx"):
+                        tstr = tstr + str(arr[2]) + "=on "
+                    else:
+                        tstr = tstr + str(arr[2]) + "=off "
         return tstr
 
     def adjust_param(self, arr, i, opt, n):
@@ -321,7 +338,8 @@ class Boot(Base):
         for i in range(len(optarr)):
             opt = optarr[i]
             if len(arg) < len(opt):
-                continue
+                if (vtype != self.TSX_ASYNC_ABORT):
+                    continue
             if len(arg) == len(opt):
                 if self.get_kernel_ver().find("UEK") != -1:
                     if vtype == self.SPECTRE_V1 and arg == "nospectre_v1":
@@ -435,23 +453,22 @@ class Boot(Base):
                     return
 
             if vtype == self.TSX_ASYNC_ABORT:
-                if targ == opt + "=off":
-                    self.boot_off = True
-                    self.add_boot_option(btype, vtype, opt, self.OFF)
-                if ((targ == opt + "=full") or
+                if opt == "tsx_async_abort":
+                    if targ == opt + "=off":
+                        self.boot_off = True
+                        self.add_boot_option(btype, vtype, opt, self.OFF)
+                    if ((targ == opt + "=full") or
                         (targ == opt + "=full,nosmt")):
-                    self.boot_on = True
-                    self.add_boot_option(btype, vtype, opt, self.ON)
+                        self.boot_on = True
+                        self.add_boot_option(btype, vtype, opt, self.ON)
                 if opt == "tsx":
                     if ((targ == opt + "=on") or
                             (targ == opt + "=auto")):
                         self.boot_on = True
-                        self.add_boot_option(btype, vtype, opt, self.ON)
+                        self.add_boot_option(btype, vtype, opt, self.OFF)
                     elif targ == opt + "=off":
                         self.boot_off = True
-                        self.add_boot_option(btype, vtype, opt, self.OFF)
-                return
-
+                        self.add_boot_option(btype, vtype, opt, self.ON)
         return
 
     def get_grub_info_xen(self):
@@ -651,7 +668,7 @@ class Boot(Base):
         on = False
 
         for arr in self.options:
-            if arr[0] == self.CMDLINE:
+            if arr[0] != self.GRUB:
                 continue
             if arr[1] != self.vtype:
                 continue
@@ -668,9 +685,9 @@ class Boot(Base):
                     elif (arr[1] == 6):
                         add = add + arr[2] + "=full,nosmt"
                     elif (arr[1] == 8):
-                        if(arr[2] == "tsx_async_abort"):
+                        if (arr[2] == "tsx_async_abort"):
                             add = add + arr[2] + "=full,nosmt"
-                        elif(arr[2] == "tsx"):
+                        elif (arr[2] == "tsx"):
                             add = add + arr[2] + "=off"
             if arr[3] is None:
                 if (arr[2] == "nospectre_v1" or
@@ -698,10 +715,8 @@ class Boot(Base):
                     add = "--args=\"" + " " + b_o[0] + "=full,nosmt\""
                 elif b_o[0] == "kvm.nx_huge_pages":
                     add = "--args=\"" + " " + b_o[0] + "=force\""
-                elif b_o[0] == "tsx_async_abort":
-                    add = "--args=\"" + " " + b_o[0] + "=full,nosmt\""
                 elif b_o[0] == "tsx":
-                    add = "--args=\"" + " " + b_o[0] + "=off\""
+                    add = "--args=\"%s=off %s=full,nosmt\"" % (b_o[0], b_o[1])
 
         if add != "":
             self.update_grub(add)
@@ -729,10 +744,9 @@ class Boot(Base):
                     if arr[1] == 1:
                          add = add + arr[2]
                     elif (arr[1] == 8):
-                        if(arr[2] == "tsx_async_abort"):
-                            add = add + arr[2] + "=off"
-                        elif(arr[2] == "tsx"):
-                            add = add + arr[2] + "=on"
+                        if (arr[2] == "tsx"):
+                            add = add + arr[2] + "=on" +\
+                                  " " + "tsx_async_abort=off"
                     else:
                         add = add + arr[2] + "=off "
             if (arr[3] == self.OFF or (
@@ -745,9 +759,7 @@ class Boot(Base):
                 if b_o[0] == "nospectre_v1":
                     add = "--args=\"" + " " + b_o[0] + "\""
                 elif b_o[0] == "tsx":
-                    add = "--args=\"" + " " + b_o[0] + "=on\""
-                elif b_o[0] == "tsx_async_abort":
-                    add = "--args=\"" + " " + b_o[0] + "=off\""
+                    add = "--args=\"%s=on %s=off\"" % (b_o[0], b_o[1])
                 else:
                     add = "--args=\"" + " " + b_o[0] + "=off\""
 
