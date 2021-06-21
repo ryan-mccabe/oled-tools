@@ -174,8 +174,12 @@ def get_files(logf):
             if (end_time - start_time) < EXPENSIVE_DELAY:
                 continue
             start_time = time.time()
-
-        fd = open(fname, "r")
+        try:
+            fd = open(fname, "r")
+        except IOError as ioe:
+            # Skip the file if it cannot be opened (for instance, some debugfs files when
+            # Secure Boot is enabled).
+            fd = ""
         if not fd:
             continue
         logf.write("%s:\n" % fname)
