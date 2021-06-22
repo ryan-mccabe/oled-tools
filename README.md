@@ -7,7 +7,7 @@ Oracle Linux Enchanced Diagnostic (OLED) tools is a collection of tools, script,
 The oled-tools repo includes the following debug tools/scripts that aid in gathering additional debug data from the system. Please review the corresponding man pages for more details.
 
 - smtool: Scans, reports and mitigates various known vulnerabilities on the system 
-- lkce: Extracts data from a vmcore or kdump kernel after a crash
+- lkce: Extracts data from a vmcore or from within the kdump kernel after a crash
 - memstate: Captures and analyzes various memory usage statistics on the running system
 - memtracker: Captures memory usage debug data periodically on the running system
 - filecache: List the paths of the biggest files present in the page cache
@@ -47,7 +47,6 @@ Usage:
 Valid commands:
      smtool          -- Security mitigation tool
      lkce            -- Linux Kernel Core Extractor
-     kdump           -- Configure oled related kdump options
      memstate        -- Capture and analyze memory usage statistics
      memtracker      -- Capture memory usage data for offline debug
      filecache       -- List the biggest files in page cache

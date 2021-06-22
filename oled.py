@@ -97,6 +97,7 @@ def run_as_root():
 def cmd_version():
 	version = "%s.%s"%(MAJOR, MINOR)
 	print("Oracle Linux Enhanced Diagnostics (oled): version " + version + ".")
+	print("Note that this is a developer preview release.")
 
 def cmd_smtool(args):
     cmdline = SMTOOL

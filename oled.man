@@ -21,7 +21,6 @@ Usage:
 Valid sub-commands:
      smtool          -- Security mitigation tool
      lkce            -- Linux Kernel Core Extractor
-     kdump           -- Configure oled related kdump options
      memstate        -- Capture and analyze memory usage statistics
      memtracker      -- Capture memory usage data for offline debug
      filecache       -- List the biggest files in page cache
