@@ -193,6 +193,27 @@ class Microcode(Base):
                      "85_4": ["0x2000064"],
                      "85_7": ["0x500002b"]}
 
+    SRBDS_MICROCODE = {"60_3": ["0x28"],
+                       "61_4": ["0x2f"],
+                       "69_1": ["0x26"],
+                       "70_1": ["0x1c"],
+                       "71_1": ["0x22"],
+                       "78_3": ["0xdc"],
+                       "85_3": ["0x1000157"],
+                       "85_4": ["0x2006906"],
+                       "85_6": ["0x4002f01"],
+                       "85_7": ["0x5002f01"],
+                       "94_3": ["0xdc"],
+                       "142_9": ["0xd6"],
+                       "142_10": ["0xd6"],
+                       "142_11": ["0xd6"],
+                       "142_12": ["0xd6"],
+                       "158_9": ["0xd6"],
+                       "158_10": ["0xd6"],
+                       "158_11": ["0xd6"],
+                       "158_12": ["0xd6"],
+                       "158_13": ["0xd6"]}
+
     def get_cur_microcode(self):
         """
         Gets current microcode version.
@@ -272,6 +293,14 @@ class Microcode(Base):
             if model_stepping_string in list(self.TAA_MICROCODE.keys()):
                 min_microcode_ver = int(
                     self.TAA_MICROCODE[model_stepping_string][0].
+                    split("0x")[1], 16)
+                return min_microcode_ver
+            return False
+
+        if vtype == self.SRBDS:
+            if model_stepping_string in list(self.SRBDS.keys()):
+                min_microcode_ver = int(
+                    self.SRBDS[model_stepping_string][0].
                     split("0x")[1], 16)
                 return min_microcode_ver
             return False

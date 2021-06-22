@@ -228,6 +228,11 @@ class Boot(Base):
             if os.path.exists(self.sysfile.get_sysfile()):
                 return ["tsx", "tsx_async_abort"]
 
+        if self.vtype == self.SRBDS:
+            self.sysfile = Sysfile(self.vtype)
+            if self.sysfile.get_sysfile() != None:
+                return ["srbds"]
+
         return []
 
     def add_boot_option(self, btype, vtype, opt, val):
@@ -452,6 +457,13 @@ class Boot(Base):
                     self.add_boot_option(btype, vtype, opt, self.ON)
                     return
 
+            if vtype == self.SRBDS:
+                if opt == "srbds":
+                    if targ == opt + "=off":
+                        self.boot_off = True
+                        self.add_boot_option(btype, vtype, opt, self.OFF)
+                        return
+
             if vtype == self.TSX_ASYNC_ABORT:
                 if opt == "tsx_async_abort":
                     if targ == opt + "=off":
@@ -469,6 +481,7 @@ class Boot(Base):
                     elif targ == opt + "=off":
                         self.boot_off = True
                         self.add_boot_option(btype, vtype, opt, self.ON)
+
         return
 
     def get_grub_info_xen(self):
@@ -674,6 +687,9 @@ class Boot(Base):
                 continue
             if arr[3] == self.OFF:
                 if variant.mitigated_kernel:
+                    if (arr[2] == "srbds"):
+                        remove = remove + arr[2] + "=off"
+                        continue
                     if (arr[1] == 2) or (arr[1] == 3):
                         add = add + arr[2] + "=on "
                     elif arr[1] == 4:
@@ -818,7 +834,8 @@ class Boot(Base):
                           self.L1TF,
                           self.MDS,
                           self.ITLB_MULTIHIT,
-                          self.TSX_ASYNC_ABORT]):
+                          self.TSX_ASYNC_ABORT,
+                          self.SRBDS]):
             raise ValueError("ERROR: Unrecognized boot variant")
 
         self.kver = kver

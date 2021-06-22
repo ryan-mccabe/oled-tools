@@ -110,7 +110,8 @@ class Smtool(Parser):
             return self.ITLB_MULTIHIT
         if vname == "TSX_Async_Abort":
             return self.TSX_ASYNC_ABORT
-
+        if vname == "SRBDS":
+            return self.SRBDS
 
     def is_enabled_runtime(self, vtype, vals):
         if (vtype == self.SPECTRE_V2):
@@ -354,7 +355,7 @@ class Smtool(Parser):
                   "" + disabled_variants_kernel[:-2])
             if (kernel.ktype == 1) or (kernel.ktype == 2):
                 print("Kernels older than UEK4 do not support mitigation "
-                      "for SSBD and ITLB_Multihit")
+                      "for SSBD, ITLB_Multihit and SRBDS")
                 print("Please upgrade the kernel to UEK4 version "
                       "4.1.12-124.33.2 to enable support for all "
                       "mitigations")

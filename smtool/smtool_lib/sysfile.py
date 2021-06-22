@@ -78,6 +78,8 @@ class Sysfile(Base):
         "/sys/devices/system/cpu/vulnerabilities/itlb_multihit"
     SYS_TSX_ASYNC_ABORT_FILE = \
         "/sys/devices/system/cpu/vulnerabilities/tsx_async_abort"
+    SYS_SRBDS_FILE = \
+        "/sys/devices/system/cpu/vulnerabilities/srbds"
 
     # SMT Status file
     SYS_SMT_ACTIVE_FILE = "/sys/devices/system/cpu/smt/active"
@@ -200,6 +202,14 @@ class Sysfile(Base):
             self.sfile = self.SYS_ITLB_MULTIHIT_FILE
         if self.vtype == self.TSX_ASYNC_ABORT:
             self.sfile = self.SYS_TSX_ASYNC_ABORT_FILE
+        if self.vtype == self.SRBDS:
+            self.sfile = self.SYS_SRBDS_FILE
+
+        if (os.path.exists(self.sfile)):
+            return self.sfile
+        else:
+            return None
+
         return self.sfile
 
     def is_option_valid(self, index, option, kernel_ver):
@@ -384,7 +394,8 @@ class Sysfile(Base):
                           self.L1TF,
                           self.MDS,
                           self.ITLB_MULTIHIT,
-                          self.TSX_ASYNC_ABORT]):
+                          self.TSX_ASYNC_ABORT,
+                          self.SRBDS]):
             raise ValueError("ERROR: Unrecognized variant")
 
         self.vtype = vtype
