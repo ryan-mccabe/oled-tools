@@ -256,6 +256,10 @@ exit 0
 
 	# enable lkce_kdump in /etc/kdump.conf
 	def update_kdump_conf(self, arg):
+		if not os.path.exists(self.KDUMP_CONF):
+			print("error: can not find %s. Please retry after installing kexec-tools") % (self.KDUMP_CONF)
+			return 1
+
 		KUDMP_PRE_LINE = "kdump_pre " + self.LKCE_KDUMP_SH
 		KUDMP_TIMEOUT_LINE = "extra_bins " + self.TIMEOUT_PATH
 
