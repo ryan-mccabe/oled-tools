@@ -41,6 +41,7 @@ class Lkce:
 		self.VMLINUX_PATH = "/usr/lib/debug/lib/modules/" + self.KDUMP_KERNELVER + "/vmlinux"
 		self.CRASH_CMDS_FILE = self.LKCE_HOME + "/crash_cmds_file"
 		self.KDUMP_REPORT = "yes"
+		self.VMCORE = "yes"
 		self.MAX_OUT_FILES = "50"
 
 		#effective values
@@ -48,6 +49,7 @@ class Lkce:
 		self.vmlinux_path = self.VMLINUX_PATH
 		self.crash_cmds_file = self.CRASH_CMDS_FILE
 		self.kdump_report = self.KDUMP_REPORT
+		self.vmcore = self.VMCORE
 		self.max_out_files = self.MAX_OUT_FILES
 
 		#set values from config file
@@ -120,7 +122,7 @@ quit
 		filename = self.LKCE_CONFIG_FILE
 		content = """##
 # This is configuration file for lkce
-# You can edit manually.
+# Use 'oled lkce configure' command to change values
 ##
 
 #kdump-enable/kdump-disable(yes,no) lkce script in kdump kernel
@@ -134,6 +136,9 @@ crash_cmds_file=""" + self.CRASH_CMDS_FILE + """
 
 #enable crash report in kdump kernel
 kdump_report=""" + self.KDUMP_REPORT + """
+
+#enable vmcore generation post kdump_report
+vmcore=""" + self.VMCORE + """
 
 #maximum number of outputfiles to retain. Older file gets deleted
 max_out_files=""" + self.MAX_OUT_FILES
@@ -170,6 +175,9 @@ max_out_files=""" + self.MAX_OUT_FILES
 			elif "kdump_report" in entry[0] and entry[1]:
 				self.kdump_report = entry[1]
 
+			elif "vmcore" in entry[0] and entry[1]:
+				self.vmcore = entry[1]
+
 			elif "max_out_files" in entry[0] and entry[1]:
 				self.max_out_files = entry[1]
 	#def read_config
@@ -201,7 +209,7 @@ max_out_files=""" + self.MAX_OUT_FILES
 # /etc/kdump.conf is used to configure kdump_pre script
 
 # Generate vmcore post lkce_kdump scripts execution
-LKCE_VMCORE="yes"
+LKCE_VMCORE=""" + self.vmcore + """
 
 # Timeout for lkce_kdump scripts in seconds
 LKCE_TIMEOUT="120"
@@ -235,7 +243,7 @@ umount $LKCE_DIR
 unset LKCE_KDUMP_SCRIPTS
 unset LKCE_DIR
 
-if [ "$LKCE_VMCORE" != "yes" ]; then
+if [ "$LKCE_VMCORE" == "no" ]; then
 	echo "lkce_kdump.sh: vmcore generation is disabled"
 	exit 1
 fi
@@ -405,6 +413,7 @@ exit 0
 				print("%15s : %s" % ("vmlinux path", self.vmlinux_path))
 				print("%15s : %s" %("crash_cmds_file", self.crash_cmds_file))
 				print("%15s : %s" %("kdump_report", self.kdump_report))
+				print("%15s : %s " %("vmcore", self.vmcore))
 				print("%15s : %s" %("max_out_files", self.max_out_files))
 			else:
 				subarg = re.sub(r"\s+", "", subarg)
@@ -428,6 +437,14 @@ exit 0
 					os.system(cmd);
 					print("lkce: set kdump_report to %s" % entry[1])
 
+				elif "--vmcore" in entry[0]:
+					if self.config_vmcore(entry[1]):
+						return 1
+
+					cmd = "sed -i 's/vmcore=.*/vmcore= " + entry[1] +"/' " + filename
+					os.system(cmd);
+					print("lkce: set vmcore to %s" % entry[1])
+
 				elif "--max_out_files" in entry[0]:
 					cmd = "sed -i 's/max_out_files=.*/max_out_files= " + entry[1] +"/' " + filename
 					os.system(cmd);
@@ -436,6 +453,22 @@ exit 0
 					print("error: unknown configure option %s" % subarg)
 		#for
 	#def configure
+
+	def config_vmcore(self, value):
+		if value not in ['yes', 'no']:
+			print("error: invalid option '%s'")%(value)
+			return 1
+
+		filename = self.LKCE_KDUMP_SH
+		if not os.path.exists(filename):
+			print("error: Please enable lkce first, using 'oled lkce enable'");
+			return 1
+
+		self.vmcore = value
+		self.create_lkce_kdump()
+		self.restart_kdump_service()
+		return 0
+	#def config_vmcore
 
 	def enable_lkce(self):
 		filename = self.LKCE_KDUMP_SH
@@ -518,6 +551,7 @@ options:
 		[--vmlinux_path=/path/to/vmlinux] 	- set vmlinux_path
 		[--crash_cmds_file=/path/to/file] 	- set crash_cmds_file
 		[--kdump_report=yes/no]			- set crash report in kdump kernel
+		[--vmcore=yes/no]			- set vmcore generation in kdump kernel
 		[--max_out_files=<number>] 		- set max_out_files
 
 	enable	-- enable lkce in kdump kernel

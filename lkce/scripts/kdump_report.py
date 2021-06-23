@@ -120,7 +120,7 @@ class KdumpReport:
 	def run_crash(self):
 		self.get_vmlinux()
 		if not os.path.exists(self.crash_cmds_file):
-			print("kdump_report: %s not found" % self.crash_cmd_file)
+			print("kdump_report: %s not found" % self.crash_cmds_file)
 			return 1
 
 		if not os.path.exists(self.KDUMP_REPORT_OUT):

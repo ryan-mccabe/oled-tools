@@ -50,6 +50,9 @@ config-options:
 [\fB\-\-kdump_report=\fIyes/no\fR]  	- set kdump_report to given value
 .RE
 .RS 3
+[\fB\-\-vmcore=\fIyes/no\fR]	- set vmcore to given value. Controls vmcore generation in kdump kernel.
+.RE
+.RS 3
 [\fB\-\-max_out_files=\fI<number>\fR]	- set max_out_files to given value
 .RE
 
