@@ -110,10 +110,16 @@ class Variant(Base):
             self.mitigated_sys = True
 
         vuln_string = self.boot.scan_cmdline()
-        if (vuln_string.find("no") != -1) or (vuln_string.find("off") != -1):
-            self.mitigated_boot = None
+        if (self.vname == "TSX_Async_Abort"):
+            if (vuln_string.find("tsx_async_abort=off") != -1):
+                self.mitigated_boot = None
+            else:
+                self.mitigated_boot = True
         else:
-            self.mitigated_boot = True
+            if (vuln_string.find("no") != -1) or (vuln_string.find("off") != -1):
+                self.mitigated_boot = None
+            else:
+                self.mitigated_boot = True
         return
 
     def disable_variant_boot(self):
