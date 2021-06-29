@@ -265,15 +265,12 @@ class Boot(Base):
                 tstr = tstr + arr[2]
             else:
                 if arr[3] == self.ON:
-                    tstr = tstr + str(arr[2]) + "=on "
-                    if (arr[2] == "tsx" and not
-                        (arr[2] == "tsx_async_abort")):
+                    if (arr[2] == "tsx"):
                         tstr = tstr + str(arr[2]) + "=off "
                     else:
                         tstr = tstr + str(arr[2]) + "=on "
                 else:
-                    if (arr[2] == "tsx" and not
-                        (arr[2] == "tsx_async_abort")):
+                    if (arr[2] == "tsx"):
                         tstr = tstr + str(arr[2]) + "=on "
                     else:
                         tstr = tstr + str(arr[2]) + "=off "

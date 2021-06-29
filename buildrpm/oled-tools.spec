@@ -177,6 +177,7 @@ rm -rf $RPM_BUILD_ROOT
 * Thu Jun 24 2021 Mridula Shastry <mridula.c.shastry@oracle.com>
 - Smtool: Add support for detection/mitigation for SRBDS [Orabug: 33032240]
 - Smtool: Fix scanning of commandline parameters for TSX_Async_Abort [Orabug: 33043269]
+- Smtool: Fix verbose scan [Orabug: 33044339]
 
 * Mon Jun 14 2021 Mridula Shastry <mridula.c.shastry@oracle.com>
 - Smtool: Minor bug fixes [Orabug: 32999593]
