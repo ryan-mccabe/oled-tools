@@ -27,7 +27,7 @@ import platform
 
 # Oracle Linux Enhanced Diagnostic Tools
 MAJOR = "0"
-MINOR = "1"
+MINOR = "5"
 
 BINDIR="/usr/lib/oled-tools"
 

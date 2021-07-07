@@ -1,5 +1,5 @@
 Name:		oled-tools
-Version:	0.1
+Version:	0.5
 Release:	LATEST_UNSTABLE%{?dist}
 Summary:	Diagnostic tools for more efficient and faster debugging on Oracle Linux
 Requires:	zlib
