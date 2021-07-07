@@ -1,6 +1,6 @@
 Name:		oled-tools
 Version:	0.5
-Release:	LATEST_UNSTABLE%{?dist}
+Release:	1%{?dist}
 Summary:	Diagnostic tools for more efficient and faster debugging on Oracle Linux
 Requires:	zlib
 Requires:	bzip2-libs
@@ -174,6 +174,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man8/oled-topstack.8.gz
 
 %changelog
+* Wed Jul 07 2021 Manjunath Patil <manjunath.b.patil@oracle.com>
+- Prod release oled-tools-0.5-1
+
 * Thu Jun 24 2021 Mridula Shastry <mridula.c.shastry@oracle.com>
 - Smtool: Add support for detection/mitigation for SRBDS [Orabug: 33032240]
 - Smtool: Fix scanning of commandline parameters for TSX_Async_Abort [Orabug: 33043269]
