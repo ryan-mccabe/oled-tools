@@ -1,4 +1,4 @@
-.TH oled lkce 1 "Dec 2020" "0.1"
+.TH oled lkce 1 "Jul 2020" "0.5"
 
 .SH NAME
 oled lkce \- Linux Kernel Core Extractor
