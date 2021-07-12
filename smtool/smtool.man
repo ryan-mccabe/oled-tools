@@ -1,4 +1,4 @@
-.TH OLED SMTOOL 8 "Jan 2020" "Oracle Linux Enhanced Diagnostics" "0.1"
+.TH OLED SMTOOL 8 "Jul 2021" "Oracle Linux Enhanced Diagnostics" "0.5"
 
 .SH NAME
 oled smtool - Scans, reports and mitigates various known vulnerabilities

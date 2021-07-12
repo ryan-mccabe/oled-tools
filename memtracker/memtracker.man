@@ -1,4 +1,4 @@
-.TH OLED MEMTRACKER 8 "Jan 2021" "Oracle Linux Enhanced Diagnostics" "0.1"
+.TH OLED MEMTRACKER 8 "Jul 2021" "Oracle Linux Enhanced Diagnostics" "0.5"
 
 .SH NAME
 oled memtracker - Captures memory usage debug data periodically on the running

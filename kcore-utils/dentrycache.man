@@ -1,4 +1,4 @@
-.TH OLED DENTRYCACHE 8 "May 2021" "Oracle Linux Enhanced Diagnostics" "0.1"
+.TH OLED DENTRYCACHE 8 "Jul 2021" "Oracle Linux Enhanced Diagnostics" "0.5"
 
 .SH NAME
 oled dentrycache - Lists a sample of file paths which have active dentries
