@@ -631,11 +631,10 @@ class Cpu(Base):
 
         """
         self.sysfile = Sysfile(vtype)
-        if(self.sysfile.get_sysfile() != None):
-            if (os.path.exists(self.sysfile.get_sysfile())):
-                if (self.sysfile.read_file(self.sysfile.get_sysfile())
-                    == "Not affected"):
-                    return False
+        if os.path.exists(self.sysfile.get_sysfile()):
+            if (self.sysfile.read_file(self.sysfile.get_sysfile())
+                == "Not affected"):
+                return False
 
         if vtype == self.SPECTRE_V1:
             return self.v_1

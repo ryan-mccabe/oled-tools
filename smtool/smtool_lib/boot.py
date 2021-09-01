@@ -230,7 +230,7 @@ class Boot(Base):
 
         if self.vtype == self.SRBDS:
             self.sysfile = Sysfile(self.vtype)
-            if self.sysfile.get_sysfile() != None:
+            if os.path.exists(self.sysfile.get_sysfile()):
                 return ["srbds"]
 
         return []

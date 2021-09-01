@@ -174,6 +174,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man8/oled-topstack.8.gz
 
 %changelog
+* Thu Sep 02 2021 Mridula Shastry <mridula.c.shastry@oracle.com>
+- Smtool: Avoid failure when mitigation for a particular variant is
+ not available [Orabug: 33287128]
+ 
 * Wed Jul 07 2021 Manjunath Patil <manjunath.b.patil@oracle.com>
 - Prod release oled-tools-0.5-1
 

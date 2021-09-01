@@ -205,11 +205,6 @@ class Sysfile(Base):
         if self.vtype == self.SRBDS:
             self.sfile = self.SYS_SRBDS_FILE
 
-        if (os.path.exists(self.sfile)):
-            return self.sfile
-        else:
-            return None
-
         return self.sfile
 
     def is_option_valid(self, index, option, kernel_ver):

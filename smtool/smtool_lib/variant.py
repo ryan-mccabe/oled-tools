@@ -106,7 +106,7 @@ class Variant(Base):
         """
         self.mitigated_kernel = True
 
-        if self.sysfile.is_mitigated():
+        if (os.path.exists(self.sysfile.get_sysfile()) and self.sysfile.is_mitigated()):
             self.mitigated_sys = True
 
         vuln_string = self.boot.scan_cmdline()
@@ -588,11 +588,11 @@ class Variant(Base):
         if ((server.stype == self.XEN_PV) or (
                 server.stype == self.XEN_HVM) or
                 (server.stype == self.KVM_GUEST)):
-           if (not self.sysfile.is_mitigated()):
+           if (os.path.exists(self.sysfile.get_sysfile()) and not self.sysfile.is_mitigated()):
                return False
         else:
-            if ((cpu.is_vulnerable(self.vtype)) and (
-                not self.sysfile.is_mitigated())):
+            if ((cpu.is_vulnerable(self.vtype)) and (os.path.exists(self.sysfile.get_sysfile())
+                and not self.sysfile.is_mitigated())):
                 return False
         return True
 
