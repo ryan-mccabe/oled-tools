@@ -88,7 +88,7 @@ if [ $1 -lt 1 ] ; then
 	rm -rf %{lkce_d} || :
 
 	#oled
-	rmdir %{oled_etc_d} || :
+	rm -rf %{oled_etc_d} || :
 fi
 
 
