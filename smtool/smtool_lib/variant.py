@@ -664,10 +664,8 @@ class Variant(Base):
                 log(server_type + " doesn't support mitigation" +
                      " for MDS, SSBD and Meltdown")
             else:
-                log("Running kernel.............: Doesn't support" +
-                     " Mitigation")
-                log("Please upgrade the kernel to the following version: " +
-                     kernel.recommended_ver(kernel.get_kernel_desc()))
+                log("        Running kernel.............: Doesn't support" +
+                     " mitigation")
             return False
         return True
 

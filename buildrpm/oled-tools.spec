@@ -177,6 +177,7 @@ rm -rf $RPM_BUILD_ROOT
 * Thu Sep 02 2021 Mridula Shastry <mridula.c.shastry@oracle.com>
 - Smtool: Avoid failure when mitigation for a particular variant is
  not available [Orabug: 33287128]
+- Smtool: Avoid redundant messages during verbose scan [Orabug: 33309752]
  
 * Wed Jul 07 2021 Manjunath Patil <manjunath.b.patil@oracle.com>
 - Prod release oled-tools-0.5-1
