@@ -1,4 +1,4 @@
-.TH oled lkce 1 "Jul 2020" "0.5"
+.TH OLED LKCE 8 "Jul 2021" "Oracle Linux Enhanced Diagnostics" "0.5"
 
 .SH NAME
 oled lkce \- Linux Kernel Core Extractor
@@ -7,9 +7,9 @@ oled lkce \- Linux Kernel Core Extractor
 \fB oled lkce\fR [report \fIreport-options\fR] [configure \fIconfig-options\fR] [enable|disable|status] [clean|list|help]
 
 .SH DESCRIPTION
-\fBlkce command\fR is used to interact with Linux Kernel Core Extractor[LKCE]. It is used to generate report from vmcore. lkce can run user scripts in kdump kernel. 
+The oled \fBlkce\fR command is used to interact with Linux Kernel Core Extractor (LKCE). It is used to generate a report from vmcore. lkce can run user scripts in kdump kernel. 
 
-Once configured it can generate a report from a kdump kernel when system crashes. This is useful if the size of vmcore is too large to copy or send across for analysis or when generating vmcore is not preferred.
+Once configured, it can generate a report from a kdump kernel when system crashes. This is useful if the size of vmcore is too large to copy or send across for analysis, or when generating vmcore is not preferred.
 
 .SH OPTIONS
 .TP
@@ -18,7 +18,7 @@ Once configured it can generate a report from a kdump kernel when system crashes
 report-options:
 .RE
 .RS 3
-\fB\-\-vmcore=\fI/path/to/vmcore\fR	- path to vmcore file for report generation [Required]
+\fB\-\-vmcore=\fI/path/to/vmcore\fR	- path to vmcore file for report generation (required)
 .RE
 .RS 3
 [\fB\-\-vmlinux=\fI/path/to/vmlinux\fR]	- use this vmlinux instead of already configured value
@@ -31,9 +31,9 @@ report-options:
 .RE
 
 .TP
-\fBconfigure --default\fR - Configure with default values overwriting the existing.
+\fBconfigure --default\fR - Configure with default values, overwriting the existing values.
 .TP
-\fBconfigure [--show]\fR  - Show the configured values. This is default when no config-options are given.
+\fBconfigure [--show]\fR  - Show the configured values. This is the default when no config-options are given.
 
 .TP
 \fBconfigure [config-options]\fR - other possible options
@@ -74,8 +74,8 @@ config-options:
 .TP
 \fBlist\fR - list the kdump_report files.
 
-.SH HOW TO SETUP LKCE TO GENERATE KDUMP REPORT:
-Make sure kexec-tools pkg is installed and you can generate vmcore. Post that run below commands:
+.SH HOW TO SET UP LKCE TO GENERATE KDUMP REPORT
+Make sure kexec-tools pkg is installed and you can generate a vmcore. Then, run these commands to enable lkce:
 .RS 0
 # yum install oled-tools
 .RE
@@ -134,10 +134,6 @@ kdump kernel is a secondary kernel used to collect the memory image[vmcore] of t
 
 .TP
 LKCE provides an environment inside kdump kernel to run user scrips. kdump_report is one such user script used here to generate the vmcore report when the system crashes. LKCE links with kdump[of kexec-tools] service as kdump_pre hook to run scripts inside kdump kernel.
-
-.SH AUTHOR
-.TP
-Manjunath Patil <manjunath.b.patil@oracle.com>
 
 .SH FILES
 .TP

@@ -64,7 +64,7 @@ class FileLock(object):
         try:
             fcntl.flock(self.lock_file, ops)
             self.locked = True
-        except IOError:
+        except (IOError, OSError) as e:
             raise Error("Another instace of topstack is already running")
 
     def is_locked(self):

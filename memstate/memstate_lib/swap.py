@@ -63,7 +63,7 @@ class Swap(Base):
                     val = int(swap.get(hdr, 0)) + int(v)
                     swap.update({hdr: val})
                 time.sleep(0.01) # Sleep for 10 ms to avoid hogging CPU
-            except IOError:
+            except (IOError, OSError) as e:
                 pass
         end_time = time.time()
         self.log_debug("Time taken to extract swap usage values from " + str(num_files_scanned) \

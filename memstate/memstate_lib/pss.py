@@ -74,7 +74,7 @@ class Pss(Base):
                         else:
                             mem[pid] = int(segment_mem)
                 time.sleep(0.01) # Sleep for 10 ms, to avoid hogging CPU
-        except IOError:
+        except (IOError, OSError) as e:
             pass
 
         end_time = time.time()

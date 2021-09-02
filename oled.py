@@ -45,24 +45,6 @@ DENTRYCACHE_UEK4 = BINDIR + "/dentrycache_uek4"
 FILECACHE = BINDIR + "/filecache"
 DENTRYCACHE = BINDIR + "/dentrycache"
 
-def dist():
-    os_release = platform.linux_distribution()[1]
-    if os_release.startswith("3"):
-         if (os_release.replace('.','') <= 346):
-             dist = "el6"
-         else:
-             dist = "el7"
-    else:
-        os_release = float(platform.linux_distribution()[1])
-        if os_release > 6.0 and os_release < 7.0 :
-            dist = "el6"
-        elif os_release > 7.0 and os_release < 8.0 :
-            dist = "el7"
-        else :
-            dist = "el8"
-    return dist
-
-
 def help(error):
     print("Oracle Linux Enhanced Diagnostic Tools")
     print("Usage:")

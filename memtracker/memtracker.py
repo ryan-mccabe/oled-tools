@@ -113,7 +113,7 @@ def create_lock():
     op = fcntl.LOCK_EX | fcntl.LOCK_NB
     try:
         fcntl.flock(lock_fd, op)
-    except IOError as e:
+    except OSError as e:
         print("Another instance of this script is running; please kill that instance " \
                 "if you want to restart the script.")
         sys.exit(1)
@@ -176,7 +176,7 @@ def get_files(logf):
             start_time = time.time()
         try:
             fd = open(fname, "r")
-        except IOError as ioe:
+        except (IOError, OSError) as e:
             # Skip the file if it cannot be opened (for instance, some debugfs files when
             # Secure Boot is enabled).
             fd = ""
@@ -254,7 +254,7 @@ parent_dir = OUTFILE[0:end]
 if not os.path.exists(parent_dir):
     try:
         os.makedirs(parent_dir)
-    except IOError as e:
+    except OSError as e:
         print("Could not create directory " + parent_dir + ": " + str(e))
         sys.exit(1)
 

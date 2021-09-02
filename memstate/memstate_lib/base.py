@@ -41,7 +41,7 @@ class Base:
         if not os.path.exists(parent_dir):
             try:
                 os.makedirs(parent_dir, mode=0o700)
-            except IOError as e:
+            except OSError as e:
                 self.log_debug("Could not create directory " + parent_dir + ": " + str(e))
 
     def exec_cmd(self, cmd):
@@ -176,7 +176,7 @@ class Base:
     def open_file(filename, mode):
         try:
             f = open(filename, mode)
-        except IOError as e:
+        except (IOError, OSError) as e:
             # Ignore if file does not exist
             f = ""
         return f
@@ -204,7 +204,7 @@ class LockFile(Base):
         if not os.path.exists(parent_dir):
             try:
                 os.makedirs(parent_dir, mode=0o700)
-            except IOError as e:
+            except OSError as e:
                 self.log_debug("Could not create directory " + parent_dir + ": " + str(e))
                 return
         self.lock_filename = os.path.join(parent_dir, "lock")
@@ -222,7 +222,7 @@ class LockFile(Base):
             fcntl.flock(self.lock_fd, op)
             self.locked = True
             self.log_debug("Locked file " + self.lock_filename)
-        except IOError as e:
+        except (IOError, OSError) as e:
             self.log_debug("Failed to lock " + self.lock_filename + ": " + str(e))
             print("Another instance of this script is running; please kill that instance " \
                     "if you want to restart the script.")
@@ -230,7 +230,11 @@ class LockFile(Base):
 
     def __del__(self):
         if self.locked is True:
-            self.log_debug("Cleaning up; deleting lock file " + self.lock_filename)
-            fcntl.flock(self.lock_fd, fcntl.LOCK_UN)
-            self.lock_fd.close()
-            os.remove(self.lock_filename)
+            try:
+                self.log_debug("Cleaning up; deleting lock file " + self.lock_filename)
+                fcntl.flock(self.lock_fd, fcntl.LOCK_UN)
+                self.lock_fd.close()
+                os.remove(self.lock_filename)
+            except Exception as e:
+                self.log_debug("Caught exception \"" + e.strerror + "\" while cleaning up/deleting lock file.")
+                pass

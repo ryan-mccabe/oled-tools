@@ -92,7 +92,7 @@ class FileLock(object):
         try:
             fcntl.flock(self.lock_file, ops)
             self.locked = True
-        except IOError:
+        except (IOError, OSError) as e:
             raise Error("Another instance of kstack is already running")
 
     def __del__(self):
