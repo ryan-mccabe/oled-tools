@@ -56,6 +56,13 @@ make install DESTDIR=$RPM_BUILD_ROOT DIST=%{?dist} SPECFILE="1"
 %define lkce_kdump_d %{lkce_d}/lkce_kdump.d
 
 %post
+if [ $1 -ge 1 ] ; then
+# package upgrade
+        if [ ! `grep -q '^kdump_pre /etc/oled/kdump_pre.sh$' /etc/kdump.conf 2> /dev/null` ]; then #present
+                sed --in-place '/kdump_pre \/etc\/oled\/kdump_pre.sh/d' /etc/kdump.conf 2> dev/null ||:
+                sed --in-place '/extra_bins \/bin\/timeout/d' /etc/kdump.conf 2> /dev/null || :
+        fi
+fi
 [ -f %{lkce_d}/lkce.conf ] || oled lkce configure --default > /dev/null
 
 %preun
