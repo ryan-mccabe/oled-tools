@@ -64,6 +64,22 @@ class Lkce:
 		self.TIMEOUT_PATH = self.run_command('which timeout')
 	#def __init__
 
+	def run_os_command(self, cmd):
+		"""
+		Execute command and return the status.
+		Output of the command is printed to stdout
+		Parameters:
+		cmd : Command to run
+
+		Returns retval: status of the specific command executed.
+		"""
+		try:
+			ret = os.system(cmd)
+		except:
+			print("Unable to execute %s command" % (cmd))
+			return -1
+		return ret
+
 	def run_command(self, cmd):
 		"""
 		Execute command and return the result
@@ -72,11 +88,16 @@ class Lkce:
 
 		Returns string: result of the specific command executed.
 		"""
-		command = subprocess.Popen(cmd,
+		try:
+			command = subprocess.Popen(cmd,
 					stdin=None,
 					stdout=subprocess.PIPE,
 					stderr=subprocess.PIPE,
 					shell=True)
+		except:
+			print("Unable to execute %s command" % (cmd))
+			return ""
+
 		out,err = command.communicate()
 		if (sys.version_info[0] == 3):
 			out = out.decode("utf-8").strip()
@@ -87,7 +108,7 @@ class Lkce:
 	def configure_default(self):
 		if not os.path.isdir(self.LKCE_HOME):
 			cmd = "mkdir -p " + self.LKCE_HOME
-			os.system(cmd)
+			self.run_os_command(cmd)
 
 		if self.enable == "yes":
 			print("trying to disable lkce")
@@ -114,9 +135,13 @@ ps -S
 runq
 quit
 """
-		file = open(filename, "w")
-		file.write(content)
-		file.close()
+		try:
+			file = open(filename, "w")
+			file.write(content)
+			file.close()
+		except (IOError, OSError) as e:
+			print("Unable to operate on file: %s" % (filename))
+			return
 
 		#config file
 		filename = self.LKCE_CONFIG_FILE
@@ -143,9 +168,13 @@ vmcore=""" + self.VMCORE + """
 #maximum number of outputfiles to retain. Older file gets deleted
 max_out_files=""" + self.MAX_OUT_FILES
 
-		file = open(filename, "w")
-		file.write(content)
-		file.close()
+		try:
+			file = open(filename, "w")
+			file.write(content)
+			file.close()
+		except (IOError, OSError) as e:
+			print("Unable to operate on file: %s" % (filename))
+			return
 
 		print("configured with default values")
 	#def configure_default
@@ -154,7 +183,12 @@ max_out_files=""" + self.MAX_OUT_FILES
 		if not os.path.exists(filename):
 			return
 
-		file = open(filename, "r")
+		try:
+			file = open(filename, "r")
+		except (IOError, OSError) as e:
+			print("Unable to open file: %s" % (filename))
+			return
+
 		for line in file.readlines():
 			if re.search("^#", line): #ignore lines starting with '#'
 				continue
@@ -185,7 +219,7 @@ max_out_files=""" + self.MAX_OUT_FILES
 	def create_lkce_kdump(self):
 		filename = self.LKCE_KDUMP_SH
 		cmd = "mkdir -p " + self.LKCE_KDUMP_DIR
-		os.system(cmd)
+		self.run_os_command(cmd)
 
 		#for OL7 and above
 		mount_cmd = "mount -o bind /sysroot"
@@ -250,12 +284,16 @@ fi
 
 exit 0
 """
-		file = open(filename, "w")
-		file.write(content)
-		file.close()
+		try:
+			file = open(filename, "w")
+			file.write(content)
+			file.close()
+		except (IOError, OSError) as e:
+			print("Unable to operate on file: %s" % (filename))
+			return
 
 		cmd = "chmod a+x " + filename
-		os.system(cmd)
+		self.run_os_command(cmd)
 	# def create_lkce_kdump
 
 	def remove_lkce_kdump(self):
@@ -273,7 +311,7 @@ exit 0
 
 		if arg == "--remove":
 			cmd = "grep -q '^" + KUDMP_PRE_LINE + "$' " + self.KDUMP_CONF
-			ret = os.system(cmd)
+			ret = self.run_os_command(cmd)
 			if (ret):  # not present
 				print("lkce_kdump entry not set in %s" % (self.KDUMP_CONF))
 				return 1
@@ -281,25 +319,25 @@ exit 0
 			KUDMP_PRE_LINE.replace("/", r"\/") + """/d' """ + self.KDUMP_CONF
 			cmd = cmd + "; sed --in-place '/""" + \
 			KUDMP_TIMEOUT_LINE.replace("/", r"\/") + """/d' """ + self.KDUMP_CONF
-			os.system(cmd)
+			self.run_os_command(cmd)
 			self.restart_kdump_service()
 			return 0
 
 		#arg == "--add"
 		cmd = "grep -q '^kdump_pre' " + self.KDUMP_CONF
-		ret = os.system(cmd)
+		ret = self.run_os_command(cmd)
 		if (ret):  # not present
 			cmd = "echo '" + KUDMP_PRE_LINE + "' >> " + self.KDUMP_CONF
 			cmd = cmd + "; echo 'extra_bins " + self.TIMEOUT_PATH + "' >> " + self.KDUMP_CONF
-			os.system(cmd)
+			self.run_os_command(cmd)
 			self.restart_kdump_service()
 		else:
 			cmd = "grep -q '^" + KUDMP_PRE_LINE + "$' " + self.KDUMP_CONF
-			if (os.system(cmd)):  # kdump_pre is enabled, but it is not our lkce_kdump script
+			if (self.run_os_command(cmd)):  # kdump_pre is enabled, but it is not our lkce_kdump script
 				print("lkce_kdump entry not set in %s (manual setting needed)" % (self.KDUMP_CONF))
 				print("\npresent entry in kdump.conf")
 				cmd = "grep ^kdump_pre " + self.KDUMP_CONF
-				os.system(cmd)
+				self.run_os_command(cmd)
 				print("\nHint:")
 				print("edit the present kdump_pre script and make it run %s" % (self.LKCE_KDUMP_SH))
 				return 1
@@ -329,7 +367,7 @@ exit 0
 			cmd = "systemctl restart kdump"
 
 		print("Restarting kdump service..."),
-		os.system(cmd)
+		self.run_os_command(cmd)
 		print("done!")
 	# def restart_kdump_service
 
@@ -357,13 +395,17 @@ exit 0
 
 			elif "--crash_cmds" in entry[0]:
 				crash_cmds_file = "/tmp/crash_cmds_file"
-				file = open(crash_cmds_file, "w")
-				for cmd in entry[1].split(","):
-					cmd  = cmd + "\n"
-					file.write(cmd)
-				#for
-				file.write("quit")
-				file.close()
+				try:
+					file = open(crash_cmds_file, "w")
+					for cmd in entry[1].split(","):
+						cmd  = cmd + "\n"
+						file.write(cmd)
+					#for
+					file.write("quit")
+					file.close()
+				except (IOError, OSError) as e:
+					print("Unable to operate on file: %s" % (crash_cmds_file))
+					return
 
 			elif "--outfile" in entry[0]:
 				outfile = entry[1]
@@ -390,10 +432,11 @@ exit 0
 		cmd = "crash " + vmcore + " " + vmlinux + " -i " + crash_cmds_file
 		if outfile != "": cmd = cmd + " > " + outfile
 		print("lkce: executing '%s'" % cmd)
-		os.system(cmd)
+		self.run_os_command(cmd)
 
 		if crash_cmds_file == "/tmp/crash_cmds_file":
-			os.remove(crash_cmds_file)
+			cmd = "rm -f " + crash_cmds_file
+			self.run_os_command(cmd)
 	#def report
 
 	def configure(self, subargs):
@@ -424,17 +467,17 @@ exit 0
 
 				if "--vmlinux_path" in entry[0]:
 					cmd = "sed -i 's/vmlinux_path=.*/vmlinux_path= " + entry[1] +"/' " + filename
-					os.system(cmd);
+					self.run_os_command(cmd)
 					print("lkce: set vmlinux_path to %s" % entry[1])
 
 				elif "--crash_cmds_file" in entry[0]:
 					cmd = "sed -i 's/crash_cmds_file=.*/crash_cmds_file= " + entry[1] +"/' " + filename
-					os.system(cmd);
+					self.run_os_command(cmd)
 					print("lkce: set crash_cmds_file to %s" % entry[1])
 
 				elif "--kdump_report" in entry[0]:
 					cmd = "sed -i 's/kdump_report=.*/kdump_report= " + entry[1] +"/' " + filename
-					os.system(cmd);
+					self.run_os_command(cmd)
 					print("lkce: set kdump_report to %s" % entry[1])
 
 				elif "--vmcore" in entry[0]:
@@ -442,12 +485,12 @@ exit 0
 						return 1
 
 					cmd = "sed -i 's/vmcore=.*/vmcore= " + entry[1] +"/' " + filename
-					os.system(cmd);
+					self.run_os_command(cmd)
 					print("lkce: set vmcore to %s" % entry[1])
 
 				elif "--max_out_files" in entry[0]:
 					cmd = "sed -i 's/max_out_files=.*/max_out_files= " + entry[1] +"/' " + filename
-					os.system(cmd);
+					self.run_os_command(cmd)
 					print("lkce: set max_out_files to %s" % entry[1])
 				else:
 					print("error: unknown configure option %s" % subarg)
@@ -480,7 +523,7 @@ exit 0
 
 		filename = self.LKCE_CONFIG_FILE
 		cmd = "sed -i 's/enable=.*/enable=yes/' " + filename
-		os.system(cmd);
+		self.run_os_command(cmd)
 		print("enabled")
 	# def enable_lkce
 
@@ -494,12 +537,12 @@ exit 0
 			return
 
 		cmd = "sed -i 's/enable=.*/enable=no/' " + filename
-		os.system(cmd);
+		self.run_os_command(cmd)
 
 		filename = self.LKCE_KDUMP_SH
 		if os.path.exists(filename):
 			cmd = "rm -f " + self.LKCE_KDUMP_SH
-			os.system(cmd)
+			self.run_os_command(cmd)
 		print("disabled")
 	#def disable_lkce
 
@@ -512,20 +555,20 @@ exit 0
 			val = raw_input("lkce removes all the files in %s dir. do you want to proceed(yes/no)? [no]:" % self.LKCE_OUT)
 			if "yes" in val:
 				cmd = "rm " + self.LKCE_OUT + "/crash*out 2> /dev/null"
-				os.system(cmd)
+				self.run_os_command(cmd)
 			#if "yes"
 		else:
 			val = raw_input("lkce deletes all but last three %s/crash*out files. do you want to proceed(yes/no)? [no]:" % self.LKCE_OUT)
 			if "yes" in val:
 				cmd = "ls -r " + self.LKCE_OUT + "/crash*out 2>/dev/null| tail -n +4 | xargs rm 2> /dev/null"
-				os.system(cmd) #start removing from 4th entry
+				self.run_os_command(cmd) #start removing from 4th entry
 	#def clean
 
 	def listfiles(self):
 		dirname = self.LKCE_OUT
 		if not os.path.exists(dirname):
 			cmd = "mkdir -p " + dirname
-			os.system(cmd)
+			self.run_os_command(cmd)
 
 		print("Followings are the crash*out found in %s dir:" % dirname)
 		for filename in os.listdir(dirname):
@@ -608,20 +651,26 @@ if __name__ == '__main__':
 		sys.exit()
 
 	lockdir = "/var/run/oled-tools"
-	if not os.path.isdir(lockdir):
-		os.makedirs(lockdir)
-	lockfile = lockdir + "/lkce.lock"
-	fh = open(lockfile, "w")
-	try: #try lock
+	try:
+		if not os.path.isdir(lockdir):
+			os.makedirs(lockdir)
+		lockfile = lockdir + "/lkce.lock"
+
+		fh = open(lockfile, "w")
+	except (IOError, OSError) as e:
+		print("Unable to open file: %s" % (lockfile))
+		sys.exit()
+
+	#try lock
+	try:
 		fcntl.flock(fh, fcntl.LOCK_EX | fcntl.LOCK_NB)
-	except: #no lock
+	except (IOError, OSError) as e: #no lock
 		print("another instance of lkce is running.")
 		sys.exit()
 
 	try:
 		main()
-	except KeyboardInterrupt:
-		print("\nInterrupted by user ctrl+c")
-	finally:
 		fh.close()
 		os.remove(lockfile)
+	except KeyboardInterrupt:
+		print("\nInterrupted by user ctrl+c")

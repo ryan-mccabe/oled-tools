@@ -54,6 +54,22 @@ class KdumpReport:
 		self.read_config(self.KDUMP_REPORT_CONFIG_FILE)
 	# def __init__
 
+	def run_os_command(self, cmd):
+		"""
+		Execute command and return the status.
+		Output of the command is printed to stdout
+		Parameters:
+		cmd : Command to run
+
+		Returns retval: status of the specific command executed.
+		"""
+		try:
+			ret = os.system(cmd)
+		except:
+			print("kdump_report: Unable to execute %s command" % (cmd))
+			return -1
+		return ret
+
 	def run_command(self, cmd):
 		"""
 		Execute command and return the result
@@ -62,11 +78,16 @@ class KdumpReport:
 
 		Returns string: result of the specific command executed.
 		"""
-		command = subprocess.Popen(cmd,
-					 stdin=None,
-					 stdout=subprocess.PIPE,
-					 stderr=subprocess.PIPE,
-					 shell=True)
+		try:
+			command = subprocess.Popen(cmd,
+					stdin=None,
+					stdout=subprocess.PIPE,
+					stderr=subprocess.PIPE,
+					shell=True)
+		except:
+			print("kdump_report: Unable to execute %s command" % (cmd))
+			return ""
+
 		out, err = command.communicate()
 		if (sys.version_info[0] == 3):
 			out = out.decode("utf-8").strip()
@@ -78,7 +99,12 @@ class KdumpReport:
 		if not os.path.exists(filename):
 			self.exit()
 
-		file = open(filename, "r")
+		try:
+			file = open(filename, "r")
+		except:
+			print("kdump_report: Unable to operate on file: %s" % (filename))
+			return
+
 		for line in file.readlines():
 			if re.search("^#", line):# ignore lines starting with '#'
 				continue
@@ -125,11 +151,11 @@ class KdumpReport:
 
 		if not os.path.exists(self.KDUMP_REPORT_OUT):
 			cmd = "mkdir -p " + self.KDUMP_REPORT_OUT
-			os.system(cmd)
+			self.run_os_command(cmd)
 
 		cmd = "crash " + self.VMLINUX + " " + self.VMCORE + " -i " + self.crash_cmds_file + " > " + self.KDUMP_REPORT_OUT_FILE
 		print("kdump_report: Executing '%s'" % cmd)
-		os.system(cmd)
+		self.run_os_command(cmd)
 	# def run_crash
 
 	def clean_up(self):
@@ -141,7 +167,7 @@ class KdumpReport:
 		if delete_files:
 			print("kdump_report: found more than %s[max_out_files] out files. Deleting older ones" % self.max_out_files)
 			cmd = "rm -f " + delete_files
-			os.system(cmd)
+			self.run_os_command(cmd)
 	# def clean_up
 
 	def exit(self):
