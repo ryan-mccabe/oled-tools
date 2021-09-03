@@ -265,7 +265,7 @@ exit 0
 	# enable lkce_kdump in /etc/kdump.conf
 	def update_kdump_conf(self, arg):
 		if not os.path.exists(self.KDUMP_CONF):
-			print("error: can not find %s. Please retry after installing kexec-tools") % (self.KDUMP_CONF)
+			print("error: can not find %s. Please retry after installing kexec-tools" % (self.KDUMP_CONF))
 			return 1
 
 		KUDMP_PRE_LINE = "kdump_pre " + self.LKCE_KDUMP_SH
@@ -275,7 +275,7 @@ exit 0
 			cmd = "grep -q '^" + KUDMP_PRE_LINE + "$' " + self.KDUMP_CONF
 			ret = os.system(cmd)
 			if (ret):  # not present
-				print("lkce_kdump entry not set in %s") % (self.KDUMP_CONF)
+				print("lkce_kdump entry not set in %s" % (self.KDUMP_CONF))
 				return 1
 			cmd = "sed --in-place '/""" + \
 			KUDMP_PRE_LINE.replace("/", r"\/") + """/d' """ + self.KDUMP_CONF
@@ -296,12 +296,12 @@ exit 0
 		else:
 			cmd = "grep -q '^" + KUDMP_PRE_LINE + "$' " + self.KDUMP_CONF
 			if (os.system(cmd)):  # kdump_pre is enabled, but it is not our lkce_kdump script
-				print("lkce_kdump entry not set in %s (manual setting needed)") % (self.KDUMP_CONF)
+				print("lkce_kdump entry not set in %s (manual setting needed)" % (self.KDUMP_CONF))
 				print("\npresent entry in kdump.conf")
 				cmd = "grep ^kdump_pre " + self.KDUMP_CONF
 				os.system(cmd)
 				print("\nHint:")
-				print("edit the present kdump_pre script and make it run %s")%(self.LKCE_KDUMP_SH)
+				print("edit the present kdump_pre script and make it run %s" % (self.LKCE_KDUMP_SH))
 				return 1
 			else:
 				print("lkce_kdump is already enabled to run lkce scripts")
@@ -411,10 +411,10 @@ exit 0
 
 				print("%15s : %s" % ("lkce enabled", self.enable))
 				print("%15s : %s" % ("vmlinux path", self.vmlinux_path))
-				print("%15s : %s" %("crash_cmds_file", self.crash_cmds_file))
-				print("%15s : %s" %("kdump_report", self.kdump_report))
-				print("%15s : %s " %("vmcore", self.vmcore))
-				print("%15s : %s" %("max_out_files", self.max_out_files))
+				print("%15s : %s" % ("crash_cmds_file", self.crash_cmds_file))
+				print("%15s : %s" % ("kdump_report", self.kdump_report))
+				print("%15s : %s" % ("vmcore", self.vmcore))
+				print("%15s : %s" % ("max_out_files", self.max_out_files))
 			else:
 				subarg = re.sub(r"\s+", "", subarg)
 				entry = re.split("=", subarg)
@@ -456,7 +456,7 @@ exit 0
 
 	def config_vmcore(self, value):
 		if value not in ['yes', 'no']:
-			print("error: invalid option '%s'")%(value)
+			print("error: invalid option '%s'" % (value))
 			return 1
 
 		filename = self.LKCE_KDUMP_SH
@@ -509,7 +509,7 @@ exit 0
 
 	def clean(self, subarg):
 		if "--all" in subarg:
-			val = raw_input("lkce removes all the files in %s dir. do you want to proceed(yes/no)? [no]:" %self.LKCE_OUT)
+			val = raw_input("lkce removes all the files in %s dir. do you want to proceed(yes/no)? [no]:" % self.LKCE_OUT)
 			if "yes" in val:
 				cmd = "rm " + self.LKCE_OUT + "/crash*out 2> /dev/null"
 				os.system(cmd)
@@ -598,7 +598,7 @@ def main():
 		lkce.usage()
 
 	else:
-		print("Invalid option: %s")%(arg)
+		print("Invalid option: %s" % (arg))
 		print("Try 'oled lkce help' for more information")
 #def main
 
