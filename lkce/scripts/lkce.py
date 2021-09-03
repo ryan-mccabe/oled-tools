@@ -618,7 +618,10 @@ if __name__ == '__main__':
 		print("another instance of lkce is running.")
 		sys.exit()
 
-	main()
-
-	fh.close()
-	os.remove(lockfile)
+	try:
+		main()
+	except KeyboardInterrupt:
+		print("\nInterrupted by user ctrl+c")
+	finally:
+		fh.close()
+		os.remove(lockfile)
