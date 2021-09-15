@@ -1,11 +1,13 @@
-.TH oled smtool 8 "Jan 2020" "0.1"
+.TH OLED SMTOOL 8 "Jul 2021" "Oracle Linux Enhanced Diagnostics" "0.5"
 
 .SH NAME
-oled smtool - Program to scan, report and mitigate various known vulnerabilities
+oled smtool - Scans, reports and mitigates various known vulnerabilities
 on the system.
 
 .SH SYNOPSIS
-oled smtool [options]
+oled smtool [-h] [-v] [-s] [--enable-default-mitigations [-y] [-d]]
+[--enable-full-mitigations [-y] [-r] [-d]]
+[--disable-mitigations [-y] [-r] [-d]]
 
 .SH DESCRIPTION
 smtool can be used to scan for various known vulnerabilities on the system
@@ -18,19 +20,23 @@ various vulnerabilities both at boot time and runtime.
 
 .SH OPTIONS
 .TP
--h --help  - Displays various options that can be used with the
+-h, --help
+    Displays various options that can be used with the
 smtool command.
 
 .TP
--s --scan  - Scans the mitigation status of various vulnerabilities
+-s, --scan
+    Scans the mitigation status of various vulnerabilities
 and recommends upgrades to kernel/microcode versions, if any.
 
 .TP
--v --verbose  - Similar to scan but provides more details about
+-v, --verbose
+    Similar to scan but provides more details about
 the mitigation status.
 
 .TP
---enable-default-mitigation [-y] [-d] - option to reset or enable
+--enable-default-mitigation [-y] [-d]
+    Option to reset or enable
 default mitigations for various known vulnerabilities. If "-y" or
 "--yes" is used in conjunction with this option, it alters the
 grub file without prompting the user for confirmation. System
@@ -42,7 +48,8 @@ be enabled. It also recommends upgrades to kernel/microcode
 versions, if any.
 
 .TP
---enable-full-mitigation [-y] [-r] [-d]  - option to enable full
+--enable-full-mitigation [-y] [-r] [-d]
+    Option to enable full
 mitigations for various known vulnerabilities. If "-y" or
 "--yes" is used in conjunction with this option, it alters the
 grub file without prompting the user for confirmation. System
@@ -58,7 +65,8 @@ be enabled. It also recommends upgrades to kernel/microcode
 versions, if any.
 
 .TP
---disable-mitigations [-y] [-r] [-d]  - option to disable
+--disable-mitigations [-y] [-r] [-d]
+    Option to disable
 mitigations for various known vulnerabilities. If "-y" or
 "--yes" is used in conjunction with this option, it alters the
 grub file without prompting the user for confirmation. System
@@ -73,39 +81,12 @@ then the vulnerabilities for which the mitigation will
 be enabled. It also recommends upgrades to kernel/microcode
 versions, if any.
 
-
 .SH MISC
 .TP
-The tool supports the following platforms: KVM_GUEST, KVM_HOST,
-Bare Metal, Xen Guest, Xen Hypervisor. It supports UEK and RHCK
-kernels but has been minimally validated for UEK2, UEK3 and RHCK
-kernels.
+The tool supports the following platforms: KVM_GUEST, KVM_HOST, Bare Metal,
+Xen Guest, and Xen Hypervisor. It supports UEK and RHCK kernels but has been
+minimally validated for UEK2, UEK3 and RHCK kernels.
 
-.SH AUTHOR
+.SH REPORTING BUGS
 .TP
-Mridula Shastry <mridula.c.shastry@oracle.com>
-
-.SH COPYRIGHT
-.TP
-
-# Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
-# DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
-#
-# This code is free software; you can redistribute it and/or modify it
-# under the terms of the GNU General Public License version 2 only, as
-# published by the Free Software Foundation.
-#
-# This code is distributed in the hope that it will be useful, but WITHOUT
-# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-# version 2 for more details (a copy is included in the LICENSE file that
-# accompanied this code).
-#
-# You should have received a copy of the GNU General Public License version
-# 2 along with this work; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
-#
-# Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
-# or visit www.oracle.com if you need additional information or have any
-# questions.
-
+Please contact Oracle Linux Support to report any bugs for OLED tools.

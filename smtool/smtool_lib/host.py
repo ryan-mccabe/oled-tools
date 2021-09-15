@@ -208,7 +208,7 @@ class Host(object):
         if not self.server.is_valid():
             raise ValueError("Unsupported System")
 
-        self.kernel = Kernel(self.server)  # Running kernel
+        self.kernel = Kernel(self.server, False)  # Running kernel
         if not self.kernel.is_valid():
             raise ValueError("Unsupported Kernel")
 

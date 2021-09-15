@@ -78,6 +78,8 @@ class Sysfile(Base):
         "/sys/devices/system/cpu/vulnerabilities/itlb_multihit"
     SYS_TSX_ASYNC_ABORT_FILE = \
         "/sys/devices/system/cpu/vulnerabilities/tsx_async_abort"
+    SYS_SRBDS_FILE = \
+        "/sys/devices/system/cpu/vulnerabilities/srbds"
 
     # SMT Status file
     SYS_SMT_ACTIVE_FILE = "/sys/devices/system/cpu/smt/active"
@@ -156,7 +158,7 @@ class Sysfile(Base):
         self.distro = Distro(False)                  # Oracle distro object
         # Baremetal, hypervisor, VM
         self.server = Server(self.distro, False)
-        self.kernel = Kernel(self.server)       # Running kernel
+        self.kernel = Kernel(self.server, False)       # Running kernel
         return self.kernel.get_kernel_desc()
 
     def is_kvm(self):
@@ -200,6 +202,9 @@ class Sysfile(Base):
             self.sfile = self.SYS_ITLB_MULTIHIT_FILE
         if self.vtype == self.TSX_ASYNC_ABORT:
             self.sfile = self.SYS_TSX_ASYNC_ABORT_FILE
+        if self.vtype == self.SRBDS:
+            self.sfile = self.SYS_SRBDS_FILE
+
         return self.sfile
 
     def is_option_valid(self, index, option, kernel_ver):
@@ -347,7 +352,8 @@ class Sysfile(Base):
         in the sysfile for the specific variant, else
         returns False.
         """
-        if (self.svalue.startswith("Vulnerable")
+        if (self.svalue.startswith("Vulnerable") or
+                self.svalue.startswith("KVM: Vulnerable")
                 or self.svalue.startswith("Unknown")):
             return False
 
@@ -383,7 +389,8 @@ class Sysfile(Base):
                           self.L1TF,
                           self.MDS,
                           self.ITLB_MULTIHIT,
-                          self.TSX_ASYNC_ABORT]):
+                          self.TSX_ASYNC_ABORT,
+                          self.SRBDS]):
             raise ValueError("ERROR: Unrecognized variant")
 
         self.vtype = vtype

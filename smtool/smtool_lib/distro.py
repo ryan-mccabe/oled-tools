@@ -141,7 +141,7 @@ class Distro(Base):
                     return self.OVM32
 
         if tmp[0] == "Red" and tmp[1] == "Hat":
-            if tmp[6] >= "8.0":
+            if tmp[6] >= "8.0" or tmp[5] >= "8.0":
                 return self.RHEL8
 
             if tmp[6] >= "7.0":

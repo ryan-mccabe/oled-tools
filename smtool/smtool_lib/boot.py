@@ -147,8 +147,6 @@ class Boot(Base):
         returns False.
 
         """
-        print("Boot off")
-        print(self.boot_off)
         if self.boot_on:
             return True
         elif self.boot_off:
@@ -174,15 +172,7 @@ class Boot(Base):
             self.get_kernel_ver()
             self.sysfile = Sysfile(self.vtype)
             if os.path.exists(self.sysfile.get_sysfile()):
-                if self.get_kernel_ver() == "UEK5":
-                    return [
-                        "spectre_v2",
-                        "spectre_v2_user",
-                        "spectre_v2_heuristics",
-                        "nospectre_v2",
-                        "noibrs",
-                        "noibpb"]
-                elif self.get_kernel_ver() == "UEK4":
+                if self.get_kernel_ver() == "UEK4":
                     return [
                         "spectre_v2",
                         "spectre_v2_heuristics",
@@ -197,6 +187,14 @@ class Boot(Base):
                       self.get_kernel_ver() == "RHCK7" or
                       self.get_kernel_ver() == "RHCK8"):
                     return["spectre_v2", "nospectre_v2"]
+                else:
+                    return [
+                        "spectre_v2",
+                        "spectre_v2_user",
+                        "spectre_v2_heuristics",
+                        "nospectre_v2",
+                        "noibrs",
+                        "noibpb"]
 
         if self.vtype == self.MELTDOWN:
             self.sysfile = Sysfile(self.vtype)
@@ -220,10 +218,20 @@ class Boot(Base):
             if os.path.exists(self.sysfile.get_sysfile()):
                 return ["mds"]
 
+        if self.vtype == self.ITLB_MULTIHIT:
+            self.sysfile = Sysfile(self.vtype)
+            if os.path.exists(self.sysfile.get_sysfile()):
+                return ["kvm.nx_huge_pages"]
+
         if self.vtype == self.TSX_ASYNC_ABORT:
             self.sysfile = Sysfile(self.vtype)
             if os.path.exists(self.sysfile.get_sysfile()):
-                return ["tsx_async_abort"]
+                return ["tsx", "tsx_async_abort"]
+
+        if self.vtype == self.SRBDS:
+            self.sysfile = Sysfile(self.vtype)
+            if os.path.exists(self.sysfile.get_sysfile()):
+                return ["srbds"]
 
         return []
 
@@ -257,9 +265,15 @@ class Boot(Base):
                 tstr = tstr + arr[2]
             else:
                 if arr[3] == self.ON:
-                    tstr = tstr + str(arr[2]) + "=on "
+                    if (arr[2] == "tsx"):
+                        tstr = tstr + str(arr[2]) + "=off "
+                    else:
+                        tstr = tstr + str(arr[2]) + "=on "
                 else:
-                    tstr = tstr + str(arr[2]) + "=off "
+                    if (arr[2] == "tsx"):
+                        tstr = tstr + str(arr[2]) + "=on "
+                    else:
+                        tstr = tstr + str(arr[2]) + "=off "
         return tstr
 
     def get_grub_options(self):
@@ -277,13 +291,21 @@ class Boot(Base):
         for arr in self.options:
             if arr[0] != self.GRUB:
                 continue
+            if arr[1] != self.vtype:
+                continue
             if arr[3] is None:
                 tstr = tstr + arr[2]
             else:
                 if arr[3] == self.ON:
-                    tstr = tstr + str(arr[2]) + "=on "
+                    if (arr[2] == "tsx"):
+                        tstr = tstr + str(arr[2]) + "=off "
+                    else:
+                        tstr = tstr + str(arr[2]) + "=on "
                 else:
-                    tstr = tstr + str(arr[2]) + "=off "
+                    if (arr[2] == "tsx"):
+                        tstr = tstr + str(arr[2]) + "=on "
+                    else:
+                        tstr = tstr + str(arr[2]) + "=off "
         return tstr
 
     def adjust_param(self, arr, i, opt, n):
@@ -318,7 +340,8 @@ class Boot(Base):
         for i in range(len(optarr)):
             opt = optarr[i]
             if len(arg) < len(opt):
-                continue
+                if (vtype != self.TSX_ASYNC_ABORT):
+                    continue
             if len(arg) == len(opt):
                 if self.get_kernel_ver().find("UEK") != -1:
                     if vtype == self.SPECTRE_V1 and arg == "nospectre_v1":
@@ -420,23 +443,41 @@ class Boot(Base):
                     self.add_boot_option(btype, vtype, opt, self.ON)
                     return
 
-            if vtype == self.TSX_ASYNC_ABORT:
+            if vtype == self.ITLB_MULTIHIT:
                 if targ == opt + "=off":
                     self.boot_off = True
                     self.add_boot_option(btype, vtype, opt, self.OFF)
-                if ((targ == opt + "=full") or
-                        (targ == opt + "=full,nosmt")):
+                    return
+                if ((targ == opt + "=force") or
+                        (targ == opt + "=auto")):
                     self.boot_on = True
                     self.add_boot_option(btype, vtype, opt, self.ON)
+                    return
+
+            if vtype == self.SRBDS:
+                if opt == "srbds":
+                    if targ == opt + "=off":
+                        self.boot_off = True
+                        self.add_boot_option(btype, vtype, opt, self.OFF)
+                        return
+
+            if vtype == self.TSX_ASYNC_ABORT:
+                if opt == "tsx_async_abort":
+                    if targ == opt + "=off":
+                        self.boot_off = True
+                        self.add_boot_option(btype, vtype, opt, self.OFF)
+                    if ((targ == opt + "=full") or
+                        (targ == opt + "=full,nosmt")):
+                        self.boot_on = True
+                        self.add_boot_option(btype, vtype, opt, self.ON)
                 if opt == "tsx":
                     if ((targ == opt + "=on") or
                             (targ == opt + "=auto")):
                         self.boot_on = True
-                        self.add_boot_option(btype, vtype, opt, self.ON)
+                        self.add_boot_option(btype, vtype, opt, self.OFF)
                     elif targ == opt + "=off":
                         self.boot_off = True
-                        self.add_boot_option(btype, vtype, opt, self.OFF)
-                return
+                        self.add_boot_option(btype, vtype, opt, self.ON)
 
         return
 
@@ -490,9 +531,9 @@ class Boot(Base):
         tstr = self.get_cmdline_options()
 
         if tstr != "":
-            log("        /proc/cmdline..............:" + tstr)
+            log("        /proc/cmdline..............: " + tstr)
         else:
-            log("        /proc/cmdline..............:" + "None")
+            log("        /proc/cmdline..............: " + "None")
 
         return tstr
 
@@ -532,9 +573,9 @@ class Boot(Base):
                     self.scan_param(self.GRUB, arr, opt, len(arr))
             tstr = self.get_grub_options()
             if tstr != "":
-                log("        grub settings..............:" + tstr)
+                log("        grub settings..............: " + tstr)
             else:
-                log("        grub settings..............:" + "None")
+                log("        grub settings..............: " + "None")
             return tstr
         else:
             self.get_grub_info_xen()
@@ -637,22 +678,36 @@ class Boot(Base):
         on = False
 
         for arr in self.options:
-            if arr[0] == self.CMDLINE:
+            if arr[0] != self.GRUB:
                 continue
             if arr[1] != self.vtype:
                 continue
             if arr[3] == self.OFF:
                 if variant.mitigated_kernel:
+                    if (arr[2] == "srbds"):
+                        remove = remove + arr[2] + "=off"
+                        continue
                     if (arr[1] == 2) or (arr[1] == 3):
                         add = add + arr[2] + "=on "
                     elif arr[1] == 4:
                         add = add + arr[2] + "=prctl "
                     elif arr[1] == 5:
                         add = add + arr[2] + "=full,force "
-                    elif (arr[1] == 6) or (arr[1] == 8):
+                    elif arr[1] == 7:
+                        add = add + arr[2] + "=force "
+                    elif (arr[1] == 6):
                         add = add + arr[2] + "=full,nosmt"
-            if arr[3] is None and arr[2] == "nospectre_v1":
-                remove = remove + arr[2] + " "
+                    elif (arr[1] == 8):
+                        if (arr[2] == "tsx_async_abort"):
+                            add = add + arr[2] + "=full,nosmt"
+                        elif (arr[2] == "tsx"):
+                            add = add + arr[2] + "=off"
+            if arr[3] is None:
+                if (arr[2] == "nospectre_v1" or
+                    arr[2] == "nospectre_v2" or
+                    arr[2] == "nopti" or
+                        arr[2] == "nospec_store_bypass_disable"):
+                    remove = remove + arr[2] + " "
             if arr[3] == self.ON:
                 on = True
 
@@ -671,10 +726,10 @@ class Boot(Base):
                     add = "--args=\"" + " " + b_o[0] + "=full,force\""
                 elif b_o[0] == "mds":
                     add = "--args=\"" + " " + b_o[0] + "=full,nosmt\""
-                elif b_o[0] == "tsx_async_abort":
-                    add = "--args=\"" + " " + b_o[0] + "=full,nosmt\""
+                elif b_o[0] == "kvm.nx_huge_pages":
+                    add = "--args=\"" + " " + b_o[0] + "=force\""
                 elif b_o[0] == "tsx":
-                    add = "--args=\"" + " " + b_o[0] + "=off\""
+                    add = "--args=\"%s=off %s=full,nosmt\"" % (b_o[0], b_o[1])
 
         if add != "":
             self.update_grub(add)
@@ -699,10 +754,14 @@ class Boot(Base):
                 continue
             if arr[3] == self.ON:
                 if variant.mitigated_kernel:
-                    if not arr[1] == 1:
-                        add = add + arr[2] + "=off "
+                    if arr[1] == 1:
+                         add = add + arr[2]
+                    elif (arr[1] == 8):
+                        if (arr[2] == "tsx"):
+                            add = add + arr[2] + "=on" +\
+                                  " " + "tsx_async_abort=off"
                     else:
-                        add = add + arr[2]
+                        add = add + arr[2] + "=off "
             if (arr[3] == self.OFF or (
                     arr[3] is None and arr[2] == "nospectre_v1")):
                 off = True
@@ -712,6 +771,8 @@ class Boot(Base):
             if len(b_o) != 0:
                 if b_o[0] == "nospectre_v1":
                     add = "--args=\"" + " " + b_o[0] + "\""
+                elif b_o[0] == "tsx":
+                    add = "--args=\"%s=on %s=off\"" % (b_o[0], b_o[1])
                 else:
                     add = "--args=\"" + " " + b_o[0] + "=off\""
 
@@ -728,7 +789,7 @@ class Boot(Base):
         v(int): Variant type.
 
         """
-
+        add = ""
         remove = ""
 
         for arr in self.options:
@@ -736,15 +797,23 @@ class Boot(Base):
                 continue
             if arr[1] != self.vtype:
                 continue
-            if (arr[3] is None or arr[3] ==
-                    self.OFF or (arr[2].find("no") == 0)):
-                remove = remove + arr[2] + " "
             if arr[3] == self.ON:
                 if variant.mitigated_kernel:
                     remove = remove + arr[2] + " "
+
+            if (arr[3] == self.OFF or (
+                    arr[3] is None and arr[2] == "nospectre_v1")):
+                remove = remove + arr[2] + " "
+
+        if (not remove):
+            b_o = self.get_boot_options()
+
         if remove:
             remove = "--remove-args=\"" + remove + "\""
             self.update_grub(remove)
+
+        if add != "":
+            self.update_grub(add)
 
     def __init__(self, vtype, kver):
         """
@@ -762,7 +831,8 @@ class Boot(Base):
                           self.L1TF,
                           self.MDS,
                           self.ITLB_MULTIHIT,
-                          self.TSX_ASYNC_ABORT]):
+                          self.TSX_ASYNC_ABORT,
+                          self.SRBDS]):
             raise ValueError("ERROR: Unrecognized boot variant")
 
         self.kver = kver

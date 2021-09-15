@@ -26,14 +26,17 @@ Also checks and reports vulnerabilities that
 various CPU models are susceptible to.
 
 """
+import os
 import sys
 
 if (sys.version_info[0] == 3):
     from . import parser
     from .base import Base
+    from .sysfile import Sysfile
 else:
     import parser
     from base import Base
+    from sysfile import Sysfile
 
 VERBOSE = False  # type: bool
 
@@ -83,7 +86,7 @@ class Cpu(Base):
 
         return self.vendor
 
-    v_1 = v_2 = v_3 = v_4 = v_5 = v_6 = v_7 = v_8 = None
+    v_1 = v_2 = v_3 = v_4 = v_5 = v_6 = v_7 = v_8 = v_9 = None
 
     def is_valid_cpu_vendor(self, vendor):
         """
@@ -410,11 +413,11 @@ class Cpu(Base):
             return
 
         self.v_1 = self.v_2 = self.v_3 = self.v_4 = True
-        self.v_5 = self.v_6 = self.v_7 = self.v_8 = True
+        self.v_5 = self.v_6 = self.v_7 = self.v_8 = self.v_9 = True
         if self.is_intel():
             if self.family == 5:
                 self.v_1 = self.v_2 = self.v_3 = self.v_4 = self.v_5 = False
-                self.v_7 = self.v_8 = False
+                self.v_7 = self.v_8 = self.v_9 = False
                 return
 
             if self.family == 6:
@@ -459,6 +462,18 @@ class Cpu(Base):
                                        self.INTEL_FAM6_SKYLAKE_X,
                                        self.INTEL_FAM6_KABYLAKE_DESKTOP]):
                     self.v_8 = False
+
+                if (self.model not in [self.INTEL_FAM6_IVYBRIDGE,
+                                       self.INTEL_FAM6_HASWELL_CORE,
+                                       self.INTEL_FAM6_HASWELL_ULT,
+                                       self.INTEL_FAM6_HASWELL_GT3E,
+                                       self.INTEL_FAM6_BROADWELL_GT3E,
+                                       self.INTEL_FAM6_BROADWELL_CORE,
+                                       self.INTEL_FAM6_SKYLAKE_MOBILE,
+                                       self.INTEL_FAM6_SKYLAKE_DESKTOP,
+                                       self.INTEL_FAM6_KABYLAKE_MOBILE,
+                                       self.INTEL_FAM6_KABYLAKE_DESKTOP]):
+                    self.v_9 = False
 
                 return
             return
@@ -575,6 +590,17 @@ class Cpu(Base):
         """
         return self.v_8
 
+    def is_vulnerable_v_9(self):
+        """
+        Checks if CPU is vulnerable to SRBDS.
+
+        Returns:
+        bool: True if it's vulnerable to SRBDS,
+        else return False.
+
+        """
+        return self.v_9
+
     def is_cpu_vulnerable(self):
         """
         Checks if CPU is vulnerable to any of the variants.
@@ -587,7 +613,8 @@ class Cpu(Base):
         if (self.is_vulnerable_v_1() or self.is_vulnerable_v_2() or
                 self.is_vulnerable_v_3() or self.is_vulnerable_v_4() or
                 self.is_vulnerable_v_5() or self.is_vulnerable_v_6() or
-                self.is_vulnerable_v_7() or self.is_vulnerable_v_8()):
+                self.is_vulnerable_v_7() or self.is_vulnerable_v_8() or
+                self.is_vulnerable_v_9()):
             return True
         return False
 
@@ -603,6 +630,12 @@ class Cpu(Base):
         else returns False.
 
         """
+        self.sysfile = Sysfile(vtype)
+        if os.path.exists(self.sysfile.get_sysfile()):
+            if (self.sysfile.read_file(self.sysfile.get_sysfile())
+                == "Not affected"):
+                return False
+
         if vtype == self.SPECTRE_V1:
             return self.v_1
 
@@ -627,6 +660,9 @@ class Cpu(Base):
         if vtype == self.TSX_ASYNC_ABORT:
             return self.v_8
 
+        if vtype == self.SRBDS:
+            return self.v_9
+
     def display(self):
         """
         Displays cpu information and lists the variants
@@ -649,9 +685,10 @@ class Cpu(Base):
         print("     MDS        : " + str(self.is_vulnerable_v_6()))
         print("     ITLB_MULTIHIT: " + str(self.is_vulnerable_v_7()))
         print("    TSX_ASYNC_ABORT: " + str(self.is_vulnerable_v_8()))
+        print("    SRBDS: " + str(self.is_vulnerable_v_9()))
 
-    # Some cpus are not vulnerable to v_1,v_2,v_3,v_4,v_5,v_6,v_7 and
-    # v_8 variants.
+    # Some cpus are not vulnerable to v_1,v_2,v_3,v_4,v_5,v_6,v_7,v_8 
+    # and v_9 variants.
     def scan_vulnerabilities(self):
         self.check_all_cpus()
         return
@@ -673,7 +710,7 @@ class Cpu(Base):
                              str(self.model) +
                              "'")
 
-        log("           running cpu.............:" +
+        log("           running cpu.............: " +
             str(self.get_cpu_vendor()) +
             " (family=" +
             str(self.get_cpu_family()) +

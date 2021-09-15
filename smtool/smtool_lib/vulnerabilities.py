@@ -85,7 +85,7 @@ class Vulnerabilities(Base):
 
     """
     # Variants
-    v_1 = v_2 = v_3 = v_4 = v_5 = v_6 = v_7 = v_8 = None
+    v_1 = v_2 = v_3 = v_4 = v_5 = v_6 = v_7 = v_8 = v_9 = None
     host = None
     vtype = None
     sysfile = None
@@ -103,6 +103,7 @@ class Vulnerabilities(Base):
     MDS = 6
     ITLB_MULTIHIT = 7
     TSX_ASYNC_ABORT = 8
+    SRBDS = 9
 
     def get_vtype(self, var):
         """
@@ -131,6 +132,8 @@ class Vulnerabilities(Base):
             return self.ITLB_MULTIHIT
         if var == self.v_8:
             return self.TSX_ASYNC_ABORT
+        if var == self.v_9:
+            return self.SRBDS
 
     def display(self):
         """
@@ -145,7 +148,8 @@ class Vulnerabilities(Base):
                 self.v_5,
                 self.v_6,
                 self.v_7,
-                self.v_8):
+                self.v_8,
+                self.v_9):
             if var is None:
                 continue
 
@@ -194,13 +198,15 @@ class Vulnerabilities(Base):
                 self.v_5,
                 self.v_6,
                 self.v_7,
-                self.v_8):
+                self.v_8,
+                self.v_9):
             self.sysfile = Sysfile(self.get_vtype(var))
             if var is None:
                 continue
 
             if self.is_xen():
-                if (var == self.v_3) or (var == self.v_4) or (var == self.v_6):
+                if ((var == self.v_3) or (var == self.v_4) or
+                    (var == self.v_6) or (var == self.v_7)):
                     unsupported_variants = unsupported_variants + var.vname + \
                         ", "
                     self.mitigation_not_supported = 1
@@ -256,8 +262,8 @@ class Vulnerabilities(Base):
                     else:
                         yes = False
                 if yes:
-                    print("Enabling full mitigation for supported variants.."
-                          "Please reboot for the changes to take effect")
+                    print("Enabling full mitigation for " + supported_variants[:-2])
+                    print("Please reboot for the changes to take effect")
                     for var in (
                             self.v_1,
                             self.v_2,
@@ -265,14 +271,16 @@ class Vulnerabilities(Base):
                             self.v_4,
                             self.v_5,
                             self.v_6,
-                            self.v_8):
+                            self.v_7,
+                            self.v_8,
+                            self.v_9):
                         self.sysfile = Sysfile(self.get_vtype(var))
                         if var is None:
                             continue
 
                         if self.is_xen():
                             if ((var == self.v_3) or (var == self.v_4)
-                                    or (var == self.v_6)):
+                                    or (var == self.v_6) or (var == self.v_7)):
                                 continue
 
                         if os.path.exists(self.sysfile.get_sysfile()):
@@ -305,13 +313,15 @@ class Vulnerabilities(Base):
                 self.v_5,
                 self.v_6,
                 self.v_7,
-                self.v_8):
+                self.v_8,
+                self.v_9):
             self.sysfile = Sysfile(self.get_vtype(var))
             if var is None:
                 continue
 
             if self.is_xen():
-                if (var == self.v_3) or (var == self.v_4) or (var == self.v_6):
+                if ((var == self.v_3) or (var == self.v_4)
+                    or (var == self.v_6) or (var == self.v_7)):
                     unsupported_variants = unsupported_variants + \
                         var.vname + ", "
                     self.mitigation_not_supported = 1
@@ -379,8 +389,8 @@ class Vulnerabilities(Base):
                     else:
                         yes = False
                 if yes:
-                    print("Disabling mitigations for supported variants.."
-                          "Please reboot for the changes to take effect")
+                    print("Disabling mitigations for " + supported_variants[:-2])
+                    print("Please reboot for the changes to take effect")
                     for var in (
                             self.v_1,
                             self.v_2,
@@ -388,14 +398,16 @@ class Vulnerabilities(Base):
                             self.v_4,
                             self.v_5,
                             self.v_6,
-                            self.v_8):
+                            self.v_7,
+                            self.v_8,
+                            self.v_9):
                         self.sysfile = Sysfile(self.get_vtype(var))
                         if var is None:
                             continue
 
                         if self.is_xen():
                             if ((var == self.v_3) or (var == self.v_4)
-                                    or (var == self.v_6)):
+                                 or (var == self.v_6) or (var == self.v_7)):
                                 continue
 
                         if var == self.v_5:
@@ -429,7 +441,8 @@ class Vulnerabilities(Base):
                 continue
 
             if self.is_xen():
-                if (var == self.v_3) or (var == self.v_4) or (var == self.v_6):
+                if ((var == self.v_3) or (var == self.v_4) or
+                    (var == self.v_6) or (var == self.v_7)):
                     unsupported_variants = unsupported_variants + var.vname +\
                         ", "
                     self.mitigation_not_supported = 1
@@ -484,7 +497,8 @@ class Vulnerabilities(Base):
                 continue
 
             if self.is_xen():
-                if (var == self.v_3) or (var == self.v_4) or (var == self.v_6):
+                if ((var == self.v_3) or (var == self.v_4)
+                     or (var == self.v_6) or (var == self.v_7)):
                     unsupported_variants = unsupported_variants + \
                         var.vname + ", "
                     self.mitigation_not_supported = 1
@@ -542,13 +556,15 @@ class Vulnerabilities(Base):
                 self.v_5,
                 self.v_6,
                 self.v_7,
-                self.v_8):
+                self.v_8,
+                self.v_9):
             self.sysfile = Sysfile(self.get_vtype(var))
             if var is None:
                 continue
 
             if self.is_xen():
-                if (var == self.v_3) or (var == self.v_4) or (var == self.v_6):
+                if ((var == self.v_3) or (var == self.v_4)
+                    or (var == self.v_6) or (var == self.v_7)):
                     unsupported_variants = unsupported_variants + var.vname + \
                         ", "
                     self.mitigation_not_supported = 1
@@ -607,9 +623,8 @@ class Vulnerabilities(Base):
                     else:
                         yes = False
                 if yes:
-                    print("Enabling default mitigations for supported "
-                          "variants..Please reboot for the changes to take "
-                          "effect")
+                    print("Enabling default mitigation for " + supported_variants[:-2])
+                    print("Please reboot for the changes to take effect")
                     for var in (
                             self.v_1,
                             self.v_2,
@@ -617,14 +632,16 @@ class Vulnerabilities(Base):
                             self.v_4,
                             self.v_5,
                             self.v_6,
-                            self.v_8):
+                            self.v_7,
+                            self.v_8,
+                            self.v_9):
                         self.sysfile = Sysfile(self.get_vtype(var))
                         if var is None:
                             continue
 
                         if self.is_xen():
                             if ((var == self.v_3) or (var == self.v_4)
-                                    or (var == self.v_6)):
+                                 or (var == self.v_6) or (var == self.v_7)):
                                 continue
 
                         elif os.path.exists(self.sysfile.get_sysfile()):
@@ -649,7 +666,8 @@ class Vulnerabilities(Base):
                 self.v_5,
                 self.v_6,
                 self.v_7,
-                self.v_8):
+                self.v_8,
+                self.v_9):
             if var is None:
                 continue
             if not var.is_mitigated():
@@ -673,7 +691,8 @@ class Vulnerabilities(Base):
                 self.v_5,
                 self.v_6,
                 self.v_7,
-                self.v_8):
+                self.v_8,
+                self.v_9):
             if var is None:
                 continue
             if not var.is_mitigated():
@@ -750,6 +769,13 @@ class Vulnerabilities(Base):
         self.mitigation_options.append(self.v_8.mitigation_str)
         if (cpu.is_vulnerable_v_8()) and (not is_mitigation_possible):
             vuln_list.append(self.v_8.vname + ",")
+
+        self.v_9 = Variant(self.SRBDS, self.host)
+        is_mitigation_possible = self.v_9.scan_variant()
+        self.mitigation_options.append(self.v_9.vname + " ")
+        self.mitigation_options.append(self.v_9.mitigation_str)
+        if (cpu.is_vulnerable_v_9()) and (not is_mitigation_possible):
+            vuln_list.append(self.v_9.vname + ",")
 
         logn("")
         return vuln_list

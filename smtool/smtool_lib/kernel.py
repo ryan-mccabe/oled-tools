@@ -97,7 +97,7 @@ class Kernel(Base):
         elif kernel_ver == "RHCK7":
             return "3.10.0-1062.4.2"
         elif kernel_ver == "RHCK8":
-            return "4.18.0-147"
+            return "4.18.0-193"
 
     def get_kernel_desc(self):
         """
@@ -179,7 +179,7 @@ class Kernel(Base):
 
         return
 
-    def __init__(self, server):
+    def __init__(self, server, is_log):
         """
         Init function for kernel class.
         Identifies/validates specific kernel type.
@@ -195,6 +195,7 @@ class Kernel(Base):
         self.set_kernel_type(self.get_kernel())
         if not self.is_valid():
             raise ValueError("Invalid kernel " + self.get_kernel())
-        log("           running kernel..........:" +
-            self.get_kernel_desc() + " (" + self.get_kernel() + ")")
+        if (is_log):
+            log("           running kernel..........: " +
+                self.get_kernel_desc() + " (" + self.get_kernel() + ")")
         return

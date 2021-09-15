@@ -62,6 +62,7 @@ class Base(object):
     MDS = 6
     ITLB_MULTIHIT = 7
     TSX_ASYNC_ABORT = 8
+    SRBDS = 9
     vdesc = [
         "Unknown",
         "Spectre V1",
@@ -71,7 +72,8 @@ class Base(object):
         "L1TF",
         "MDS",
         "ITLB_Multihit",
-        "TSC_Async_Abort"]
+        "TSX_Async_Abort",
+        "SRBDS"]
 
     # runtime settings
     IBRS_ENABLED = 1
@@ -104,9 +106,9 @@ class Base(object):
         executed.
 
         """
-        mycmd = Cmd()
-        mycmd.run(cmd)
-        return mycmd.out
+        command = Cmd()
+        command.run(cmd)
+        return command.out
 
 
     def read_file(self, file_path):
