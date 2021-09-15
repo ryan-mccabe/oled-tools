@@ -18,18 +18,14 @@
 # or visit www.oracle.com if you need additional information or have any
 # questions.
 
-# run ./configure generate oled-env.sh
+# Run ./configure to generate oled-env.sh
 -include oled-env.sh
 export DIST
 export PYTHON_SITEDIR
 export SPECFILE
 export DESTDIR
 
-ifeq ("$(DIST)",".el8")
-subdirs := smtool kdump-utils lkce
-else
-subdirs := kdump-utils lkce gather smtool
-endif
+subdirs := lkce smtool kcore-utils memstate memtracker kstack topstack
 rev_subdirs := $(shell echo -n "$(subdirs) " | tac -s ' ')
 OLEDDIR := $(DESTDIR)/etc/oled
 SBINDIR := $(DESTDIR)/usr/sbin
@@ -70,15 +66,18 @@ uninstall:
 	@echo "oled-tools uninstalled"
 
 rpm:
-	rm -rf oled-tools-0.1
-	rm -f ./oled-tools-0.1.tar.gz
-	mkdir oled-tools-0.1
-	cp -R Makefile configure oled-env.sh oled.man oled.py oled-tools-0.1/
-	cp -R kdump-utils oled-tools-0.1/
-	cp -R smtool oled-tools-0.1/
-	cp -R lkce oled-tools-0.1/
-	cp -R gather oled-tools-0.1/
-	tar chozf oled-tools-0.1.tar.gz oled-tools-0.1
+	rm -rf oled-tools-0.5
+	rm -f ./oled-tools-0.5.tar.gz
+	mkdir oled-tools-0.5
+	cp -R Makefile configure oled-env.sh oled.man oled.py oled-tools-0.5/
+	cp -R smtool oled-tools-0.5/
+	cp -R lkce oled-tools-0.5/
+	cp -R kcore-utils oled-tools-0.5/
+	cp -R memstate oled-tools-0.5/
+	cp -R memtracker oled-tools-0.5/
+	cp -R kstack oled-tools-0.5/
+	cp -R topstack oled-tools-0.5/
+	tar chozf oled-tools-0.5.tar.gz oled-tools-0.5
 	#rpmbuild
 	mkdir -p `pwd`/rpmbuild/{RPMS,BUILD{,ROOT},SRPMS}
 	exec rpmbuild -ba \
@@ -87,8 +86,8 @@ rpm:
 	--define="_specdir `pwd`" \
 	--define="_tmppath `pwd`/rpmbuild/BUILDROOT" \
 	buildrpm/oled-tools.spec
-	rm -rf oled-tools-0.1
-	rm -f ./oled-tools-0.1.tar.gz
+	rm -rf oled-tools-0.5
+	rm -f ./oled-tools-0.5.tar.gz
 	@echo "oled-tools rpms built"
 
 rpm_clean:

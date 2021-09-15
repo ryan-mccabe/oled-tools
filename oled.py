@@ -27,42 +27,49 @@ import platform
 
 # Oracle Linux Enhanced Diagnostic Tools
 MAJOR = "0"
-MINOR = "1"
+MINOR = "5"
 
 BINDIR="/usr/lib/oled-tools"
 
 # cmds
-GATHER = BINDIR + "/gather"
 LKCE = BINDIR + "/lkce"
 SMTOOL = BINDIR + "/smtool"
-OLED_KDUMP = BINDIR + "/kdump"
-
-def dist():
-    os_release = float(platform.linux_distribution()[1])
-    if os_release > 6.0 and os_release < 7.0 :
-        dist = "el6"
-    elif os_release > 7.0 and os_release < 8.0 :
-        dist = "el7"
-    else :
-        dist = "el8"
-    return dist
+MEMSTATE = BINDIR + "/memstate"
+MEMTRACKER = BINDIR + "/memtracker"
+KSTACK = BINDIR + "/kstack"
+TOPSTACK = BINDIR + "/topstack"
+# for uek4
+FILECACHE_UEK4 = BINDIR + "/filecache_uek4"
+DENTRYCACHE_UEK4 = BINDIR + "/dentrycache_uek4"
+# for uek5 and higher
+FILECACHE = BINDIR + "/filecache"
+DENTRYCACHE = BINDIR + "/dentrycache"
 
 def help(error):
     print("Oracle Linux Enhanced Diagnostic Tools")
     print("Usage:")
     print("  %s <command> <subcommand>" % sys.argv[0])
     print("Valid commands:")
-    print("     smtool          -- Spectre-Meltdown tool")
-    if (dist() != "el8") :
-        print("     gather          -- system data gather")
+    print("     smtool          -- Security mitigation tool")
     print("     lkce            -- Linux Kernel Core Extractor")
-    print("     kdump           -- configure oled related kdump options")
-    print("     help            -- show this help message")
-    print("     version         -- print oled version")
+    print("     memstate        -- Capture and analyze memory usage statistics")
+    print("     memtracker      -- Capture memory usage data for offline debug")
+    print("     filecache       -- List the biggest files in page cache")
+    print("     dentrycache     -- List a sample of active dentries")
+    print("     kstack          -- Gather kernel stack based on the process status or PID")
+    print("     topstack        -- Gather kernel stack and more based on the CPU utilization")
+    print("     help            -- Show this help message")
+    print("     version         -- Print version information")
 
     if (error):
         sys.exit(1)
     sys.exit(0)
+
+def is_uek4():
+    kernel_ver = os.uname()[2]
+    if kernel_ver.find("4.1.12") == 0:
+        return True
+    return False
 
 def run_as_root():
     if (getpass.getuser()) != "root":
@@ -71,7 +78,8 @@ def run_as_root():
 
 def cmd_version():
 	version = "%s.%s"%(MAJOR, MINOR)
-	print(version)
+	print("Oracle Linux Enhanced Diagnostics (oled): version " + version + ".")
+	print("Note that this is a developer preview release.")
 
 def cmd_smtool(args):
     cmdline = SMTOOL
@@ -80,8 +88,15 @@ def cmd_smtool(args):
     ret = os.system(cmdline)
     return ret
 
-def cmd_gather(args):
-    cmdline = GATHER
+def cmd_memstate(args):
+    cmdline = MEMSTATE
+    for arg in args:
+        cmdline = cmdline + " %s" % arg
+    ret = os.system(cmdline)
+    return ret
+
+def cmd_memtracker(args):
+    cmdline = MEMTRACKER
     for arg in args:
         cmdline = cmdline + " %s" % arg
     ret = os.system(cmdline)
@@ -94,10 +109,46 @@ def cmd_lkce(args):
     ret = os.system(cmdline)
     return ret
 
-def cmd_kdump(args):
-    cmdline = OLED_KDUMP
+def cmd_filecache(args):
+    if is_uek4():
+        cmdline = FILECACHE_UEK4
+    else:
+        cmdline = FILECACHE
+
+    cmdline = cmdline + " " + " ".join(args)
+    ret = os.system(cmdline)
+    return ret
+
+def cmd_dentrycache(args):
+    if is_uek4():
+        cmdline = DENTRYCACHE_UEK4
+    else:
+        cmdline = DENTRYCACHE
+
+    cmdline = cmdline + " " + " ".join(args)
+    ret = os.system(cmdline)
+    return ret
+
+def cmd_filecache(args):
+    if is_uek4():
+        cmdline = FILECACHE_UEK4
+    else:
+        cmdline = FILECACHE
+
+    cmdline = cmdline + " " + " ".join(args)
+    ret = os.system(cmdline)
+    return ret
+
+def cmd_kstack(args):
+    cmdline = KSTACK
+    cmdline = cmdline + " " + " ".join(args)
+    ret = os.system(cmdline)
+    return ret
+
+def cmd_topstack(args):
+    cmdline = TOPSTACK
     for arg in args:
-        cmdline = cmdline + " %s" % arg
+        cmdline = cmdline + " " + " ".join(args)
     ret = os.system(cmdline)
     return ret
 
@@ -116,18 +167,26 @@ def main():
     if cmd == "smtool":
         ret = cmd_smtool(args)
         sys.exit(ret)
-    elif cmd == "gather":
-        if (dist() != "el8") :
-            ret = cmd_gather(args)
-            sys.exit(ret)
-        else :
-            print ("%s not supported for this distribution" % cmd)
-            sys.exit(1)
+    elif cmd == "memstate":
+        ret = cmd_memstate(args)
+        sys.exit(ret)
     elif cmd == "lkce":
         ret = cmd_lkce(args)
         sys.exit(ret)
-    elif cmd == "kdump":
-        ret = cmd_kdump(args)
+    elif cmd == "memtracker":
+        ret = cmd_memtracker(args)
+        sys.exit(ret)
+    elif cmd == "filecache":
+        ret = cmd_filecache(args)
+        sys.exit(ret)
+    elif cmd == "dentrycache":
+        ret = cmd_dentrycache(args)
+        sys.exit(ret)
+    elif cmd == "kstack":
+        ret = cmd_kstack(args)
+        sys.exit(ret)
+    elif cmd == "topstack":
+        ret = cmd_topstack(args)
         sys.exit(ret)
     elif cmd == "version" or cmd == "--version":
         ret = cmd_version()
@@ -136,7 +195,7 @@ def main():
         ret = cmd_help(args)
         sys.exit(ret)
     else:
-        print("Invalid command")
+        print("Invalid command: \"" + cmd + "\"")
         sys.exit(1)
 
     help(True)

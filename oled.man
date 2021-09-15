@@ -1,65 +1,52 @@
-.TH oled 8 "Dec 2019" "0.1"
+.TH OLED 8 "Jul 2021" "Oracle Linux Enhanced Diagnostics" "0.5"
 
 .SH NAME
-oled - Program to invoke other diagnostic tools
+oled - Interface to invoke other diagnostic tools
 
 .SH SYNOPSIS
-oled [options]
+oled [sub_command] [options]
 
 .SH DESCRIPTION
-oled program is used to invoke other diagnostic tools of oled-tool package.
-
-Ex: oled can be used to invoke smtool, gather, lkce etc
+OLED (Oracle Linux Enhanced Diagnostics) is a collection of diagnostic tools
+and scripts. The \fBoled\fR command is used to invoke these other tools/scripts.
+See usage below, for available options.
 
 .TP
 # oled help
 Oracle Linux Enhanced Diagnostic Tools
 
 Usage:
-  /usr/sbin/oled <command> <subcommand>
+  /usr/sbin/oled <sub_command> <command_options>
 
-Valid commands
-     smtool      -- security mitigation tool
-     gather      -- system data gather
-     lkce        -- Linux Kernel Core Extractor
-     kdump       -- configure oled related kdump options
-     help        -- show this help message
-    version      -- show oled-tools version
+Valid sub-commands:
+     smtool          -- Security mitigation tool
+     lkce            -- Linux Kernel Core Extractor
+     memstate        -- Capture and analyze memory usage statistics
+     memtracker      -- Capture memory usage data for offline debug
+     filecache       -- List the biggest files in page cache
+     dentrycache     -- List a sample of active dentries
+     kstack          -- Gather kernel stack based on the process status or PID
+     topstack        -- Gather kernel stack and more based on the CPU utilization
+     help            -- Show this help message
+     version         -- Print version information
 
-.SH OPTIONS
-.TP
-smtool - run security mitigation tool
-
-.TP
-gather - run system data gather
-
-.TP
-lkce - run Linux Kernel Core Extractor
-
-.TP
-kdump - configure oled related kdump options
+Please check the man page of each sub-command to learn more about that tool and
+its usage.
 
 .SH EXAMPLES
 .TP
-# oled gather -help
- INFO: /usr/sbin/oled-tools/gather Version: 0.3
 
-USAGE: /usr/sbin/oled-tools/gather [-h|-y|-v|-t DIR|-d DATE]
+# oled memtracker -h
+usage: memtracker [-h] [interval]
 
-   -h = Help (this message)
-   -d = Specify the date of the problem (YYYY_MM_DD).
-        Defaults to today's date.
-   -t = Specify the target directory for the files.
-   -y = Answer yes when prompted.
-   -v = Verbose
+Log memory usage data continuously.
 
-.SH MISC
-[to be filled]
+positional arguments:
+  interval    delay, in seconds, between samples (default is 30s)
 
-.SH AUTHOR
+optional arguments:
+  -h, --help  show this help message and exit
+
+.SH REPORTING BUGS
 .TP
-Manjunath Patil <manjunath.b.patil@oracle.com>
-
-.SH COPYRIGHT
-.TP
-[to be filled]
+Please contact Oracle Linux Support to report any bugs for OLED tools.
