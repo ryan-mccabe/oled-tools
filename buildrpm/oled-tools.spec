@@ -1,6 +1,6 @@
 Name:		oled-tools
 Version:	0.5
-Release:	1%{?dist}
+Release:	4%{?dist}
 Summary:	Diagnostic tools for more efficient and faster debugging on Oracle Linux
 Requires:	zlib
 Requires:	bzip2-libs
@@ -181,6 +181,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man8/oled-topstack.8.gz
 
 %changelog
+* Fri Sep 17 2021 Aruna Ramakrishna <aruna.ramakrishna@oracle.com>
+- Prod release oled-tools-0.5-4
+
 * Thu Sep 02 2021 Mridula Shastry <mridula.c.shastry@oracle.com>
 - Smtool: Avoid failure when mitigation for a particular variant is
  not available [Orabug: 33287128]
