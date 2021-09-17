@@ -95,7 +95,7 @@ interval value is 5 seconds.
 
 This option can be combined with most of the options above to capture desired
 data periodically. The data will be written to the file
-'/var/oled/memstate/memstate.log' which is rotated and compressed, by logrotate.
+/var/oled/memstate/memstate.log which is rotated and compressed, by logrotate.
 Each file can grow to a max size of 20 MB, and at most 20 files are retained.
 
 After compresssion, the size of /var/oled/memstate/ directory on disk will be
