@@ -33,11 +33,8 @@ BINDIR="/usr/lib/oled-tools"
 
 # cmds
 LKCE = BINDIR + "/lkce"
-SMTOOL = BINDIR + "/smtool"
 MEMSTATE = BINDIR + "/memstate"
-MEMTRACKER = BINDIR + "/memtracker"
 KSTACK = BINDIR + "/kstack"
-TOPSTACK = BINDIR + "/topstack"
 # for uek4
 FILECACHE_UEK4 = BINDIR + "/filecache_uek4"
 DENTRYCACHE_UEK4 = BINDIR + "/dentrycache_uek4"
@@ -50,14 +47,11 @@ def help(error):
     print("Usage:")
     print("  %s <command> <subcommand>" % sys.argv[0])
     print("Valid commands:")
-    print("     smtool          -- Security mitigation tool")
     print("     lkce            -- Linux Kernel Core Extractor")
     print("     memstate        -- Capture and analyze memory usage statistics")
-    print("     memtracker      -- Capture memory usage data for offline debug")
     print("     filecache       -- List the biggest files in page cache")
     print("     dentrycache     -- List a sample of active dentries")
     print("     kstack          -- Gather kernel stack based on the process status or PID")
-    print("     topstack        -- Gather kernel stack and more based on the CPU utilization")
     print("     help            -- Show this help message")
     print("     version         -- Print version information")
 
@@ -81,22 +75,8 @@ def cmd_version():
 	print("Oracle Linux Enhanced Diagnostics (oled): version " + version + ".")
 	print("Note that this is a developer preview release.")
 
-def cmd_smtool(args):
-    cmdline = SMTOOL
-    for arg in args:
-        cmdline = cmdline + " %s" % arg
-    ret = os.system(cmdline)
-    return ret
-
 def cmd_memstate(args):
     cmdline = MEMSTATE
-    for arg in args:
-        cmdline = cmdline + " %s" % arg
-    ret = os.system(cmdline)
-    return ret
-
-def cmd_memtracker(args):
-    cmdline = MEMTRACKER
     for arg in args:
         cmdline = cmdline + " %s" % arg
     ret = os.system(cmdline)
@@ -145,13 +125,6 @@ def cmd_kstack(args):
     ret = os.system(cmdline)
     return ret
 
-def cmd_topstack(args):
-    cmdline = TOPSTACK
-    for arg in args:
-        cmdline = cmdline + " " + " ".join(args)
-    ret = os.system(cmdline)
-    return ret
-
 def cmd_help(args):
     help(False)
 
@@ -164,17 +137,11 @@ def main():
     cmd = sys.argv[1]
     args = sys.argv[2:]
 
-    if cmd == "smtool":
-        ret = cmd_smtool(args)
-        sys.exit(ret)
-    elif cmd == "memstate":
+    if cmd == "memstate":
         ret = cmd_memstate(args)
         sys.exit(ret)
     elif cmd == "lkce":
         ret = cmd_lkce(args)
-        sys.exit(ret)
-    elif cmd == "memtracker":
-        ret = cmd_memtracker(args)
         sys.exit(ret)
     elif cmd == "filecache":
         ret = cmd_filecache(args)
@@ -184,9 +151,6 @@ def main():
         sys.exit(ret)
     elif cmd == "kstack":
         ret = cmd_kstack(args)
-        sys.exit(ret)
-    elif cmd == "topstack":
-        ret = cmd_topstack(args)
         sys.exit(ret)
     elif cmd == "version" or cmd == "--version":
         ret = cmd_version()
