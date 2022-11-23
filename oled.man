@@ -1,4 +1,4 @@
-.TH OLED 8 "Jul 2021" "Oracle Linux Enhanced Diagnostics" "0.5"
+.TH OLED 8 "Nov 2022" "Oracle Linux Enhanced Diagnostics" "0.5"
 
 .SH NAME
 oled - Interface to invoke other diagnostic tools
@@ -19,14 +19,11 @@ Usage:
   /usr/sbin/oled <sub_command> <command_options>
 
 Valid sub-commands:
-     smtool          -- Security mitigation tool
      lkce            -- Linux Kernel Core Extractor
      memstate        -- Capture and analyze memory usage statistics
-     memtracker      -- Capture memory usage data for offline debug
      filecache       -- List the biggest files in page cache
      dentrycache     -- List a sample of active dentries
      kstack          -- Gather kernel stack based on the process status or PID
-     topstack        -- Gather kernel stack and more based on the CPU utilization
      help            -- Show this help message
      version         -- Print version information
 
@@ -36,16 +33,25 @@ its usage.
 .SH EXAMPLES
 .TP
 
-# oled memtracker -h
-usage: memtracker [-h] [interval]
+# oled memstate -h
+usage: oled memstate [-h] [-p] [-w] [-s [FILE]] [-n [FILE]] [-a] [-v]
+                     [-f [INTERVAL]]
 
-Log memory usage data continuously.
-
-positional arguments:
-  interval    delay, in seconds, between samples (default is 30s)
+memstate: Capture and analyze memory usage data on this system.
 
 optional arguments:
-  -h, --help  show this help message and exit
+  -h, --help            show this help message and exit
+  -p, --pss             display per-process memory usage
+  -w, --swap            display per-process swap usage
+  -s [FILE], --slab [FILE]
+                        analyze/display slab usage
+  -n [FILE], --numa [FILE]
+                        analyze/display NUMA stats
+  -a, --all             display all data
+  -v, --verbose         verbose data capture; combine with other options
+  -f [INTERVAL], --frequency [INTERVAL]
+                        interval at which data should be collected (default:
+                        30s)
 
 .SH REPORTING BUGS
 .TP

@@ -17,8 +17,7 @@ Source0:	%{name}-%{version}.tar.gz
 %description
 oled-tools is a collection of command line tools, scripts, config files, etc.,
 that will aid in faster and better debugging of problems on Oracle Linux. It
-contains: lkce, smtool, memstate, memtracker, kstack, topstack, filecache and
-dentrycache.
+contains: lkce, memstate, kstack, filecache and dentrycache.
 
 # avoid OL8 build error. We have to fix this eventually
 %if 0%{?el8}
@@ -46,10 +45,8 @@ make install DESTDIR=$RPM_BUILD_ROOT DIST=%{?dist} SPECFILE="1"
 %define oled_d %{_usr}/lib/oled-tools
 %define oled_etc_d /etc/oled/
 %if 0%{?el8}
-%define smtool_lib %{python3_sitearch}/smtool_lib/
 %define memstate_lib %{python3_sitearch}/memstate_lib/
 %else
-%define smtool_lib %{python_sitelib}/smtool_lib/
 %define memstate_lib %{python_sitelib}/memstate_lib/
 %endif
 %define lkce_d %{oled_etc_d}/lkce
@@ -67,14 +64,6 @@ fi
 %postun
 if [ $1 -lt 1 ] ; then
 # package uninstall, not upgrade
-	#smtool
-	%if 0%{?el8}
-		rm -rf %{smtool_lib}/__pycache__
-	%else
-		rm -f %{smtool_lib}/*.pyc || :
-		rm -f %{smtool_lib}/*.pyo || :
-	%endif
-
 	#memstate
 	%if 0%{?el8}
 		rm -rf %{memstate_lib}/__pycache__
@@ -103,30 +92,6 @@ rm -rf $RPM_BUILD_ROOT
 %{_sbindir}/oled
 %{_mandir}/man8/oled.8.gz
 
-#smtool
-%{oled_d}/smtool
-%if 0%{?el8}
-%exclude %{smtool_lib}/__pycache__/*.pyc
-%else
-%exclude %{smtool_lib}/*.pyc
-%exclude %{smtool_lib}/*.pyo
-%endif
-%{smtool_lib}/vulnerabilities.py
-%{smtool_lib}/variant.py
-%{smtool_lib}/sysfile.py
-%{smtool_lib}/server.py
-%{smtool_lib}/parser.py
-%{smtool_lib}/microcode.py
-%{smtool_lib}/kernel.py
-%{smtool_lib}/host.py
-%{smtool_lib}/distro.py
-%{smtool_lib}/cpu.py
-%{smtool_lib}/command.py
-%{smtool_lib}/boot.py
-%{smtool_lib}/base.py
-%{smtool_lib}/__init__.py
-%{_mandir}/man8/oled-smtool.8.gz
-
 # memstate
 %if 0%{?el8}
 %exclude %{memstate_lib}/__pycache__/*.pyc
@@ -148,10 +113,6 @@ rm -rf $RPM_BUILD_ROOT
 %{memstate_lib}/__init__.py
 %{_mandir}/man8/oled-memstate.8.gz
 
-#memtracker
-%{oled_d}/memtracker
-%{_mandir}/man8/oled-memtracker.8.gz
-
 # lkce
 %{oled_d}/lkce
 %{lkce_kdump_d}/kdump_report
@@ -169,11 +130,10 @@ rm -rf $RPM_BUILD_ROOT
 %{oled_d}/kstack
 %{_mandir}/man8/oled-kstack.8.gz
 
-#topstack
-%{oled_d}/topstack
-%{_mandir}/man8/oled-topstack.8.gz
-
 %changelog
+* Wed Nov 23 2022 Aruna Ramakrishna <aruna.ramakrishna@oracle.com>
+- Remove smtool, topstack and memtracker from oled-tools
+
 * Thu Jun 24 2021 Mridula Shastry <mridula.c.shastry@oracle.com>
 - Smtool: Add support for detection/mitigation for SRBDS [Orabug: 33032240]
 - Smtool: Fix scanning of commandline parameters for TSX_Async_Abort [Orabug: 33043269]
