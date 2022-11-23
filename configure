@@ -27,6 +27,10 @@ import platform
 import sys
 import site
 
+MAJOR = "0"
+MINOR = "5"
+
+version = MAJOR + "." + MINOR
 dist = None
 os_release = platform.linux_distribution()[1]
 if os_release.startswith("3"):
@@ -57,6 +61,7 @@ content = """#This is temporary file to store the evinroment variables
 
 DIST=""" + dist + """
 PYTHON_SITEDIR=""" + python_sitedir + """
+VERSION=""" + version + """
 #this file gets deleted with 'make clean'."""
 
 file = open("./oled-env.sh", "w")

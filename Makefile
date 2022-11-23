@@ -25,7 +25,7 @@ export PYTHON_SITEDIR
 export SPECFILE
 export DESTDIR
 
-subdirs := lkce kcore-utils memstate kstack
+subdirs := tools/lkce tools/kcore-utils tools/memstate tools/kstack
 rev_subdirs := $(shell echo -n "$(subdirs) " | tac -s ' ')
 OLEDDIR := $(DESTDIR)/etc/oled
 SBINDIR := $(DESTDIR)/usr/sbin
@@ -66,15 +66,16 @@ uninstall:
 	@echo "oled-tools uninstalled"
 
 rpm:
-	rm -rf oled-tools-0.5
-	rm -f ./oled-tools-0.5.tar.gz
-	mkdir oled-tools-0.5
-	cp -R Makefile configure oled-env.sh oled.man oled.py oled-tools-0.5/
-	cp -R lkce oled-tools-0.5/
-	cp -R kcore-utils oled-tools-0.5/
-	cp -R memstate oled-tools-0.5/
-	cp -R kstack oled-tools-0.5/
-	tar chozf oled-tools-0.5.tar.gz oled-tools-0.5
+	rm -rf oled-tools-$(VERSION)
+	rm -f ./oled-tools-$(VERSION).tar.gz
+	mkdir -p oled-tools/tools
+	cp -R Makefile configure oled-env.sh oled.man oled.py oled-tools/
+	cp -R tools/lkce oled-tools/tools
+	cp -R tools/kcore-utils oled-tools/tools
+	cp -R tools/memstate oled-tools/tools
+	cp -R tools/kstack oled-tools/tools
+	mv oled-tools oled-tools-$(VERSION)
+	tar --xform 's/eppic_scripts/e_s/g' -chozf oled-tools-$(VERSION).tar.gz oled-tools-$(VERSION)
 	#rpmbuild
 	mkdir -p `pwd`/rpmbuild/{RPMS,BUILD{,ROOT},SRPMS}
 	exec rpmbuild -ba \
@@ -83,8 +84,8 @@ rpm:
 	--define="_specdir `pwd`" \
 	--define="_tmppath `pwd`/rpmbuild/BUILDROOT" \
 	buildrpm/oled-tools.spec
-	rm -rf oled-tools-0.5
-	rm -f ./oled-tools-0.5.tar.gz
+	rm -rf oled-tools-$(VERSION)
+	rm -f ./oled-tools-$(VERSION).tar.gz
 	@echo "oled-tools rpms built"
 
 rpm_clean:
