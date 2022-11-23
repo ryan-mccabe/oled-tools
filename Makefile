@@ -25,7 +25,7 @@ export PYTHON_SITEDIR
 export SPECFILE
 export DESTDIR
 
-subdirs := lkce kcore-utils memstate kstack
+subdirs := tools/lkce tools/kcore-utils tools/memstate tools/kstack
 rev_subdirs := $(shell echo -n "$(subdirs) " | tac -s ' ')
 OLEDDIR := $(DESTDIR)/etc/oled
 SBINDIR := $(DESTDIR)/usr/sbin
@@ -68,13 +68,13 @@ uninstall:
 rpm:
 	rm -rf oled-tools-0.5
 	rm -f ./oled-tools-0.5.tar.gz
-	mkdir oled-tools-0.5
+	mkdir -p oled-tools-0.5/tools
 	cp -R Makefile configure oled-env.sh oled.man oled.py oled-tools-0.5/
-	cp -R lkce oled-tools-0.5/
-	cp -R kcore-utils oled-tools-0.5/
-	cp -R memstate oled-tools-0.5/
-	cp -R kstack oled-tools-0.5/
-	tar chozf oled-tools-0.5.tar.gz oled-tools-0.5
+	cp -R tools/lkce oled-tools-0.5/tools
+	cp -R tools/kcore-utils oled-tools-0.5/tools
+	cp -R tools/memstate oled-tools-0.5/tools
+	cp -R tools/kstack oled-tools-0.5/tools
+	tar --xform 's/eppic_scripts/e_s/g' -chozf oled-tools-0.5.tar.gz oled-tools-0.5
 	#rpmbuild
 	mkdir -p `pwd`/rpmbuild/{RPMS,BUILD{,ROOT},SRPMS}
 	exec rpmbuild -ba \
