@@ -22,7 +22,6 @@
 
 import sys
 import os
-import getpass
 import platform
 
 # Oracle Linux Enhanced Diagnostic Tools
@@ -68,7 +67,7 @@ def is_uek4():
     return False
 
 def run_as_root():
-    if (getpass.getuser()) != "root":
+    if (os.geteuid() != 0):
         print("Run as root only")
         sys.exit(1)
 
