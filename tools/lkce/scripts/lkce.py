@@ -30,26 +30,25 @@ class Lkce:
 		#global variables
 		self.LKCE_HOME = "/etc/oled/lkce"
 		self.LKCE_CONFIG_FILE = self.LKCE_HOME + "/lkce.conf"
-		self.LKCE_OUT = "/var/oled/lkce"
+		self.LKCE_OUTDIR = "/var/oled/lkce"
 		self.LKCE_BINDIR = "/usr/lib/oled-tools"
 
 		#vmlinux_path
 		self.KDUMP_KERNELVER = self.run_command('uname -r')
 
 		#default values
-		self.ENABLE = "no"
+		self.ENABLE_KEXEC = "no"
 		self.VMLINUX_PATH = "/usr/lib/debug/lib/modules/" + self.KDUMP_KERNELVER + "/vmlinux"
 		self.CRASH_CMDS_FILE = self.LKCE_HOME + "/crash_cmds_file"
-		self.KDUMP_REPORT = "yes"
 		self.VMCORE = "yes"
 		self.MAX_OUT_FILES = "50"
 
 		#effective values
-		self.enable = self.ENABLE
+		self.enable_kexec = self.ENABLE_KEXEC
 		self.vmlinux_path = self.VMLINUX_PATH
 		self.crash_cmds_file = self.CRASH_CMDS_FILE
-		self.kdump_report = self.KDUMP_REPORT
 		self.vmcore = self.VMCORE
+		self.lkce_outdir = self.LKCE_OUTDIR
 		self.max_out_files = self.MAX_OUT_FILES
 
 		#set values from config file
@@ -110,7 +109,7 @@ class Lkce:
 			cmd = "mkdir -p " + self.LKCE_HOME
 			self.run_os_command(cmd)
 
-		if self.enable == "yes":
+		if self.enable_kexec == "yes":
 			print("trying to disable lkce")
 			self.disable_lkce()
 
@@ -150,8 +149,8 @@ quit
 # Use 'oled lkce configure' command to change values
 ##
 
-#kdump-enable/kdump-disable(yes,no) lkce script in kdump kernel
-enable=""" + self.ENABLE + """
+#enable lkce in kexec kernel
+enable_kexec=""" + self.ENABLE_KEXEC + """
 
 #debuginfo vmlinux path. Need to install debuginfo kernel to get it
 vmlinux_path=""" + self.VMLINUX_PATH + """
@@ -159,8 +158,8 @@ vmlinux_path=""" + self.VMLINUX_PATH + """
 #path to file containing crash commands to execute
 crash_cmds_file=""" + self.CRASH_CMDS_FILE + """
 
-#enable crash report in kdump kernel
-kdump_report=""" + self.KDUMP_REPORT + """
+#lkce output directory path
+lkce_outdir=""" + self.LKCE_OUTDIR + """
 
 #enable vmcore generation post kdump_report
 vmcore=""" + self.VMCORE + """
@@ -197,8 +196,8 @@ max_out_files=""" + self.MAX_OUT_FILES
 			line = re.sub(r"\s+", "", line)
 
 			entry = re.split("=", line)
-			if "enable" in entry[0] and entry[1]:
-				self.enable = entry[1]
+			if "enable_kexec" in entry[0] and entry[1]:
+				self.enable_kexec = entry[1]
 
 			elif "vmlinux_path" in entry[0] and entry[1]:
 				self.vmlinux_path = entry[1]
@@ -206,8 +205,8 @@ max_out_files=""" + self.MAX_OUT_FILES
 			elif "crash_cmds_file" in entry[0] and entry[1]:
 				self.crash_cmds_file = entry[1]
 
-			elif "kdump_report" in entry[0] and entry[1]:
-				self.kdump_report = entry[1]
+			elif "lkce_outdir" in entry[0] and entry[1]:
+				self.lkce_outdir = entry[1]
 
 			elif "vmcore" in entry[0] and entry[1]:
 				self.vmcore = entry[1]
@@ -300,7 +299,7 @@ exit 0
 		return self.update_kdump_conf("--remove")
 	#def remove_lkce_kdump()
 
-	# enable lkce_kdump in /etc/kdump.conf
+	# enable lkce in /etc/kdump.conf
 	def update_kdump_conf(self, arg):
 		if not os.path.exists(self.KDUMP_CONF):
 			print("error: can not find %s. Please retry after installing kexec-tools" % (self.KDUMP_CONF))
@@ -452,11 +451,11 @@ exit 0
 					print("config file not found")
 					return
 
-				print("%15s : %s" % ("lkce enabled", self.enable))
 				print("%15s : %s" % ("vmlinux path", self.vmlinux_path))
 				print("%15s : %s" % ("crash_cmds_file", self.crash_cmds_file))
-				print("%15s : %s" % ("kdump_report", self.kdump_report))
 				print("%15s : %s" % ("vmcore", self.vmcore))
+				print("%15s : %s" % ("lkce_outdir", self.lkce_outdir))
+				print("%15s : %s" % ("lkce_in_kexec", self.enable_kexec))
 				print("%15s : %s" % ("max_out_files", self.max_out_files))
 			else:
 				subarg = re.sub(r"\s+", "", subarg)
@@ -466,19 +465,22 @@ exit 0
 					continue
 
 				if "--vmlinux_path" in entry[0]:
-					cmd = "sed -i 's/vmlinux_path=.*/vmlinux_path= " + entry[1] +"/' " + filename
+					pathv=entry[1].replace("/", "\/")
+					cmd = "sed -i 's/vmlinux_path=.*/vmlinux_path= " + pathv +"/' " + filename
 					self.run_os_command(cmd)
 					print("lkce: set vmlinux_path to %s" % entry[1])
 
 				elif "--crash_cmds_file" in entry[0]:
-					cmd = "sed -i 's/crash_cmds_file=.*/crash_cmds_file= " + entry[1] +"/' " + filename
+					pathv=entry[1].replace("/", "\/")
+					cmd = "sed -i 's/crash_cmds_file=.*/crash_cmds_file= " + pathv +"/' " + filename
 					self.run_os_command(cmd)
 					print("lkce: set crash_cmds_file to %s" % entry[1])
 
-				elif "--kdump_report" in entry[0]:
-					cmd = "sed -i 's/kdump_report=.*/kdump_report= " + entry[1] +"/' " + filename
+				elif "--lkce_outdir" in entry[0]:
+					pathv=entry[1].replace("/", "\/")
+					cmd = "sed -i 's/lkce_outdir=.*/lkce_outdir= " + pathv +"/' " + filename
 					self.run_os_command(cmd)
-					print("lkce: set kdump_report to %s" % entry[1])
+					print("lkce: set lkce output directory to %s" % entry[1])
 
 				elif "--vmcore" in entry[0]:
 					if self.config_vmcore(entry[1]):
@@ -513,7 +515,7 @@ exit 0
 		return 0
 	#def config_vmcore
 
-	def enable_lkce(self):
+	def enable_lkce_kexec(self):
 		filename = self.LKCE_KDUMP_SH
 		if not os.path.exists(filename):
 			self.create_lkce_kdump()
@@ -522,12 +524,12 @@ exit 0
 			return
 
 		filename = self.LKCE_CONFIG_FILE
-		cmd = "sed -i 's/enable=.*/enable=yes/' " + filename
+		cmd = "sed -i 's/enable_kexec=.*/enable_kexec=yes/' " + filename
 		self.run_os_command(cmd)
-		print("enabled")
-	# def enable_lkce
+		print("enabled_kexec mode")
+	# def enable_lkce_kexec
 
-	def disable_lkce(self):
+	def disable_lkce_kexec(self):
 		filename = self.LKCE_CONFIG_FILE
 		if not os.path.exists(filename):
 			print("config file not found")
@@ -536,15 +538,15 @@ exit 0
 		if self.update_kdump_conf("--remove") == 1:
 			return
 
-		cmd = "sed -i 's/enable=.*/enable=no/' " + filename
+		cmd = "sed -i 's/enable_kexec=.*/enable_kexec=no/' " + filename
 		self.run_os_command(cmd)
 
 		filename = self.LKCE_KDUMP_SH
 		if os.path.exists(filename):
 			cmd = "rm -f " + self.LKCE_KDUMP_SH
 			self.run_os_command(cmd)
-		print("disabled")
-	#def disable_lkce
+		print("disabled kexec mode")
+	#def disable kexec
 
 	def status(self):
 		self.configure(subargs=["--show"])
@@ -552,20 +554,20 @@ exit 0
 
 	def clean(self, subarg):
 		if "--all" in subarg:
-			val = raw_input("lkce removes all the files in %s dir. do you want to proceed(yes/no)? [no]:" % self.LKCE_OUT)
+			val = raw_input("lkce removes all the files in %s dir. do you want to proceed(yes/no)? [no]:" % self.LKCE_OUTDIR)
 			if "yes" in val:
-				cmd = "rm " + self.LKCE_OUT + "/crash*out 2> /dev/null"
+				cmd = "rm " + self.LKCE_OUTDIR + "/crash*out 2> /dev/null"
 				self.run_os_command(cmd)
 			#if "yes"
 		else:
-			val = raw_input("lkce deletes all but last three %s/crash*out files. do you want to proceed(yes/no)? [no]:" % self.LKCE_OUT)
+			val = raw_input("lkce deletes all but last three %s/crash*out files. do you want to proceed(yes/no)? [no]:" % self.LKCE_OUTDIR)
 			if "yes" in val:
-				cmd = "ls -r " + self.LKCE_OUT + "/crash*out 2>/dev/null| tail -n +4 | xargs rm 2> /dev/null"
+				cmd = "ls -r " + self.LKCE_OUTDIR + "/crash*out 2>/dev/null| tail -n +4 | xargs rm 2> /dev/null"
 				self.run_os_command(cmd) #start removing from 4th entry
 	#def clean
 
 	def listfiles(self):
-		dirname = self.LKCE_OUT
+		dirname = self.LKCE_OUTDIR
 		if not os.path.exists(dirname):
 			cmd = "mkdir -p " + dirname
 			self.run_os_command(cmd)
@@ -593,13 +595,13 @@ options:
 	config-options:
 		[--vmlinux_path=/path/to/vmlinux] 	- set vmlinux_path
 		[--crash_cmds_file=/path/to/file] 	- set crash_cmds_file
-		[--kdump_report=yes/no]			- set crash report in kdump kernel
 		[--vmcore=yes/no]			- set vmcore generation in kdump kernel
+		[--lkce_outdir=/path/to/directory] 	- set lkce output directory
 		[--max_out_files=<number>] 		- set max_out_files
 
-	enable	-- enable lkce in kdump kernel
-	disable -- disable lkce in kdump kernel
-	status 	-- status of lkce
+	enable_kexec	-- enable lkce in kdump kernel
+	disable_kexec   -- disable lkce in kdump kernel
+	status 	        -- status of lkce
 
 	clean [--all]	-- clear crash report files
 	list		-- list crash report files
@@ -622,11 +624,11 @@ def main():
 	elif arg == "configure":
 		lkce.configure(sys.argv[2:])
 
-	elif arg == "enable":
-		lkce.enable_lkce()
+	elif arg == "enable_kexec":
+		lkce.enable_lkce_kexec()
 
-	elif arg == "disable":
-		lkce.disable_lkce()
+	elif arg == "disable_kexec":
+		lkce.disable_lkce_kexec() 
 
 	elif arg == "status":
 		lkce.status()

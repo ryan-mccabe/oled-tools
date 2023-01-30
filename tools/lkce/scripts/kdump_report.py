@@ -40,7 +40,7 @@ class KdumpReport:
 
 		self.KDUMP_REPORT_HOME = "/etc/oled/lkce"
 		self.KDUMP_REPORT_CONFIG_FILE = self.KDUMP_REPORT_HOME + "/lkce.conf"
-		self.KDUMP_REPORT_CRASH_CMDS_FILE = self.KDUMP_REPORT_HOME + "/crash_cmds"
+		self.KDUMP_REPORT_CRASH_CMDS_FILE = self.KDUMP_REPORT_HOME + "/crash_cmds_file"
 		self.KDUMP_REPORT_OUT = "/var/oled/lkce"
 		self.KDUMP_REPORT_OUT_FILE = self.KDUMP_REPORT_OUT + "/crash_" + time.strftime("%Y%m%d-%H%M%S") + ".out"
 		self.TIMEDOUT_ACTION = "reboot -f"
@@ -119,7 +119,7 @@ class KdumpReport:
 			elif "crash_cmds_file" in entry[0] and entry[1]:
 				self.crash_cmds_file = entry[1]
 
-			elif "kdump_report" in entry[0] and entry[1]:
+			elif "enable_kexec" in entry[0] and entry[1]:
 				self.kdump_report = entry[1]
 
 			elif "max_out_files" in entry[0] and entry[1]:
