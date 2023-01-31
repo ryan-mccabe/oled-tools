@@ -1,6 +1,6 @@
 Name:		oled-tools
-Version:	0.5
-Release:	LATEST_UNSTABLE%{?dist}
+Version:	0.6
+Release:	1%{?dist}
 Summary:	Diagnostic tools for more efficient and faster debugging on Oracle Linux
 Requires:	zlib
 Requires:	bzip2-libs
@@ -159,6 +159,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man8/oled-syswatch.8.gz
 
 %changelog
+* Mon Jan 30 2023 Manjunath Patil <manjunath.b.patil@oracle.com> [0.6]
+- release oled-tools-0.6-1
+- includes dtrace scripts, syswatch
+
 * Wed Jul 07 2021 Manjunath Patil <manjunath.b.patil@oracle.com> [0.5]
 - release oled-tools-0.5-1
 
