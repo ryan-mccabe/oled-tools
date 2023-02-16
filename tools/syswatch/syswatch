@@ -19,6 +19,8 @@
 # Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
 # or visit www.oracle.com if you need additional information or have any
 # questions.
+#
+# Author: Jose Lombera <jose.lombera@oracle.com>
 
 """
 Tool to watch CPU utilization and execute user provided commands when
@@ -35,6 +37,7 @@ import subprocess  # nosec
 import sys
 import time
 
+from enum import Enum
 from typing import Dict, List, Mapping, Sequence
 
 # A CPU stats snapshot
@@ -88,18 +91,18 @@ def snap_percent_util(snap1: Snapshot, snap2: Snapshot) -> CpuUtil:
     }
 
 
-# CPU stat IDs
-CpuStat = int
-USER = 0
-NICE = 1
-SYSTEM = 2
-IDLE = 3
-IOWAIT = 4
-IRQ = 5
-SOFTIRQ = 6
-STEAL = 7
-GUEST = 8
-GUEST_NICE = 9
+class CpuStat(Enum):
+    """CPU stat IDs"""
+    usr = 0
+    nice = 1
+    sys = 2
+    idle = 3
+    iowait = 4
+    irq = 5
+    soft = 6
+    steal = 7
+    guest = 8
+    gnice = 9
 
 
 def cpu_thresholds_reached(
@@ -109,7 +112,7 @@ def cpu_thresholds_reached(
     """Compute CPU stats that reached the specified thresholds"""
     for stats in cpu_utils:
         for stat, threshold in stat_thresholds.items():
-            if stats[stat] < threshold:
+            if stats[stat.value] < threshold:
                 break  # current CPU didn't reach all stat thresholds
         else:
             nr_cpus = nr_cpus - 1  # current CPU reached all thresholds
@@ -129,7 +132,7 @@ def check_fs_util(dir_path: str, max_fs_util: int) -> None:
     if space_used > max_fs_util:
         logging.error(
             ("Disk space usage in filesystem containing '%s' has surpassed "
-             "the maximum allowed.  current=%.2f; max_allowed=%d\n"
+             "the maximum allowed.  current=%.2f%%; max_allowed=%d%%\n"
              "Aborting"),
             dir_path, space_used, max_fs_util)
         sys.exit(1)
@@ -147,7 +150,7 @@ def exec_action_cmds(cmds: Sequence[str], base_dir: str) -> None:
 
     NOTE: The commands' exit status is not checked/logged/processed.
     """
-    logging.info("Executing actions in directory '%s'...", base_dir)
+    logging.info("Executing action commands in directory '%s'...", base_dir)
 
     def exec_cmd(cmd):
         cmd_dir = os.path.join(
@@ -186,8 +189,11 @@ def format_cpu_util(cpu_util: CpuUtil) -> str:
 
     stats = '\n'.join(
         fmt.format(
-            cpu, st[USER], st[NICE], st[SYSTEM], st[IOWAIT], st[IRQ],
-            st[SOFTIRQ], st[STEAL], st[GUEST], st[GUEST_NICE], st[IDLE])
+            cpu, st[CpuStat.usr.value], st[CpuStat.nice.value],
+            st[CpuStat.sys.value], st[CpuStat.iowait.value],
+            st[CpuStat.irq.value], st[CpuStat.soft.value],
+            st[CpuStat.steal.value], st[CpuStat.guest.value],
+            st[CpuStat.gnice.value], st[CpuStat.idle.value])
         for cpu, st in cpu_util.items()
     )
 
@@ -253,7 +259,7 @@ def watch_cpu_utilization(
 
             logging.info("continue watching...")
 
-            # take new snapshot after actions finished executing
+            # take new snapshot after action commands finished executing
             new_timestamp = datetime.datetime.now()
             new_snapshot = take_snapshot()
 
@@ -283,31 +289,51 @@ def parse_args() -> argparse.Namespace:
 
         return value
 
+    def stat_threshold(value):
+        """Validate stat threshold"""
+        try:
+            try:
+                stat_str, percent = value.split(":", maxsplit=1)
+            except ValueError:
+                raise ValueError("must be of the form '<stat>:<percentage>'")
+
+            try:
+                stat = CpuStat[stat_str]
+            except KeyError:
+                raise ValueError(f"'{stat_str}' is not a valid CPU stat")
+
+            percent = percentage(percent)
+
+            return (stat, percent)
+        except Exception as exp:
+            raise argparse.ArgumentTypeError(
+                f"Invalid threshold '{value}': {exp}")
+
     parser = argparse.ArgumentParser(
+        description=(
+            "Execute user specified commands if configured CPU utilization"
+            " thresholds are reached.  See oled-syswatch(8) for a detailed "
+            "description."),
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument(
-        "-b", dest="run_in_background", action='store_true',
+        "-b", dest="run_continuously", action='store_true',
         help="Run indefinitely until manually terminated.")
     parser.add_argument(
         "-C", dest="nr_cpus", type=int, default=0,
         help=("# of CPUs to apply match criteria.  A value <= 0 means apply "
               "system wide."))
     parser.add_argument(
-        "-u", dest="user_percent", type=percentage,
-        help="Triggers if %%user reaches or exceeds this argument.")
-    parser.add_argument(
-        "-n", dest="nice_percent", type=percentage,
-        help="Triggers if %%nice reaches or exceeds this argument.")
-    parser.add_argument(
-        "-s", dest="sys_percent", type=percentage,
-        help="Triggers if %%sys reaches or exceeds this argument.")
-    parser.add_argument(
-        "-i", dest="iowait_percent", type=percentage,
-        help="Triggers if %%iowait reaches or exceeds this argument.")
+        "-s", dest="stat_thresholds", type=stat_threshold, action="append",
+        required=True, metavar="STAT:PERCENTAGE",
+        help=("Triggers action commands if the specified CPU STAT utilization "
+              "reaches or exceeds PERCENTAGE.  Valid values of STAT are: "
+              f"{', '.join(x.name for x in CpuStat)}.  "
+              "PERCENTAGE must be an integer in the range [1, 100].  This "
+              "option is required and can be specified multiple times."))
     parser.add_argument(
         "-t", dest="target_dir", default="/var/oled/syswatch",
-        help=("Target directory.  The program would cd to this directory "
-              "before performing any actions."))
+        help=("Output directory.  The program will cd to this directory before"
+              " performing any actions."))
     parser.add_argument(
         "-M", dest="max_fs_util", type=percentage, default=85,
         help=("Max Filesystem Utilization.  If the filesystem is at or above "
@@ -316,17 +342,22 @@ def parse_args() -> argparse.Namespace:
         "-I", dest="interval", type=interval, default=5,
         help="Interval, in seconds, between CPU utilization snapshots.")
     parser.add_argument(
-        "-a", dest="actions", required=True, action="append",
-        help=("The action to perform.  This is mandatory.  If a more complex "
-              "action is needed this can point to a script.  This option can "
-              "be specified multiple times, in which case all the action "
-              "commands will be executed in parallel."))
+        "-c", dest="commands", metavar="COMMAND", required=True,
+        action="append",
+        help=("Command to execute when CPU stat thresholds are reached.  This"
+              " is mandatory.  If a more complex command is needed this can "
+              "point to a script.  This option can be specified multiple "
+              "times, in which case all the commands will be executed in "
+              "parallel."))
 
     args = parser.parse_args()
 
-    if not (args.user_percent or args.nice_percent or args.sys_percent
-            or args.iowait_percent):
-        parser.error("At least one of -u, -n, -s, -i must be specified")
+    # Convert util thresholds to a dictionary, this will remove duplicate
+    # entries
+    args.stat_thresholds = dict(args.stat_thresholds)
+
+    if sum(args.stat_thresholds.values()) > 100:
+        parser.error("The sum of CPU STAT percentages cannot be > 100%")
 
     return args
 
@@ -374,37 +405,25 @@ def main() -> None:
     setup_logging(working_dir)
     logging.info(" ".join(map(shlex.quote, sys.argv)))
 
+    thresholds = "\n".join(
+        f"\t\t{k.name}: {v}%" for k, v in args.stat_thresholds.items())
     config_str = (
-        f"\tRun continuously: {args.run_in_background}\n"
+        f"\tRun continuously: {args.run_continuously}\n"
         f"\t# CPUs: {'ALL' if args.nr_cpus <= 0 else args.nr_cpus}\n"
-        f"\t%user: {args.user_percent}\n"
-        f"\t%nice: {args.nice_percent}\n"
-        f"\t%sys: {args.sys_percent}\n"
-        f"\t%iowait: {args.iowait_percent}\n"
+        f"\tThresholds:\n{thresholds}\n"
         f"\tWorking dir: {working_dir}\n"
-        f"\tMax FS utilization: {args.max_fs_util}\n"
-        f"\tSnapshot interval (sec): {args.interval}\n"
-        f"\tActions: {args.actions}"
+        f"\tMax FS utilization: {args.max_fs_util}%\n"
+        f"\tSnapshot interval: {args.interval} sec\n"
+        f"\tActions commands: {args.commands}"
     )
     logging.info("Config:\n %s", config_str)
 
     check_fs_util(args.target_dir, args.max_fs_util)
 
-    cpu_stat_thresholds = {}
-
-    if args.user_percent:
-        cpu_stat_thresholds[USER] = args.user_percent
-    if args.nice_percent:
-        cpu_stat_thresholds[NICE] = args.nice_percent
-    if args.sys_percent:
-        cpu_stat_thresholds[SYSTEM] = args.sys_percent
-    if args.iowait_percent:
-        cpu_stat_thresholds[IOWAIT] = args.iowait_percent
-
     watch_cpu_utilization(
-        args.interval, cpu_stat_thresholds, args.actions, args.nr_cpus,
+        args.interval, args.stat_thresholds, args.commands, args.nr_cpus,
         working_dir, args.max_fs_util,
-        only_one_event=(not args.run_in_background))
+        only_one_event=(not args.run_continuously))
 
 
 def exit_signal_handler(*_args, **_kwargs) -> None:
