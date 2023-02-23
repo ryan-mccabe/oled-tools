@@ -111,7 +111,7 @@ class Lkce:
 
 		if self.enable_kexec == "yes":
 			print("trying to disable lkce")
-			self.disable_lkce()
+			self.disable_lkce_kexec()
 
 		#crash_cmds_file
 		filename = self.CRASH_CMDS_FILE
@@ -550,6 +550,15 @@ exit 0
 
 	def status(self):
 		self.configure(subargs=["--show"])
+
+		if not os.path.exists(self.vmlinux_path):
+			print("NOTE: %s: file not found"%(self.vmlinux_path));
+			print("kernel debuginfo rpm installed?")
+
+		cmd = "rpm -qa | grep -q crash"
+		ret = os.system(cmd)
+		if (ret):  # not present
+                    print("NOTE: crash is not installed");
 	#def status
 
 	def clean(self, subarg):
