@@ -1,4 +1,4 @@
-#!/usr/sbin/dtrace -qs
+#!/usr/sbin/dtrace -Cqs
 
 /*
  * Copyright (c) 2023, Oracle and/or its affiliates.
@@ -33,6 +33,13 @@
  * Prerequisites: Refer to the file spinlock_time_example.txt
  * Sample output: Refer to the file spinlock_time_example.txt
  */
+
+#define DT_VERSION_NUMBER_(M, m, u) \
+        ((((M) & 0xFF) << 24) | (((m) & 0xFFF) << 12) | ((u) & 0xFFF))
+
+#if __SUNW_D_VERSION >= DT_VERSION_NUMBER_(2,0,0)
+#pragma D option lockmem=unlimited
+#endif
 
 #pragma D option cleanrate=50hz
 #pragma D option dynvarsize=16000000

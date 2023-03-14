@@ -1,4 +1,4 @@
-#!/usr/sbin/dtrace -qs
+#!/usr/sbin/dtrace -Cqs
 
 /*
  * Copyright (c) 2022, Oracle and/or its affiliates.
@@ -32,6 +32,13 @@
  * Prerequisites: Refer to the file rds_check_tx_stall_example.txt
  * Sample output: Refer to the file rds_check_tx_stall_example.txt
 */
+
+#define DT_VERSION_NUMBER_(M, m, u) \
+        ((((M) & 0xFF) << 24) | (((m) & 0xFFF) << 12) | ((u) & 0xFFF))
+
+#if __SUNW_D_VERSION >= DT_VERSION_NUMBER_(2,0,0)
+#pragma D option lockmem=unlimited
+#endif
 
 uint64_t rds_connection[struct rds_connection *];
 
