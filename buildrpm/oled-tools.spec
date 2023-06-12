@@ -1,5 +1,5 @@
 Name:		oled-tools
-Version:	0.5
+Version:	0.6
 Release:	LATEST_UNSTABLE%{?dist}
 Summary:	Diagnostic tools for more efficient and faster debugging on Oracle Linux
 Requires:	zlib
@@ -9,7 +9,7 @@ BuildRequires:	zlib-devel
 BuildRequires:	bzip2-devel
 BuildRequires:	elfutils-devel
 Group:		Development/Tools
-License:	UPL
+License:	GPLv2
 URL:		https://github.com/oracle/oled-tools.git
 Source0:	%{name}-%{version}.tar.gz
 
@@ -159,8 +159,28 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man8/oled-syswatch.8.gz
 
 %changelog
-* Wed Jul 07 2021 Manjunath Patil <manjunath.b.patil@oracle.com> [0.5]
-- release oled-tools-0.5-1
+* Mon Jan 30 2023 Manjunath Patil <manjunath.b.patil@oracle.com> 0.6-1
+- Remove tools memtracker, smtool and topstack
+- Add diagnostic DTrace scripts (Manjunath Patil, Praveen Kumar Kannoju,
+  Rama Nichanamatlu)
+- Add tool syswatch (Jose Lombera)
 
-* Sun May 10 2020 Manjunath Patil <manjunath.b.patil@oracle.com> [0.1]
-- first version
+* Fri Sep 17 2021 Aruna Ramakrishna <aruna.ramakrishna@oracle.com> - 0.5-5
+- Several fixes to smtool (Mridula Shastry, Aruna Ramakrishna)
+- Rewrite lkce; absorb kdump tool (Manjunath Patil)
+- Remove tool gather
+- Add support for OL8 in lkce and smtool (Mridula Shastry)
+- Vendor and patch makedumpfile to use as a library (Wengang Wang)
+- Add tool filecache (Wengang Wang)
+- Add tool dentrycache (Wengang Wang)
+- Add tool memtracker (Aruna Ramakrishna)
+- Add tool memstate (Aruna Ramakrishna)
+- Add tool topstack (Cesar Roque)
+- Add tool kstack (Cesar Roque)
+
+* Sun May 10 2020 Manjunath Patil <manjunath.b.patil@oracle.com> 0.1-5
+- First release
+- Add tool gather (Jeffery Yoder)
+- Add tool kdump (Manjunath Patil)
+- Add tool lkce (Manjunath Patil)
+- Add tool smtool (Mridula Shastry)
