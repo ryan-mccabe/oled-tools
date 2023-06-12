@@ -186,21 +186,7 @@ max_out_files=""" + self.MAX_OUT_FILES
 		cmd = "mkdir -p " + self.LKCE_KDUMP_DIR
 		os.system(cmd)
 
-		#for OL7 and above
-		mount_cmd = "mount -o bind /sysroot"
-
-		dist = self.get_dist()
-		if dist == ".el6": #for OL6
-			# get the root device
-			cmd = "awk '/^[ \t]*[^#]/ { if ($2 == \"/\") { print $1; }}' " + self.FSTAB
-			rootdev = self.run_command(cmd)
-			if "LABEL=" in rootdev or "UUID=" in rootdev:
-				cmd = "/sbin/findfs " + rootdev
-				rootdev = self.run_command(cmd)
-			cmd = "blkid -sUUID -o value " + rootdev
-			root_uuid = self.run_command(cmd)
-			mount_cmd = "mount UUID=" + root_uuid
-		#if dist
+		mount_cmd = "mount -o bind /sysroot"  # OL7 and above
 
 		# create lkce_kdump.sh script
 		content = """#!/bin/sh
@@ -307,25 +293,8 @@ exit 0
 				return 0
 	# def update_kdump_conf
 
-	def get_dist(self):
-		dist = None
-		if (platform.linux_distribution()[0] == "Oracle VM server"):
-			dist = ".el6"
-		else:
-			os_release = float(platform.linux_distribution()[1])
-			if os_release > 6.0 and os_release < 7.0 :
-				dist = ".el6"
-			elif os_release > 7.0:
-				dist = ".el7"
-		return dist
-	#def get_dist
-
 	def restart_kdump_service(self):
-		dist = self.get_dist()
-		if dist == ".el6":
-			cmd = "service kdump restart"
-		else: #OL7 and above
-			cmd = "systemctl restart kdump"
+		cmd = "systemctl restart kdump"  # OL7 and above
 
 		print("Restarting kdump service..."),
 		os.system(cmd)
