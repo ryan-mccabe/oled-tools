@@ -85,10 +85,8 @@ class Pss(Base):
         for m in mem_sorted:
             if num != constants.NO_LIMIT and num_printed >= num:
                 break
-            p_comm = "cat /proc/" + str(m) + "/comm"
-            p_comm_str = self.exec_cmd_ignore_err(p_comm)
-            if not p_comm_str:
-                p_comm_str = str(m)
+            p_comm_str = self.read_text_file(
+                f"/proc/{m}/comm", on_error=str(m))
             self.print_pretty_kb(p_comm_str.strip() + "(pid:" + str(m) + ")", mem_sorted[m])
             num_printed += 1
         print("")

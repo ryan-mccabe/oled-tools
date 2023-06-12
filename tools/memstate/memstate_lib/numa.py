@@ -65,7 +65,8 @@ class Numa(Base):
         num_files_scanned = 0
         for filestr in glob.glob("/proc/*/numa_maps"):
             pid = filestr.split("/")[2]
-            comm = self.exec_cmd_ignore_err("cat /proc/" + pid + "/comm").strip()
+            comm = self.read_text_file(
+                f"/proc/{pid}/comm", on_error="UNKOWN").strip()
             n =  self.open_file(filestr, 'r')
             if not n:
                 continue
@@ -262,7 +263,8 @@ class Numa(Base):
         0-1
         """
         num_nodes = 1
-        out = self.exec_cmd("cat /sys/devices/system/node/online").strip()
+        out = self.read_text_file(
+            "/sys/devices/system/node/online", on_error="").strip()
         if not out:
             self.print_error("Unable to read /sys/devices/system/node/online - " \
                     "assuming there's one NUMA node.")
@@ -328,7 +330,8 @@ class Numa(Base):
             return
         self.print_numastat_headers()
         while i < self.num_numa_nodes:
-            nodei_meminfo = self.exec_cmd("cat /sys/devices/system/node/node" + str(i) + "/meminfo")
+            nodei_meminfo = self.read_text_file(
+                f"/sys/devices/system/node/node{i}/meminfo")
             for line in nodei_meminfo.splitlines():
                 if line.find("MemTotal:") != -1:
                     numa_memtotal_kb.append(self.__get_numa_meminfo_val(line))

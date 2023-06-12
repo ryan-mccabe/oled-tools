@@ -165,19 +165,14 @@ class Memstate(Base):
             self.print_info("The value of vm.min_free_kbytes is: " + str(current_mfk_kb) + " KB.")
 
     def get_current_mfk(self):
-        mfk_str = self.exec_cmd("sysctl vm.min_free_kbytes")
-        if not mfk_str:
-            raise ValueError
-        current_mfk_kb = mfk_str.split("=")[1].strip()
-        return current_mfk_kb
+        return self.read_text_file("/proc/sys/vm/min_free_kbytes").strip()
 
     def check_wsf(self):
-        wsf_str = self.exec_cmd("sysctl vm.watermark_scale_factor")
-        if wsf_str:
-            wsf = int(wsf_str.split("=")[1].strip())
-            if wsf > constants.WSF_THRESHOLD:
-                print("")
-                self.print_warn("vm.watermark_scale_factor has been increased to " + str(wsf) + ".")
+        wsf = int(self.read_text_file("/proc/sys/vm/watermark_scale_factor"))
+
+        if wsf > constants.WSF_THRESHOLD:
+            print("")
+            self.print_warn("vm.watermark_scale_factor has been increased to " + str(wsf) + ".")
 
     def check_rds_cache_size(self):
         rds_size_gb = self.meminfo.get_rds_cache_gb()

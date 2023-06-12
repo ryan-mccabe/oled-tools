@@ -20,7 +20,10 @@
 # or visit www.oracle.com if you need additional information or have any
 # questions.
 
+import math
 import os
+import shutil
+import subprocess  # nosec
 import sys
 from memstate_lib import Base
 from memstate_lib import constants
@@ -54,41 +57,14 @@ class Logfile(Base):
             self.log_debug(msg + ".")
             Logfile.init_done = True
 
-    def __disk_space_available(self, path):
-        out = self.exec_cmd("df -Ph " + path)
-        line = ""
-        for line in out.splitlines():
-            if "Use" in line:
-                pos_use = line.split().index("Use%")
-                pos_avail = line.split().index("Avail")
-                continue
-        if not line:
-            msg = "Unable to compute disk utilization for " + path + "."
-            self.log_debug(msg)
-            print(msg)
-            return False
-        util = line.split()[pos_use][:-1]
-        avail = line.split()[pos_avail][:-1]
-        avail_unit = line.split()[pos_avail][-1]
-        avail_space_mb = 0
-        if avail_unit == "T":
-            avail_space_mb = round(float(avail) * constants.ONE_MB)
-        elif avail_unit == "G":
-            avail_space_mb = round(float(avail) * constants.ONE_KB)
-        elif avail_unit == "M":
-            avail_space_mb = round(float(avail))
-        elif avail_unit == "K":
-            avail_space_mb = round(float(avail) / constants.ONE_KB)
+    @staticmethod
+    def __disk_space_available(path):
+        disk = shutil.disk_usage(path)
+        free_mb = math.ceil(disk.free / 2**20)
+        util_percent = math.ceil(disk.used / disk.total * 100)
 
-        self.log_debug("Disk utilization of the partition for " + path + " is " + util + "%.")
-        self.log_debug("Available space on disk is " + str(avail_space_mb) + " MB.")
-
-        # If disk space utilization is >= 85% OR if available space is less than 50 MB,
-        # then error out. We do not want to fill up the filesystem with memstate logs.
-        if int(util) >= constants.MAX_DISKSPACE_UTIL or \
-                avail_space_mb < constants.MIN_DISKSPACE_NEEDED:
-            return False
-        return True
+        return ((util_percent < constants.MAX_DISKSPACE_UTIL)
+                and (free_mb >= constants.MIN_DISKSPACE_NEEDED))
 
     @staticmethod
     def setup_logrotate():
@@ -111,7 +87,9 @@ class Logfile(Base):
 
     @staticmethod
     def rotate_file():
-        os.system("logrotate " + constants.LOGROTATEFILE)
+        subprocess.run(
+            ("logrotate", constants.LOGROTATEFILE),
+            check=False, shell=False)  # nosec
 
     def __del__(self):
         if Logfile.init_done:

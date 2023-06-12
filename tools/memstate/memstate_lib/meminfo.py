@@ -39,9 +39,9 @@ class Meminfo(Base):
         self.hugepages = Hugepages()
 
     def __read_meminfo(self):
-        data = self.exec_cmd("cat /proc/meminfo")
+        data = self.read_text_file("/proc/meminfo", on_error="")
         if data == "":
-            self.print_cmd_err("cat /proc/meminfo")
+            self.print_error("Unable to read /proc/meminfo")
             return data
         for line in data.splitlines():
             if line.startswith("MemTotal:"):
