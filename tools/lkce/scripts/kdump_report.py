@@ -24,10 +24,13 @@
 # program that runs inside kdump kernel
 # program to run crash utility inside the kdump kernel
 #
+import glob
 import time
 import os
+import platform
 import re
-import subprocess
+import shutil
+import subprocess  # nosec
 import sys
 import signal
 
@@ -36,7 +39,7 @@ class KdumpReport:
 		#global variables
 		self.VMLINUX = ""
 		self.VMCORE = "/proc/vmcore"
-		self.KDUMP_KERNELVER = self.run_command('uname -r')
+		self.KDUMP_KERNELVER = platform.uname().release
 
 		self.KDUMP_REPORT_HOME = "/etc/oled/lkce"
 		self.KDUMP_REPORT_CONFIG_FILE = self.KDUMP_REPORT_HOME + "/lkce.conf"
@@ -53,26 +56,6 @@ class KdumpReport:
 
 		self.read_config(self.KDUMP_REPORT_CONFIG_FILE)
 	# def __init__
-
-	def run_command(self, cmd):
-		"""
-		Execute command and return the result
-		Parameters:
-		cmd : Command to run
-
-		Returns string: result of the specific command executed.
-		"""
-		command = subprocess.Popen(cmd,
-					 stdin=None,
-					 stdout=subprocess.PIPE,
-					 stderr=subprocess.PIPE,
-					 shell=True)
-		out, err = command.communicate()
-		if (sys.version_info[0] == 3):
-			out = out.decode("utf-8").strip()
-
-		return out.strip()
-	#def run_command(self, cmd):
 
 	def read_config(self, filename):
 		if not os.path.exists(filename):
@@ -118,30 +101,43 @@ class KdumpReport:
 	# def get_vmlinux
 
 	def run_crash(self):
+		crash_path = shutil.which("crash")
+
+		if not crash_path:
+			print("kdump_report: 'crash' executable not found")
+			return 1
+
 		self.get_vmlinux()
 		if not os.path.exists(self.crash_cmds_file):
 			print("kdump_report: %s not found" % self.crash_cmds_file)
 			return 1
 
-		if not os.path.exists(self.KDUMP_REPORT_OUT):
-			cmd = "mkdir -p " + self.KDUMP_REPORT_OUT
-			os.system(cmd)
+		os.makedirs(self.KDUMP_REPORT_OUT, exist_ok=True)
 
-		cmd = "crash " + self.VMLINUX + " " + self.VMCORE + " -i " + self.crash_cmds_file + " > " + self.KDUMP_REPORT_OUT_FILE
-		print("kdump_report: Executing '%s'" % cmd)
-		os.system(cmd)
+		args = (crash_path, self.VMLINUX, self.VMCORE, "-i",
+		        self.crash_cmds_file)
+		print(f"kdump_report: Executing '{' '.join(args)}'; output file "
+		      f"'{self.KDUMP_REPORT_OUT_FILE}'")
+
+		with open(self.KDUMP_REPORT_OUT_FILE, "w") as output_fd:
+			return subprocess.run(
+				args, close_fds=True, stdout=output_fd, stderr=output_fd,
+				stdin=subprocess.DEVNULL, shell=False)  #nosec
 	# def run_crash
 
 	def clean_up(self):
-		cmd = "ls -r " + self.KDUMP_REPORT_OUT + "/crash*out 2>/dev/null | tail -n +" + \
-		str(int(self.max_out_files) + 1)
-		delete_files = self.run_command(cmd)
-		delete_files = re.sub(r"\s+", " ", delete_files)
+		max_files = int(self.max_out_files)
+		crash_files = glob.glob(f"{self.KDUMP_REPORT_OUT}/crash*out")
 
-		if delete_files:
-			print("kdump_report: found more than %s[max_out_files] out files. Deleting older ones" % self.max_out_files)
-			cmd = "rm -f " + delete_files
-			os.system(cmd)
+		if len(crash_files) > max_files:
+			print(f"kdump_report: found more than {max_files}[max_out_files] "
+			      "out files. Deleting older ones")
+
+			for file in sorted(crash_files, reverse=True)[max_files:]:
+				try:
+					os.remove(file)
+				except OSError:
+					pass  # ignore permissions and missing file errors
 	# def clean_up
 
 	def exit(self):
