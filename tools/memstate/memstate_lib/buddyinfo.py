@@ -20,6 +20,8 @@
 # or visit www.oracle.com if you need additional information or have any
 # questions.
 
+import re
+
 from memstate_lib import Base
 from memstate_lib import constants
 
@@ -27,26 +29,32 @@ class Buddyinfo(Base):
     """ Analyzes output from /proc/buddyinfo """
 
     def __read_buddyinfo(self):
-        data = self.exec_cmd("cat /proc/buddyinfo")
-        return data
+        return self.read_text_file("/proc/buddyinfo", on_error="")
 
     def __display_pagetypeinfo(self):
-        pgti_header = self.exec_cmd("grep -e Free.*pages -m 1 /proc/pagetypeinfo").strip()
-        if pgti_header == "":
-            self.print_cmd_err("cat /proc/pagetypeinfo")
+        data = self.read_text_file("/proc/pagetypeinfo", on_error="")
+        if data == "":
+            self.print_error("Unable to read file /proc/pagetypeinfo")
             return
+
+        data = data.split("\n\n")[1].splitlines()
+        pgti_header = data[0]
+        pgti_body = data[1:]
+
         print("")
         self.print_header_l2("pagetypeinfo")
         print(pgti_header)
-        data = self.exec_cmd("grep -e Normal.*Unmovable -e Normal.*Movable -e "\
-                "Normal.*Reclaimable /proc/pagetypeinfo")
-        print(data.strip())
+
+        regex = re.compile("Normal.*(Unmovable|Movable|Reclaimable)")
+        for line in pgti_body:
+            if regex.search(line):
+                print(line)
 
     def __display_zoneinfo(self):
         interesting = ['Node', 'free', 'min', 'low', 'high']
-        data = self.exec_cmd("cat /proc/zoneinfo")
+        data = self.read_text_file("/proc/zoneinfo", on_error="")
         if data == "":
-            self.print_cmd_err("cat /proc/zoneinfo")
+            self.print_error("Unable to read file /proc/zoneinfo")
             return
         print("")
         self.print_header_l2("zoneinfo")
@@ -122,9 +130,9 @@ class Buddyinfo(Base):
         """
         Read /proc/vmstat and get counters related to compaction stalls, etc.
         """
-        vmstat = self.exec_cmd("cat /proc/vmstat")
+        vmstat = self.read_text_file("/proc/vmstat", on_error="")
         if vmstat == "":
-            self.print_cmd_err("cat /proc/vmstat")
+            self.print_error("Unable to read file /proc/vmstat")
             return
         interesting = ['compact', 'allocstall_normal', 'kswapd_low_wmark_hit_quickly',\
                 'kswapd_high_wmark_hit_quickly', 'drop_', 'oom_', 'zone_reclaim_failed']

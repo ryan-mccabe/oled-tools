@@ -48,7 +48,7 @@ class Slabinfo(Base):
             self.data = ""
 
     def __read_slabinfo(self):
-        self.data = self.exec_cmd("cat /proc/slabinfo")
+        self.data = self.read_text_file("/proc/slabinfo")
 
     @staticmethod
     def __slabinfo_get_name(line):

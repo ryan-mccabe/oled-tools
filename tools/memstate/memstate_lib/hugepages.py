@@ -47,8 +47,8 @@ class Hugepages(Base):
                 # Read nr_hugepages and free_hugepages for each NUMA node
                 nr = os.path.join(hp_path, "nr_hugepages")
                 free = os.path.join(hp_path, "free_hugepages")
-                nr_val = int(self.exec_cmd_ignore_err("cat " + nr).strip())
-                free_val = int(self.exec_cmd_ignore_err("cat " + free).strip())
+                nr_val = int(self.read_text_file(nr))
+                free_val = int(self.read_text_file(free))
                 key = hp_size_kb + "_" + current_node
                 self.hp_nr_dict[key] = nr_val
                 self.hp_free_dict[key] = free_val

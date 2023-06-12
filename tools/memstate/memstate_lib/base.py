@@ -22,11 +22,15 @@
 
 from __future__ import print_function
 import os
-import subprocess
+import subprocess  # nosec
 import logging
 import fcntl
+import platform
+import socket
 import sys
 from datetime import datetime
+from typing import Optional
+
 from memstate_lib import constants
 
 class Base:
@@ -44,6 +48,23 @@ class Base:
             except IOError as e:
                 self.log_debug("Could not create directory " + parent_dir + ": " + str(e))
 
+    def read_text_file(self, path: str, on_error: Optional[str] = None) -> str:
+        """Read content of a file as text.
+
+        If an error occurred, if on_error is not None, return that value;
+        otherwise raise an exception.
+        """
+        try:
+            with open(path) as fdesc:
+                return fdesc.read()
+        except Exception as exn:
+            self.log_debug(f"Unable to read file '{path}': {exn}")
+
+            if on_error is not None:
+                return on_error
+
+            raise
+
     def exec_cmd(self, cmd):
         """
         Execute the command passed in as the parameter.
@@ -52,27 +73,13 @@ class Base:
         output = ""
         try:
             args = cmd.split()
-            proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            proc = subprocess.Popen(
+                args, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                shell=False)  # nosec
             (output, error) = proc.communicate()
             output = output.decode('utf-8')
             if error:
                 self.log_debug("Command \'" + cmd + "\' returned error: " + error.decode('utf-8'))
-        except Exception as e:
-            output = ""
-            self.log_debug("Command \'" + cmd + "\' failed with error: " + str(e))
-        return output
-
-    def exec_cmd_ignore_err(self, cmd):
-        """
-        Execute the command passed in as the parameter, ignore any errors.
-        @param cmd: The full command to be executed.
-        """
-        output = ""
-        try:
-            args = cmd.split(" ")
-            with open(os.devnull, 'w') as devnull:
-                output = subprocess.Popen(args,
-                        stdout=subprocess.PIPE, stderr=devnull).communicate()[0].decode('utf-8')
         except Exception as e:
             output = ""
             self.log_debug("Command \'" + cmd + "\' failed with error: " + str(e))
@@ -153,11 +160,9 @@ class Base:
     def print_header_l2(str_msg):
         print("=" * 2 + " " + str_msg + " " + "=" * 2)
 
-    def get_kernel_ver(self):
-        kernel_ver = self.exec_cmd("uname -r")
-        if not kernel_ver:
-            kernel_ver = "Unknown"
-        return kernel_ver.strip()
+    @staticmethod
+    def get_kernel_ver():
+        return platform.uname().release
 
     @staticmethod
     def get_current_time():
@@ -167,10 +172,10 @@ class Base:
         return current_time.strip()
 
     def get_hostname(self):
-        hname = self.exec_cmd("hostname")
+        hname = socket.gethostname()
         if not hname:
             hname = "Unknown"
-        return str(hname.strip())
+        return hname
 
     @staticmethod
     def open_file(filename, mode):
