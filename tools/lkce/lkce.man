@@ -4,7 +4,7 @@
 oled lkce \- Linux Kernel Core Extractor
 
 .SH SYNOPSIS
-\fB oled lkce\fR [report \fIreport-options\fR] [configure \fIconfig-options\fR] [enable|disable|status] [clean|list|help]
+\fB oled lkce\fR [report \fIreport-options\fR] [configure \fIconfig-options\fR] [enable_kexec|disable_kexec|status] [clean|list|help]
 
 .SH DESCRIPTION
 \fBlkce command\fR is used to interact with Linux Kernel Core Extractor[LKCE]. It is used to generate report from vmcore. lkce can run user scripts in kdump kernel. 
@@ -57,10 +57,10 @@ config-options:
 .RE
 
 .TP
-\fBenable\fR - enable lkce to run user scripts in kdump kernel.
+\fBenable_kexec\fR - enable lkce to run user scripts in kdump kernel.
 
 .TP
-\fBdisable\fR - disable lkce to run user scripts in kdump kernel.
+\fBdisable_kexec\fR - disable lkce to run user scripts in kdump kernel.
 
 .TP
 \fBstatus\fR - check the status of lkce configuration
@@ -80,7 +80,7 @@ Make sure kexec-tools pkg is installed and you can generate vmcore. Post that ru
 # yum install oled-tools
 .RE
 .RS 0
-# oled lkce enable
+# oled lkce enable_kexec
 .RE
 
 Crash the system manually. Once the machine is booted run 'oled lkce list'. Verify the listed file for output. Keep the system in configured state to generate the report when it crashes.
@@ -112,10 +112,10 @@ Crash the system manually. Once the machine is booted run 'oled lkce list'. Veri
 # oled lkce help
 .RE
 .RS 0
-# oled lkce enable
+# oled lkce enable_kexec
 .RE
 .RS 0
-# oled lkce disable
+# oled lkce disable_kexec
 .RE
 .RS 0
 # oled lkce status

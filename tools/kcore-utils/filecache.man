@@ -79,10 +79,6 @@ as the production kernel.
 -v, --version
     Display version information.
 
-.SH MISC
-.TP
-The tool can be run on any Oracle Linux 6, 7 or 8 server.
-
 .SH REPORTING BUGS
 .TP
 Please contact Oracle Linux Support to report any bugs for OLED tools.
