@@ -1,4 +1,4 @@
-# Copyright (c) 2020, Oracle and/or its affiliates.
+# Copyright (c) 2023, Oracle and/or its affiliates.
 # DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
 #
 # This code is free software; you can redistribute it and/or modify it
@@ -18,12 +18,7 @@
 # or visit www.oracle.com if you need additional information or have any
 # questions.
 
-# Run ./configure to generate oled-env.sh
--include oled-env.sh
-export DIST
-export PYTHON_SITEDIR
-export SPECFILE
-export DESTDIR
+VERSION="0.6"
 
 subdirs := tools/lkce tools/kcore-utils tools/memstate tools/kstack tools/syswatch
 subdirs := $(subdirs) scripts
@@ -43,7 +38,6 @@ all:
 clean:
 
 	$(foreach dir,$(subdirs), make BINDIR=$(OLEDBIN) -C $(dir) clean;)
-	[ -f oled-env.sh ] && rm -f oled-env.sh || :
 
 install:
 	@echo "install:$(CURDIR)"
@@ -70,7 +64,7 @@ rpm:
 	rm -rf oled-tools-$(VERSION)
 	rm -f ./oled-tools-$(VERSION).tar.gz
 	mkdir -p oled-tools/tools
-	cp -R Makefile configure oled-env.sh oled.man oled.py oled-tools/
+	cp -R Makefile oled.man oled.py oled-tools/
 	cp -R tools/lkce oled-tools/tools
 	cp -R tools/kcore-utils oled-tools/tools
 	cp -R tools/memstate oled-tools/tools
