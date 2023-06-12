@@ -350,7 +350,7 @@ exit 0
 
 		vmcore = ""
 		vmlinux = ""
-		crash_cmds_file = ""
+		crash_cmds = None
 		outfile = ""
 		for subarg in subargs:
 			subarg = re.sub(r"\s+", "", subarg)
@@ -366,18 +366,8 @@ exit 0
 				vmlinux = entry[1]
 
 			elif "--crash_cmds" in entry[0]:
-				crash_cmds_file = "/tmp/crash_cmds_file"
-				try:
-					file = open(crash_cmds_file, "w")
-					for cmd in entry[1].split(","):
-						cmd  = cmd + "\n"
-						file.write(cmd)
-					#for
-					file.write("quit")
-					file.close()
-				except (IOError, OSError) as e:
-					print("Unable to operate on file: %s" % (crash_cmds_file))
-					return
+				crash_cmds = entry[1].split(",")
+				crash_cmds.append("quit")
 
 			elif "--outfile" in entry[0]:
 				outfile = entry[1]
@@ -396,25 +386,29 @@ exit 0
 			print("error: %s not found" % vmlinux)
 			return
 
-		if crash_cmds_file == "": crash_cmds_file = self.crash_cmds_file
-		if not os.path.exists(crash_cmds_file):
-			print("%s not found" % crash_cmds_file)
-			return
+		if crash_cmds is None:
+			# use configured crash commands file
+			if not os.path.exists(self.crash_cmds_file):
+				print(f"{self.crash_cmds_file} not found")
+				return
 
-		cmd = ("crash", vmcore, vmlinux, "-i", crash_cmds_file)
+			cmd = ("crash", vmcore, vmlinux, "-i", self.crash_cmds_file)
+			cmd_input = None
+		else:
+			# use specified crash commands
+			cmd = ("crash", vmcore, vmlinux)
+			cmd_input = "\n".join(crash_cmds).encode("utf-8")
+
 		print("lkce: executing '{}'".format(" ".join(cmd)))
 
 		if outfile:
 			with open(outfile, "w") as output_fd:
-				subprocess.run(cmd, stdout=output_fd, shell=False)  # nosec
+				subprocess.run(
+					cmd, input=cmd_input, stdout=output_fd,
+					shell=False)  # nosec
 		else:
-			subprocess.run(cmd, stdout=sys.stdout, shell=False)  # nosec
-
-		if crash_cmds_file == "/tmp/crash_cmds_file":
-			try:
-				os.remove(crash_cmds_file)
-			except OSError:
-				pass
+			subprocess.run(
+				cmd, input=cmd_input, stdout=sys.stdout, shell=False)  # nosec
 	#def report
 
 	def configure(self, subargs):
