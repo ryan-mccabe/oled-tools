@@ -28,7 +28,7 @@ import platform
 MAJOR = "0"
 MINOR = "6"
 
-BINDIR="/usr/lib/oled-tools"
+BINDIR = "/usr/libexec/oled-tools"
 
 # cmds
 LKCE = BINDIR + "/lkce"

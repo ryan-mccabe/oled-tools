@@ -26,7 +26,7 @@ rev_subdirs := $(shell echo -n "$(subdirs) " | tac -s ' ')
 OLEDDIR := $(DESTDIR)/etc/oled
 SBINDIR := $(DESTDIR)/usr/sbin
 MANDIR := $(DESTDIR)/usr/share/man/man8
-OLEDBIN := $(DESTDIR)/usr/lib/oled-tools
+OLEDBIN := $(DESTDIR)/usr/libexec/oled-tools
 
 export OLEDDIR
 export MANDIR
