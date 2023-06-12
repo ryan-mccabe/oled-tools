@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Copyright (c) 2022, Oracle and/or its affiliates.
+# Copyright (c) 2023, Oracle and/or its affiliates.
 # DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
 #
 # This code is free software; you can redistribute it and/or modify it
@@ -31,7 +31,7 @@ import logging.handlers
 import os
 import shlex
 import signal
-import subprocess
+import subprocess  # nosec
 import sys
 import time
 
@@ -162,9 +162,12 @@ def exec_action_cmds(cmds: Sequence[str], base_dir: str) -> None:
         os.makedirs(cmd_dir)
 
         with open(os.path.join(cmd_dir, "output"), "x") as log_fd:
+            # We need to execute user-provided commands through a shell.  This
+            # is subject to shell-injection, but this feature is the whole
+            # point of syswatch.
             return subprocess.Popen(
-                cmd, shell=True, close_fds=True, stdout=log_fd, stderr=log_fd,
-                stdin=subprocess.DEVNULL, cwd=cmd_dir)
+                cmd, close_fds=True, stdout=log_fd, stderr=log_fd,
+                stdin=subprocess.DEVNULL, cwd=cmd_dir, shell=True)  # nosec
 
     processes = [exec_cmd(c) for c in cmds]
 
