@@ -23,7 +23,49 @@
 #
 # program for user-interaction
 #
-import sys, subprocess, os, re, platform, fcntl
+import fcntl
+import glob
+import os
+import platform
+import re
+import shutil
+import stat
+import subprocess  # nosec
+import sys
+from typing import Mapping, Optional
+
+
+def update_key_values_file(
+        path: str,
+        key_values: Mapping[str, Optional[str]],
+        sep: str) -> None:
+    """Update key-values in a file.
+
+    For all (key, new_value) pairs in key_values, if value is not None, update
+    the value of that key in the file to new_value; otherwise remove the
+    key-value pair from the file.  The file is assumed to have a key-value per
+    line, with sep as separator.  A line might contain only a key, even without
+    a separator, in which case the value is assumed to be empty.
+    """
+    with open(path) as fdesc:
+        data = fdesc.read().splitlines()
+
+    with open(path, "w") as fdesc:
+        for line in data:
+            key, *_ = line.split("=", maxsplit=1)
+            key = key.strip()
+
+            if key in key_values:
+                new_value = key_values[key]
+
+                # If new_value is not None, update the value; otherwise remove
+                # it (i.e. don't write key-new_value back to the file).
+                if new_value is not None:
+                    fdesc.write(f"{key}{sep}{new_value}\n")
+            else:
+                # line doesn't match lines to update; write it back as is
+                fdesc.write(f"{line}\n")
+
 
 class Lkce:
 	def __init__(self):
@@ -34,7 +76,7 @@ class Lkce:
 		self.LKCE_BINDIR = "/usr/lib/oled-tools"
 
 		#vmlinux_path
-		self.KDUMP_KERNELVER = self.run_command('uname -r')
+		self.KDUMP_KERNELVER = platform.uname().release
 
 		#default values
 		self.ENABLE_KEXEC = "no"
@@ -60,54 +102,11 @@ class Lkce:
 		self.LKCE_KDUMP_DIR = self.LKCE_HOME + "/lkce_kdump.d"
 		self.FSTAB = "/etc/fstab"
 		self.KDUMP_CONF = "/etc/kdump.conf"
-		self.TIMEOUT_PATH = self.run_command('which timeout')
+		self.TIMEOUT_PATH = shutil.which("timeout")
 	#def __init__
 
-	def run_os_command(self, cmd):
-		"""
-		Execute command and return the status.
-		Output of the command is printed to stdout
-		Parameters:
-		cmd : Command to run
-
-		Returns retval: status of the specific command executed.
-		"""
-		try:
-			ret = os.system(cmd)
-		except:
-			print("Unable to execute %s command" % (cmd))
-			return -1
-		return ret
-
-	def run_command(self, cmd):
-		"""
-		Execute command and return the result
-		Parameters:
-		cmd : Command to run
-
-		Returns string: result of the specific command executed.
-		"""
-		try:
-			command = subprocess.Popen(cmd,
-					stdin=None,
-					stdout=subprocess.PIPE,
-					stderr=subprocess.PIPE,
-					shell=True)
-		except:
-			print("Unable to execute %s command" % (cmd))
-			return ""
-
-		out,err = command.communicate()
-		if (sys.version_info[0] == 3):
-			out = out.decode("utf-8").strip()
-
-		return out.strip()
-	#def run_command(self, cmd):
-
 	def configure_default(self):
-		if not os.path.isdir(self.LKCE_HOME):
-			cmd = "mkdir -p " + self.LKCE_HOME
-			self.run_os_command(cmd)
+		os.makedirs(self.LKCE_HOME, exist_ok=True)
 
 		if self.enable_kexec == "yes":
 			print("trying to disable lkce")
@@ -217,8 +216,7 @@ max_out_files=""" + self.MAX_OUT_FILES
 
 	def create_lkce_kdump(self):
 		filename = self.LKCE_KDUMP_SH
-		cmd = "mkdir -p " + self.LKCE_KDUMP_DIR
-		self.run_os_command(cmd)
+		os.makedirs(self.LKCE_KDUMP_DIR, exist_ok=True)
 
 		mount_cmd = "mount -o bind /sysroot"  # OL7 and above
 
@@ -277,8 +275,8 @@ exit 0
 			print("Unable to operate on file: %s" % (filename))
 			return
 
-		cmd = "chmod a+x " + filename
-		self.run_os_command(cmd)
+		mode = os.stat(filename).st_mode
+		os.chmod(filename, mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 	# def create_lkce_kdump
 
 	def remove_lkce_kdump(self):
@@ -291,51 +289,57 @@ exit 0
 			print("error: can not find %s. Please retry after installing kexec-tools" % (self.KDUMP_CONF))
 			return 1
 
-		KUDMP_PRE_LINE = "kdump_pre " + self.LKCE_KDUMP_SH
-		KUDMP_TIMEOUT_LINE = "extra_bins " + self.TIMEOUT_PATH
+		KDUMP_PRE_LINE = f"kdump_pre {self.LKCE_KDUMP_SH}"
+		KDUMP_TIMEOUT_LINE = f"extra_bins {self.TIMEOUT_PATH}"
+
+		with open(self.KDUMP_CONF) as conf_fd:
+			conf_lines = conf_fd.read().splitlines()
+
+		kdump_pre_value = None
+		for line in conf_lines:
+			if line.startswith("kdump_pre "):
+				kdump_pre_value = line
 
 		if arg == "--remove":
-			cmd = "grep -q '^" + KUDMP_PRE_LINE + "$' " + self.KDUMP_CONF
-			ret = self.run_os_command(cmd)
-			if (ret):  # not present
-				print("lkce_kdump entry not set in %s" % (self.KDUMP_CONF))
+			if kdump_pre_value != KDUMP_PRE_LINE:
+				print(f"lkce_kdump entry not set in {self.KDUMP_CONF}")
 				return 1
-			cmd = "sed --in-place '/""" + \
-			KUDMP_PRE_LINE.replace("/", r"\/") + """/d' """ + self.KDUMP_CONF
-			cmd = cmd + "; sed --in-place '/""" + \
-			KUDMP_TIMEOUT_LINE.replace("/", r"\/") + """/d' """ + self.KDUMP_CONF
-			self.run_os_command(cmd)
+
+			# remove lkce_kdump config
+			with open(self.KDUMP_CONF, "w") as conf_fd:
+				for line in conf_lines:
+					if line not in (KDUMP_TIMEOUT_LINE, KDUMP_TIMEOUT_LINE):
+						conf_fd.write(f"{line}\n")
+
 			self.restart_kdump_service()
 			return 0
 
 		#arg == "--add"
-		cmd = "grep -q '^kdump_pre' " + self.KDUMP_CONF
-		ret = self.run_os_command(cmd)
-		if (ret):  # not present
-			cmd = "echo '" + KUDMP_PRE_LINE + "' >> " + self.KDUMP_CONF
-			cmd = cmd + "; echo 'extra_bins " + self.TIMEOUT_PATH + "' >> " + self.KDUMP_CONF
-			self.run_os_command(cmd)
-			self.restart_kdump_service()
+		if kdump_pre_value == KDUMP_PRE_LINE:
+			print("lkce_kdump is already enabled to run lkce scripts")
+		elif kdump_pre_value:
+			# kdump_pre is enabled, but it is not our lkce_kdump script
+			print(f"lkce_kdump entry not set in {self.KDUMP_CONF} "
+			      "(manual setting needed)\n"
+			      f"present entry in kdump.conf:\n{kdump_pre_value}\n"
+			      "Hint: edit the present kdump_pre script and make it run"
+			      f" {self.LKCE_KDUMP_SH}")
+			return 1
 		else:
-			cmd = "grep -q '^" + KUDMP_PRE_LINE + "$' " + self.KDUMP_CONF
-			if (self.run_os_command(cmd)):  # kdump_pre is enabled, but it is not our lkce_kdump script
-				print("lkce_kdump entry not set in %s (manual setting needed)" % (self.KDUMP_CONF))
-				print("\npresent entry in kdump.conf")
-				cmd = "grep ^kdump_pre " + self.KDUMP_CONF
-				self.run_os_command(cmd)
-				print("\nHint:")
-				print("edit the present kdump_pre script and make it run %s" % (self.LKCE_KDUMP_SH))
-				return 1
-			else:
-				print("lkce_kdump is already enabled to run lkce scripts")
-				return 0
+			# add lkce_kdump config
+			with open(self.KDUMP_CONF, "a") as conf_fd:
+				conf_fd.write(
+					f"{KDUMP_PRE_LINE}\n{KDUMP_TIMEOUT_LINE}\n")
+			self.restart_kdump_service()
+
+		return 0
 	# def update_kdump_conf
 
 	def restart_kdump_service(self):
-		cmd = "systemctl restart kdump"  # OL7 and above
+		cmd = ("systemctl", "restart", "kdump")  # OL7 and above
 
-		print("Restarting kdump service..."),
-		self.run_os_command(cmd)
+		print("Restarting kdump service...")
+		subprocess.run(cmd, shell=False)  # nosec
 		print("done!")
 	# def restart_kdump_service
 
@@ -397,20 +401,28 @@ exit 0
 			print("%s not found" % crash_cmds_file)
 			return
 
-		cmd = "crash " + vmcore + " " + vmlinux + " -i " + crash_cmds_file
-		if outfile != "": cmd = cmd + " > " + outfile
-		print("lkce: executing '%s'" % cmd)
-		self.run_os_command(cmd)
+		cmd = ("crash", vmcore, vmlinux, "-i", crash_cmds_file)
+		print("lkce: executing '{}'".format(" ".join(cmd)))
+
+		if outfile:
+			with open(outfile, "w") as output_fd:
+				subprocess.run(cmd, stdout=output_fd, shell=False)  # nosec
+		else:
+			subprocess.run(cmd, stdout=sys.stdout, shell=False)  # nosec
 
 		if crash_cmds_file == "/tmp/crash_cmds_file":
-			cmd = "rm -f " + crash_cmds_file
-			self.run_os_command(cmd)
+			try:
+				os.remove(crash_cmds_file)
+			except OSError:
+				pass
 	#def report
 
 	def configure(self, subargs):
 		if not subargs: #default
 			subargs = ["--show"]
 
+		values_to_update = {}
+		vmcore = None
 		filename = self.LKCE_CONFIG_FILE
 		for subarg in subargs:
 			if subarg == "--default":
@@ -431,41 +443,29 @@ exit 0
 				entry = re.split("=", subarg)
 				if len(entry) < 2:
 					print("error: unknown configure option %s" % subarg)
-					continue
+					return
 
 				if "--vmlinux_path" in entry[0]:
-					pathv=entry[1].replace("/", "\/")
-					cmd = "sed -i 's/vmlinux_path=.*/vmlinux_path= " + pathv +"/' " + filename
-					self.run_os_command(cmd)
-					print("lkce: set vmlinux_path to %s" % entry[1])
-
+					values_to_update["vmlinux_path"] = entry[1]
 				elif "--crash_cmds_file" in entry[0]:
-					pathv=entry[1].replace("/", "\/")
-					cmd = "sed -i 's/crash_cmds_file=.*/crash_cmds_file= " + pathv +"/' " + filename
-					self.run_os_command(cmd)
-					print("lkce: set crash_cmds_file to %s" % entry[1])
-
+					values_to_update["crash_cmds_file"] = entry[1]
 				elif "--lkce_outdir" in entry[0]:
-					pathv=entry[1].replace("/", "\/")
-					cmd = "sed -i 's/lkce_outdir=.*/lkce_outdir= " + pathv +"/' " + filename
-					self.run_os_command(cmd)
-					print("lkce: set lkce output directory to %s" % entry[1])
-
+					values_to_update["lkce_outdir"] = entry[1]
 				elif "--vmcore" in entry[0]:
-					if self.config_vmcore(entry[1]):
-						return 1
-
-					cmd = "sed -i 's/vmcore=.*/vmcore= " + entry[1] +"/' " + filename
-					self.run_os_command(cmd)
-					print("lkce: set vmcore to %s" % entry[1])
-
+					vmcore = entry[1]
+					values_to_update["vmcore"] = entry[1]
 				elif "--max_out_files" in entry[0]:
-					cmd = "sed -i 's/max_out_files=.*/max_out_files= " + entry[1] +"/' " + filename
-					self.run_os_command(cmd)
-					print("lkce: set max_out_files to %s" % entry[1])
+					values_to_update["max_out_files"] = entry[1]
 				else:
 					print("error: unknown configure option %s" % subarg)
+					return
 		#for
+
+		if values_to_update:
+			if vmcore and self.config_vmcore(vmcore):
+				return
+
+			update_key_values_file(filename, values_to_update, sep="=")
 	#def configure
 
 	def config_vmcore(self, value):
@@ -485,35 +485,32 @@ exit 0
 	#def config_vmcore
 
 	def enable_lkce_kexec(self):
-		filename = self.LKCE_KDUMP_SH
-		if not os.path.exists(filename):
+		if not os.path.exists(self.LKCE_KDUMP_SH):
 			self.create_lkce_kdump()
 
 		if self.update_kdump_conf("--add") == 1:
 			return
 
-		filename = self.LKCE_CONFIG_FILE
-		cmd = "sed -i 's/enable_kexec=.*/enable_kexec=yes/' " + filename
-		self.run_os_command(cmd)
+		update_key_values_file(
+			self.LKCE_CONFIG_FILE, {"enable_kexec": "yes"}, sep="=")
 		print("enabled_kexec mode")
 	# def enable_lkce_kexec
 
 	def disable_lkce_kexec(self):
-		filename = self.LKCE_CONFIG_FILE
-		if not os.path.exists(filename):
-			print("config file not found")
+		if not os.path.exists(self.LKCE_CONFIG_FILE):
+			print(f"config file '{self.LKCE_CONFIG_FILE}' not found")
 			return
 
 		if self.update_kdump_conf("--remove") == 1:
 			return
 
-		cmd = "sed -i 's/enable_kexec=.*/enable_kexec=no/' " + filename
-		self.run_os_command(cmd)
+		update_key_values_file(
+			self.LKCE_CONFIG_FILE, {"enable_kexec": "no"}, sep="=")
 
-		filename = self.LKCE_KDUMP_SH
-		if os.path.exists(filename):
-			cmd = "rm -f " + self.LKCE_KDUMP_SH
-			self.run_os_command(cmd)
+		try:
+			os.remove(self.LKCE_KDUMP_SH)
+		except OSError:
+			pass
 		print("disabled kexec mode")
 	#def disable kexec
 
@@ -524,31 +521,37 @@ exit 0
 			print("NOTE: %s: file not found"%(self.vmlinux_path));
 			print("kernel debuginfo rpm installed?")
 
-		cmd = "rpm -qa | grep -q crash"
-		ret = os.system(cmd)
-		if (ret):  # not present
-                    print("NOTE: crash is not installed");
+		if subprocess.run(
+				("rpm", "-q", "crash"), shell=False).returncode != 0:  # nosec
+			print("NOTE: crash is not installed");
 	#def status
 
 	def clean(self, subarg):
 		if "--all" in subarg:
 			val = input("lkce removes all the files in %s dir. do you want to proceed(yes/no)? [no]:" % self.LKCE_OUTDIR)
 			if "yes" in val:
-				cmd = "rm " + self.LKCE_OUTDIR + "/crash*out 2> /dev/null"
-				self.run_os_command(cmd)
+				for file in glob.glob(f"{self.LKCE_OUTDIR}/crash*out"):
+					try:
+						os.remove(file)
+					except OSError:
+						pass
 			#if "yes"
 		else:
 			val = input("lkce deletes all but last three %s/crash*out files. do you want to proceed(yes/no)? [no]:" % self.LKCE_OUTDIR)
 			if "yes" in val:
-				cmd = "ls -r " + self.LKCE_OUTDIR + "/crash*out 2>/dev/null| tail -n +4 | xargs rm 2> /dev/null"
-				self.run_os_command(cmd) #start removing from 4th entry
+				crash_files = glob.glob(f"{self.LKCE_OUTDIR}/crash*out")
+
+				# remove all crash files but the 4 newest ones
+				for file in sorted(crash_files, reverse=True)[4:]:
+					try:
+						os.remove(file)
+					except OSError:
+						pass
 	#def clean
 
 	def listfiles(self):
 		dirname = self.LKCE_OUTDIR
-		if not os.path.exists(dirname):
-			cmd = "mkdir -p " + dirname
-			self.run_os_command(cmd)
+		os.makedirs(dirname, exist_ok=True)
 
 		print("Followings are the crash*out found in %s dir:" % dirname)
 		for filename in os.listdir(dirname):
