@@ -19,6 +19,7 @@
 # Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
 # or visit www.oracle.com if you need additional information or have any
 # questions.
+"""Logging module."""
 
 import math
 import os
@@ -28,6 +29,7 @@ import sys
 from memstate_lib import Base
 from memstate_lib import constants
 
+
 class Logfile(Base):
     """
     Captures output in desired log file and sets up logrotate config
@@ -35,6 +37,7 @@ class Logfile(Base):
     """
 
     init_done = False
+
     def __init__(self, interval):
         if not Logfile.init_done:
             end = constants.LOGFILE.rfind("/")
@@ -44,15 +47,18 @@ class Logfile(Base):
                 os.makedirs(parent_dir)
 
             if not self.__disk_space_available(parent_dir):
-                msg = "Exiting! Unable to verify that there is enough disk space available in " \
-                        + str(parent_dir) + "; check the man page for more details."
+                msg = (
+                    "Exiting! Unable to verify that there is enough disk space"
+                    f"available in {parent_dir}; check the man page for more "
+                    "details.")
                 self.log_debug(msg)
                 print(msg)
                 sys.exit(1)
 
             self.log = open(constants.LOGFILE, "a")
-            msg = "Capturing memstate data every " + str(interval) + " seconds, in log: " \
-                    + constants.LOGFILE
+            msg = (
+                f"Capturing memstate data every {interval} seconds, in log: "
+                f"{constants.LOGFILE}")
             print(msg + "; press Ctrl-C to stop.")
             self.log_debug(msg + ".")
             Logfile.init_done = True
@@ -68,25 +74,28 @@ class Logfile(Base):
 
     @staticmethod
     def setup_logrotate():
-        f = open(constants.LOGROTATEFILE, "w")
-        f.write(constants.LOGFILE + " {\n")
-        f.write("\trotate 20\n")
-        f.write("\tsize 20M\n")
-        f.write("\tcopytruncate\n")
-        f.write("\tcompress\n")
-        f.write("\tmissingok\n")
-        f.write("}\n")
-        f.close()
+        """Setup logrotate(8) configuration."""
+        with open(constants.LOGROTATEFILE, "w") as conf_fd:
+            conf_fd.write(
+                f"{constants.LOGFILE} {{\n"
+                "\trotate 20\n"
+                "\tsize 20M\n"
+                "\tcopytruncate\n"
+                "\tcompress\n"
+                "\tmissingok\n"
+                "}\n")
 
     def write(self, message):
+        """Write message to log file."""
         self.log.write(message)
 
     @staticmethod
     def flush():
-        pass
+        """Flush log file."""
 
     @staticmethod
     def rotate_file():
+        """Rotate log file."""
         subprocess.run(
             ("logrotate", constants.LOGROTATEFILE),
             check=False, shell=False)  # nosec

@@ -19,6 +19,7 @@
 # Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
 # or visit www.oracle.com if you need additional information or have any
 # questions.
+"""Helper module to analyze swap state."""
 
 from collections import OrderedDict
 import glob
@@ -27,6 +28,7 @@ import time
 from memstate_lib import Base
 from memstate_lib import Meminfo
 from memstate_lib import constants
+
 
 class Swap(Base):
     """ Extracts per-process swap usage from /proc/<pid>/status """
@@ -37,6 +39,7 @@ class Swap(Base):
         Sort in descending order, and display the top <num> users of swap.
         @param num: The number of top swap users to print.
         """
+        # pylint: disable=too-many-locals
         swap = {}
         num_printed = 0
         meminfo = Meminfo()
@@ -48,39 +51,42 @@ class Swap(Base):
         num_files_scanned = 0
         for filestr in glob.glob("/proc/*/status"):
             pid = filestr.split("/")[2]
-            name_search_str = '^Name:\s*.+'
-            vmswap_search_str = '^VmSwap:\s*[0-9]+'
+            name_search_str = r'^Name:\s*.+'
+            vmswap_search_str = r'^VmSwap:\s*[0-9]+'
             try:
-                with open(filestr, 'r') as f:
-                    data = f.read()
-                    f.close()
+                with open(filestr, 'r') as status_fd:
+                    data = status_fd.read()
                     num_files_scanned = num_files_scanned + 1
                 name = re.search(name_search_str, data)
-                hdr = str(name.group(0).split(":")[1].strip()) + "(pid=" + pid + ")"
-                match_list = re.findall(vmswap_search_str, data, flags=re.MULTILINE)
+                comm = name.group(0).split(":")[1].strip()
+                hdr = f"{comm}(pid={pid})"
+                match_list = re.findall(
+                    vmswap_search_str, data, flags=re.MULTILINE)
                 for match in match_list:
-                    v = match.split(":")[1].strip()
-                    val = int(swap.get(hdr, 0)) + int(v)
-                    swap.update({hdr: val})
-                time.sleep(0.01) # Sleep for 10 ms to avoid hogging CPU
-            except (IOError, OSError) as e:
+                    swap_kb = int(match.split(":")[1].strip())
+                    swap[hdr] = swap_kb + swap.get(hdr, 0)
+                time.sleep(0.01)  # Sleep for 10 ms to avoid hogging CPU
+            except OSError:
                 pass
         end_time = time.time()
-        self.log_debug("Time taken to extract swap usage values from " + str(num_files_scanned) \
-                + " /proc/<pid>/status files is " + str(round(end_time - start_time)) \
-                + " second(s).")
-        swap_sorted = OrderedDict(sorted(list(swap.items()), key=lambda x:x[1], reverse=True))
-        for s in swap_sorted:
+        self.log_debug(
+            f"Time taken to extract swap usage values from {num_files_scanned}"
+            f" /proc/<pid>/status files is {round(end_time - start_time)} "
+            "second(s).")
+        swap_sorted = OrderedDict(
+            sorted(swap.items(), key=lambda x: x[1], reverse=True))
+        for comm, swap_kb in swap_sorted.items():
             if num_printed >= num:
                 break
-            if int(swap_sorted[s]) == 0:
+            if int(swap_kb) == 0:
                 if num_printed == 0:
                     print("No swap usage found.")
                 break
-            self.print_pretty_kb(s, swap_sorted[s])
+            self.print_pretty_kb(comm, swap_kb)
             num_printed += 1
 
     def memstate_check_swap(self, num=constants.NUM_TOP_SWAP_USERS):
+        """Check state of swap."""
         if num == constants.NO_LIMIT:
             self.print_header_l1("Swap users")
         else:
