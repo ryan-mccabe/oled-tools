@@ -32,7 +32,7 @@ make %{?_smp_mflags}
 rm -rf $RPM_BUILD_ROOT
 make install DESTDIR=$RPM_BUILD_ROOT DIST=%{?dist} SPECFILE="1"
 
-%define oled_d %{_usr}/lib/oled-tools
+%define oled_d %{_usr}/libexec/oled-tools
 %define oled_etc_d /etc/oled/
 %define memstate_lib %{python3_sitelib}/memstate_lib/
 %define lkce_d %{oled_etc_d}/lkce
