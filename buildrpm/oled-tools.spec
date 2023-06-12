@@ -5,6 +5,8 @@ Summary:	Diagnostic tools for more efficient and faster debugging on Oracle Linu
 Requires:	zlib
 Requires:	bzip2-libs
 Requires:	elfutils-libs
+Requires:	python3
+BuildRequires:	python3-devel
 BuildRequires:	zlib-devel
 BuildRequires:	bzip2-devel
 BuildRequires:	elfutils-devel
@@ -18,22 +20,10 @@ oled-tools is a collection of command line tools, scripts, config files, etc.,
 that will aid in faster and better debugging of problems on Oracle Linux. It
 contains: lkce, memstate, kstack, filecache, dentrycache and syswatch.
 
-# avoid OL8 build error. We have to fix this eventually
-%if 0%{?el8}
-%define debug_package %{nil}
-%endif
-
 %prep
 %setup -q
 
-%if 0%{?el8}
-find -type f -exec sed -i '1s=^#!/usr/bin/\(python\|env python\)[23]\?=#!%{__python3}=' {} +
-find . -type f -name "Makefile" -print0 | xargs -0 sed -i  's/\bpython\b/python3/g'
-find -type f -exec sed -i 's/\braw_input\b/input/g' {} \;
-%endif
-
 %build
-%configure
 make %{?_smp_mflags}
 
 
@@ -43,11 +33,7 @@ make install DESTDIR=$RPM_BUILD_ROOT DIST=%{?dist} SPECFILE="1"
 
 %define oled_d %{_usr}/lib/oled-tools
 %define oled_etc_d /etc/oled/
-%if 0%{?el8}
-%define memstate_lib %{python3_sitearch}/memstate_lib/
-%else
-%define memstate_lib %{python_sitelib}/memstate_lib/
-%endif
+%define memstate_lib %{python3_sitelib}/memstate_lib/
 %define lkce_d %{oled_etc_d}/lkce
 %define lkce_kdump_d %{lkce_d}/lkce_kdump.d
 %define scripts_d %{oled_d}/scripts
@@ -101,12 +87,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man8/oled.8.gz
 
 # memstate
-%if 0%{?el8}
 %exclude %{memstate_lib}/__pycache__/*.pyc
-%else
-%exclude %{memstate_lib}/*.pyc
-%exclude %{memstate_lib}/*.pyo
-%endif
 %{oled_d}/memstate
 %{memstate_lib}/base.py
 %{memstate_lib}/buddyinfo.py

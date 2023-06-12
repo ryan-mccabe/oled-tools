@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Oracle and/or its affiliates.
+# Copyright (c) 2023, Oracle and/or its affiliates.
 # DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
 #
 # This code is free software; you can redistribute it and/or modify it
@@ -18,6 +18,7 @@
 # or visit www.oracle.com if you need additional information or have any
 # questions.
 
+PYTHON_SITEDIR=$(shell python3 -c "import site; print(site.getsitepackages()[-1])")
 MEMSTATE_LIB=$(DESTDIR)$(PYTHON_SITEDIR)/memstate_lib
 CURLIB=$(CURDIR)/memstate_lib
 
