@@ -103,14 +103,6 @@ around 20 - 40 MB. The tool tries not to fill up the partition, so it checks
 before running if there is at least 50 MB available in that file system and if
 the disk utilization is <= 85%. If not, it will exit with an error message.
 
-.SH MISC
-.TP
-The tool can be run on any Oracle Linux 6, 7 or 8 server.
-
 .SH REPORTING BUGS
 .TP
 Please contact Oracle Linux Support to report any bugs for OLED tools.
-
-.SH SEE ALSO
-.TP
-oled memtracker

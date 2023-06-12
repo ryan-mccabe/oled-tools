@@ -4,7 +4,7 @@
 oled lkce \- Linux Kernel Core Extractor
 
 .SH SYNOPSIS
-\fB oled lkce\fR [report \fIreport-options\fR] [configure \fIconfig-options\fR] [enable|disable|status] [clean|list|help]
+\fB oled lkce\fR [report \fIreport-options\fR] [configure \fIconfig-options\fR] [enable_kexec|disable_kexec|status] [clean|list|help]
 
 .SH DESCRIPTION
 \fBlkce command\fR is used to interact with Linux Kernel Core Extractor[LKCE]. It is used to generate report from vmcore. lkce can run user scripts in kexec kernel.
