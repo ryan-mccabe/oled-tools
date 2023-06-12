@@ -19,10 +19,12 @@
 # Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
 # or visit www.oracle.com if you need additional information or have any
 # questions.
+"""oled-tools driver"""
 
+import argparse
 import sys
 import os
-import platform
+from typing import Sequence
 
 # Oracle Linux Enhanced Diagnostic Tools
 MAJOR = "0"
@@ -30,147 +32,74 @@ MINOR = "6"
 
 BINDIR = "/usr/libexec/oled-tools"
 
-# cmds
-LKCE = BINDIR + "/lkce"
-MEMSTATE = BINDIR + "/memstate"
-KSTACK = BINDIR + "/kstack"
-SYSWATCH = BINDIR + "/syswatch"
-# for uek4
-FILECACHE_UEK4 = BINDIR + "/filecache_uek4"
-DENTRYCACHE_UEK4 = BINDIR + "/dentrycache_uek4"
-# for uek5 and higher
-FILECACHE = BINDIR + "/filecache"
-DENTRYCACHE = BINDIR + "/dentrycache"
+# Valid oled subcomands
+OLED_CMDS = (
+    "dentrycache", "filecache", "kstack", "lkce", "memstate", "syswatch")
 
-def help(error):
-    print("Oracle Linux Enhanced Diagnostic Tools")
-    print("Usage:")
-    print("  %s <command> <subcommand>" % sys.argv[0])
-    print("Valid commands:")
-    print("     lkce            -- Linux Kernel Core Extractor")
-    print("     memstate        -- Capture and analyze memory usage statistics")
-    print("     filecache       -- List the biggest files in page cache")
-    print("     dentrycache     -- List a sample of active dentries")
-    print("     kstack          -- Gather kernel stack based on the process status or PID")
-    print("     syswatch        -- Execute user-provided commands based on the CPU utilization")
-    print("     help            -- Show this help message")
-    print("     version         -- Print version information")
+# oled subcommands with a UEK4 variant
+OLED_UEK4_CMDS = ("filecache", "dentrycache")
 
-    if (error):
-        sys.exit(1)
-    sys.exit(0)
 
-def is_uek4():
-    kernel_ver = os.uname()[2]
-    if kernel_ver.find("4.1.12") == 0:
-        return True
-    return False
+def parse_args(args: Sequence[str]) -> argparse.Namespace:
+    """Parse CLI arguments."""
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        usage="%(prog)s {-h | -v | COMMAND [ARGS]}",
+        description="""\
+Valid commands:
+     lkce        -- Linux Kernel Core Extractor
+     memstate    -- Capture and analyze memory usage statistics
+     filecache   -- List the biggest files in page cache
+     dentrycache -- List a sample of active dentries
+     kstack      -- Gather kernel stack based on the process status or PID
+     syswatch    -- Execute user-provided commands based on the CPU utilization
+""",
+        epilog="NOTE: Must run as root.")
 
-def run_as_root():
-    if (os.geteuid() != 0):
-        print("Run as root only")
-        sys.exit(1)
+    parser.add_argument(
+        "-v", "--version", action="version",
+        version=(
+            f"Oracle Linux Enhanced Diagnostics (oled) v{MAJOR}.{MINOR} "
+            "(developer preview release)"))
+    parser.add_argument(
+        "command", metavar="COMMAND", choices=OLED_CMDS,
+        help=argparse.SUPPRESS)
+    parser.add_argument(
+        "args", metavar="ARGS", nargs=argparse.REMAINDER,
+        help=argparse.SUPPRESS)
 
-def cmd_version():
-	version = "%s.%s"%(MAJOR, MINOR)
-	print("Oracle Linux Enhanced Diagnostics (oled): version " + version + ".")
-	print("Note that this is a developer preview release.")
+    return parser.parse_args(args)
 
-def cmd_memstate(args):
-    cmdline = MEMSTATE
-    for arg in args:
-        cmdline = cmdline + " %s" % arg
-    ret = os.system(cmdline)
-    return ret
 
-def cmd_lkce(args):
-    cmdline = LKCE
-    for arg in args:
-        cmdline = cmdline + " %s" % arg
-    ret = os.system(cmdline)
-    return ret
+def is_uek4() -> bool:
+    """Whether kernel is UEK4."""
+    return os.uname().release.startswith("4.1.12")
 
-def cmd_filecache(args):
-    if is_uek4():
-        cmdline = FILECACHE_UEK4
-    else:
-        cmdline = FILECACHE
 
-    cmdline = cmdline + " " + " ".join(args)
-    ret = os.system(cmdline)
-    return ret
+def main(args: Sequence[str]) -> None:
+    """Main function."""
+    options = parse_args(args)
 
-def cmd_dentrycache(args):
-    if is_uek4():
-        cmdline = DENTRYCACHE_UEK4
-    else:
-        cmdline = DENTRYCACHE
-
-    cmdline = cmdline + " " + " ".join(args)
-    ret = os.system(cmdline)
-    return ret
-
-def cmd_filecache(args):
-    if is_uek4():
-        cmdline = FILECACHE_UEK4
-    else:
-        cmdline = FILECACHE
-
-    cmdline = cmdline + " " + " ".join(args)
-    ret = os.system(cmdline)
-    return ret
-
-def cmd_kstack(args):
-    cmdline = KSTACK
-    cmdline = cmdline + " " + " ".join(args)
-    ret = os.system(cmdline)
-    return ret
-
-def cmd_syswatch(args):
-    cmdline = SYSWATCH + " " + " ".join(args)
-    return os.system(cmdline)
-
-def cmd_help(args):
-    help(False)
-
-def main():
-    run_as_root()
-
-    if len(sys.argv) < 2:
-        help(True)
-
-    cmd = sys.argv[1]
-    args = sys.argv[2:]
-
-    if cmd == "memstate":
-        ret = cmd_memstate(args)
-        sys.exit(ret)
-    elif cmd == "lkce":
-        ret = cmd_lkce(args)
-        sys.exit(ret)
-    elif cmd == "filecache":
-        ret = cmd_filecache(args)
-        sys.exit(ret)
-    elif cmd == "dentrycache":
-        ret = cmd_dentrycache(args)
-        sys.exit(ret)
-    elif cmd == "kstack":
-        ret = cmd_kstack(args)
-        sys.exit(ret)
-    elif cmd == "syswatch":
-        ret = cmd_syswatch(args)
-        sys.exit(ret)
-    elif cmd == "version" or cmd == "--version":
-        ret = cmd_version()
-        sys.exit(ret)
-    elif cmd == "help":
-        ret = cmd_help(args)
-        sys.exit(ret)
-    else:
-        print("Invalid command: \"" + cmd + "\"")
+    # only allow root to execute subcommands
+    if os.getuid() != 0:
+        print("Run as root only", file=sys.stderr)
         sys.exit(1)
 
-    help(True)
+    cmd = options.command
+
+    if is_uek4() and cmd in OLED_UEK4_CMDS:
+        cmd = f"{cmd}_uek4"
+
+    exec_path = os.path.join(BINDIR, cmd)
+    prog_name = f"oled-{cmd}"
+    exec_args = [prog_name] + options.args
+
+    try:
+        os.execv(exec_path, exec_args)  # nosec
+    except Exception:
+        print(f"Error executing: {exec_path} {exec_args}", file=sys.stderr)
+        raise
+
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])
