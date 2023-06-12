@@ -19,6 +19,9 @@
 # Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
 # or visit www.oracle.com if you need additional information or have any
 # questions.
+"""Public exports of memstate_lib module."""
+
+# flake8: noqa
 
 from .base import Base
 from .base import LockFile

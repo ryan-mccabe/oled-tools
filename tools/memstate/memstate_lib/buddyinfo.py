@@ -19,11 +19,13 @@
 # Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
 # or visit www.oracle.com if you need additional information or have any
 # questions.
+"""Helper module to check buddyinfo."""
 
 import re
 
 from memstate_lib import Base
 from memstate_lib import constants
+
 
 class Buddyinfo(Base):
     """ Analyzes output from /proc/buddyinfo """
@@ -64,11 +66,11 @@ class Buddyinfo(Base):
 
     def check_fragmentation_status(self, num_numa_nodes=1):
         """
-        Parses the output of 'cat /proc/buddyinfo' for each 'Normal' zone to check
-        for fragmentation status. If the amount of memory available in higher-order
-        chunks is <X% of free memory, it flags the system as fragmented. Higher-
-        order chunks are order-4 and above; lower-order chunks are order-3 and
-        below.
+        Parses the output of 'cat /proc/buddyinfo' for each 'Normal' zone to
+        check for fragmentation status. If the amount of memory available in
+        higher-order chunks is <X% of free memory, it flags the system as
+        fragmented. Higher-order chunks are order-4 and above; lower-order
+        chunks are order-3 and below.
         """
         fragmented = False
         fragmented_nodes = []
@@ -84,8 +86,8 @@ class Buddyinfo(Base):
             if "Normal" in line:
                 buddyinfo = line.split()
                 # buddyinfo is a list containing elements like:
-                # ['Node', '0,', 'zone', 'Normal', '124', '186', '127', '127', '38', '10', \
-                #       '1', '3', '3', '1', '22451']
+                # ['Node', '0,', 'zone', 'Normal', '124', '186', '127', '127',
+                #       '38', '10', '1', '3', '3', '1', '22451']
                 current_node = buddyinfo[1][:-1]
                 del buddyinfo[0:4]
 
@@ -109,17 +111,19 @@ class Buddyinfo(Base):
                         fragmented_nodes.append(current_node)
 
                 print(line)
-                print("Total: " + str(total) + " KB;\t\tLow: " + str(low) + " KB (" \
-                        + str(low_percent) + "%);" + "\t\tHigh: " + str(high) + " KB (" \
-                        + str(high_percent) + "%)")
+                print(f"Total: {total} KB;\t\tLow: {low} KB ({low_percent}%);"
+                      f"\t\tHigh: {high} KB ({high_percent}%)")
         if fragmented is True:
             print("")
             if num_numa_nodes > 1:
                 node_str = ", ".join(fragmented_nodes)
-                self.print_warn("Memory on NUMA node(s) (" + node_str + ") " \
-                        "is fragmented; system may run into compaction stalls.")
+                self.print_warn(
+                    f"Memory on NUMA node(s) ({node_str}) is fragmented; "
+                    "system may run into compaction stalls.")
             else:
-                self.print_warn("Memory is fragmented - system may run into compaction stalls.")
+                self.print_warn(
+                    "Memory is fragmented - system may run into compaction "
+                    "stalls.")
             self.__display_per_zone_data()
 
     def __display_per_zone_data(self):
@@ -134,8 +138,11 @@ class Buddyinfo(Base):
         if vmstat == "":
             self.print_error("Unable to read file /proc/vmstat")
             return
-        interesting = ['compact', 'allocstall_normal', 'kswapd_low_wmark_hit_quickly',\
-                'kswapd_high_wmark_hit_quickly', 'drop_', 'oom_', 'zone_reclaim_failed']
+        interesting = (
+            'compact', 'allocstall_normal', 'kswapd_low_wmark_hit_quickly',
+            'kswapd_high_wmark_hit_quickly', 'drop_', 'oom_',
+            'zone_reclaim_failed'
+        )
         print("")
         self.print_header_l2("vmstat")
         for line in vmstat.splitlines():

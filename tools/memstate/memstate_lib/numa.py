@@ -19,6 +19,7 @@
 # Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
 # or visit www.oracle.com if you need additional information or have any
 # questions.
+"""Helper modulo to check and report NUMA information."""
 
 from __future__ import print_function
 from collections import OrderedDict
@@ -27,6 +28,7 @@ import time
 from memstate_lib import Base
 from memstate_lib import constants
 from memstate_lib import Hugepages
+
 
 class Numa(Base):
     """ Analyzes output from /proc/<pid>/numa_maps """
@@ -44,10 +46,10 @@ class Numa(Base):
             self.num_numa_nodes = self.__get_num_numa_nodes_numamaps()
 
     def __read_numa_maps_file(self, infile):
-        n =  self.open_file(infile, 'r')
-        if n:
-            self.numa_maps = n.read()
-            n.close()
+        fdesc = self.open_file(infile, 'r')
+        if fdesc:
+            self.numa_maps = fdesc.read()
+            fdesc.close()
         else:
             self.print_error("Unable to read input file '" + str(infile) + "'")
             self.numa_maps = ""
@@ -67,10 +69,10 @@ class Numa(Base):
             pid = filestr.split("/")[2]
             comm = self.read_text_file(
                 f"/proc/{pid}/comm", on_error="UNKOWN").strip()
-            n =  self.open_file(filestr, 'r')
-            if not n:
+            fdesc = self.open_file(filestr, 'r')
+            if not fdesc:
                 continue
-            data = n.read()
+            data = fdesc.read()
             pstr = str(comm) + "(pid:" + pid + "):"
             if data:
                 self.numa_maps += pstr
@@ -78,28 +80,29 @@ class Numa(Base):
                 self.numa_maps += data
                 self.numa_maps += newline
             num_files_scanned = num_files_scanned + 1
-            n.close()
-            time.sleep(0.01) # Sleep for 10 ms, to avoid hogging CPU
+            fdesc.close()
+            time.sleep(0.01)  # Sleep for 10 ms, to avoid hogging CPU
         end_time = time.time()
-        self.log_debug("Time taken to read " + str(num_files_scanned) + " /proc/<pid>/numa_maps " \
-                " files is: " + str(round(end_time - start_time)) + " second(s).")
+        self.log_debug(
+            f"Time taken to read {num_files_scanned} /proc/<pid>/numa_maps "
+            f"files is: {round(end_time - start_time)} second(s).")
         self.numa_maps += separator
         self.numa_maps += newline
 
-    def print_numa_headers(self):
+    def __print_numa_headers(self):
         print("{0: >41}".format("Node 0"), end=' ')
         for i in range(1, self.num_numa_nodes):
             print("{0: >15}".format("Node " + str(i)), end=' ')
         print("")
 
-    def print_numastat_headers(self):
+    def __print_numastat_headers(self):
         print("{0: >48}".format("Node 0"), end=' ')
         for i in range(1, self.num_numa_nodes):
             print("{0: >17}".format("Node " + str(i)), end=' ')
         print("")
 
     @staticmethod
-    def print_pretty_numastat_kb(str_msg, numa_arr_kb):
+    def __print_pretty_numastat_kb(str_msg, numa_arr_kb):
         print("{0: <30}".format(str_msg + ": "), end=' ')
         for _, val in enumerate(numa_arr_kb):
             print("{0: >14}".format(str(val)) + " KB", end=' ')
@@ -107,7 +110,9 @@ class Numa(Base):
 
     def __check_numa_maps_bindings(self):
         """
-        Parse the output of /proc/*/numa_maps, and print any interesting mappings.
+        Parse the output of /proc/*/numa_maps, and print any interesting
+        mappings.
+
         Right now, we check for:
         - explicit bindings to any NUMA node, if they exist
         """
@@ -120,9 +125,11 @@ class Numa(Base):
             self.print_error("Unable to read numa_maps.")
             return
         for line in self.numa_maps.splitlines():
-            if not line[:1].isdigit() and len(line.split()) == 1 and line[-1] == ":":
-            # This needs to find both these patterns of strings (with or without pid):
-            # "oracle_105390_w:" as well as "systemd-journal(pid:3187):"
+            if (not line[:1].isdigit() and len(line.split()) == 1
+                    and line[-1] == ":"):
+                # This needs to find both these patterns of strings (with or
+                # without pid):
+                # "oracle_105390_w:" as well as "systemd-journal(pid:3187):"
                 header_str = line + "\n"
                 if found_something:
                     matched = matched + "\n" + printstr
@@ -132,21 +139,22 @@ class Numa(Base):
                 printstr = printstr + line + "\n"
                 found_something = True
         end_time = time.time()
-        self.log_debug("Time taken to check numa_maps for explicit binding, etc., is " \
-                + str(round(end_time - start_time)) + " second(s).")
+        self.log_debug(
+            "Time taken to check numa_maps for explicit binding, etc., is "
+            f"{round(end_time - start_time)} second(s).")
         if matched:
             print("\nParsing numa_maps; these lines might be interesting:")
             print(matched)
 
     def __is_low_memfree(self, memfree_kb, memtotal_kb):
         if not memfree_kb or not memtotal_kb:
-            self.print_error("Unable to read memfree/memtotal values per NUMA node.")
+            self.print_error(
+                "Unable to read memfree/memtotal values per NUMA node.")
             return False
-        free_ratio_list = []
-        for i in range(0, len(memtotal_kb)):
-            free_ratio = round(float(memfree_kb[i])/float(memtotal_kb[i]), 2)
-            free_ratio_list.append(free_ratio)
-        lowest_ratio = min(float(val) for val in free_ratio_list)
+        lowest_ratio = min(
+            round(float(free) / float(total), 2)
+            for total, free in zip(memtotal_kb, memfree_kb)
+        )
         if lowest_ratio <= constants.NUMASTAT_MIN_MEMFREE_PERCENT:
             # MemFree is low on at least one NUMA node.
             return True
@@ -154,62 +162,72 @@ class Numa(Base):
 
     def __check_for_numa_imbalance(self, numa_row_str, numa_val_mb):
         """
-        Checks for imbalance in memory usage across all NUMA nodes. If, for instance,
-        MemFree on one node is >= NUMASTAT_DIFF_PERCENT that of another node, then
-        we flag it as imbalance.
+        Checks for imbalance in memory usage across all NUMA nodes. If, for
+        instance, MemFree on one node is >= NUMASTAT_DIFF_PERCENT that of
+        another node, then we flag it as imbalance.
         [Note: these values are slightly arbitrary/based on anecdotal evidence
         from customer bugs; should be refined further.]
         """
         lowest = min(float(val) for val in numa_val_mb)
         highest = max(float(val) for val in numa_val_mb)
-        if float(highest) > float(constants.NUMASTAT_DIFF_PERCENT * float(lowest)):
-            # Uh oh! Seems like we have some imbalance here - should keep an eye on it.
-            self.print_warn(numa_row_str + " is imbalanced across NUMA nodes.")
+        if (float(highest) >
+                float(constants.NUMASTAT_DIFF_PERCENT * float(lowest))):
+            # Uh oh! Seems like we have some imbalance here - should keep an
+            # eye on it.
+            self.print_warn(f"{numa_row_str} is imbalanced across NUMA nodes.")
 
     def __display_numa_maps(self, nlist, num):
         """
-        Display aggregated per-NUMA memory usage per process, in descending order.
+        Display aggregated per-NUMA memory usage per process, in descending
+        order.
         """
         if not nlist:
             return
-        nlist_sorted  = OrderedDict(sorted(list(nlist.items()), key=lambda x:x[1], reverse=True))
+        nlist_sorted = OrderedDict(
+            sorted(nlist.items(), key=lambda x: x[1], reverse=True))
         comm_ignore = []
         num_printed = 0
-        self.print_numa_headers()
-        for n in nlist_sorted:
+        self.__print_numa_headers()
+        for elem in nlist_sorted:
             if num != constants.NO_LIMIT and num_printed >= num:
                 break
-            comm = n.split()[0].strip()
-            if comm in comm_ignore: # Check if this comm/pid has already been printed
-                continue
-            per_pid_val = dict([elem for elem in list(nlist_sorted.items()) \
-                    if comm == elem[0].split()[0].strip()])
+            comm = elem.split()[0].strip()
+            if comm in comm_ignore:
+                continue  # comm/pid has already been printed
+            per_pid_val = {
+                key: val
+                for key, val in nlist_sorted.items()
+                if comm == key.split()[0].strip()
+            }
             if not per_pid_val:
                 continue
-            per_pid_sorted = OrderedDict(sorted(list(per_pid_val.items()), key=lambda x:x[0]))
+            per_pid_sorted = OrderedDict(
+                sorted(per_pid_val.items(), key=lambda x: x[0]))
             hdr_printed = False
-            for x in per_pid_sorted:
+            for pid_elem in per_pid_sorted:
                 if hdr_printed is False:
-                    comm = x.split()[0]
+                    comm = pid_elem.split()[0]
                     print("{0: <25}".format(comm), end=' ')
                     hdr_printed = True
                     comm_ignore.append(comm)
-                print("{0: >12}".format(str(int(nlist_sorted[x])
-                    * constants.PAGE_SIZE_KB)) + " KB", end=' ')
+                value_kb = int(nlist_sorted[pid_elem]) * constants.PAGE_SIZE_KB
+                print(f"{value_kb} KB", end=" ")
             print("")
             num_printed += 1
-
 
     def process_numa_maps(self, num):
         """
         Parse the output of /proc/*/numa_maps, and print:
         - the total memory allocated by each process, on each NUMA node
         - explicit bindings to any NUMA node, if they exist
-        - a warning if there is a heavy skew on one NUMA node, for any process (TODO)
-        Note: this operation can take a *very* long time depending on the system config, load, etc.
-        You might also notice this script consuming > 95% CPU during this processing for a few
-        minutes. So it is not recommended to invoke this function too often.
+        - a warning if there is a heavy skew on one NUMA node, for any process
+          (TODO)
+        Note: this operation can take a *very* long time depending on the
+              system config, load, etc. You might also notice this script
+              consuming > 95% CPU during this processing for a few minutes. So
+              it is not recommended to invoke this function too often.
         """
+        # pylint: disable=too-many-branches
         if not self.input_file:
             self.__read_numa_maps()
         if self.numa_maps == "":
@@ -217,7 +235,8 @@ class Numa(Base):
             return
 
         if num != constants.NO_LIMIT:
-            self.print_header_l1("Per-NUMA node memory usage (top " + str(num) + " processes)")
+            self.print_header_l1(
+                f"Per-NUMA node memory usage (top {num} processes)")
         else:
             self.print_header_l1("Per-NUMA node memory usage")
         i = 0
@@ -225,7 +244,7 @@ class Numa(Base):
         hdr = None
         start_time = time.time()
         while i < self.num_numa_nodes:
-            s = 0
+            pages = 0
             for line in self.numa_maps.splitlines():
                 ni_search_str = "N" + str(i) + "="
                 hdr_printed = False
@@ -233,23 +252,27 @@ class Numa(Base):
                     comm = line[:-1].strip()
                     hdr = comm + " " + ni_search_str[:-1].strip()
                     hdr_printed = False
-                ni = [elem for elem in line.split() if ni_search_str in elem]
-                if ni:
+                node_i = [
+                    elem for elem in line.split() if ni_search_str in elem
+                ]
+                if node_i:
                     if hdr_printed is False:
                         hdr_printed = True
-                        s = 0 # Reset!
-                    for x in ni:
-                        s += int(str(x).split("=")[1])
+                        pages = 0  # Reset!
+                    for elem in node_i:
+                        pages += int(str(elem).split("=")[1])
                     if hdr:
-                        nlist.update({hdr: int(s) * constants.PAGE_SIZE_KB})
-            i += 1 # Check next numa node
+                        nlist[hdr] = int(pages) * constants.PAGE_SIZE_KB
+            i += 1  # Check next numa node
         end_time = time.time()
-        self.log_debug("Time taken to process numa_maps files is: " \
-                + str(round(end_time - start_time)) + " second(s).")
+        self.log_debug(
+            "Time taken to process numa_maps files is: "
+            f"{round(end_time - start_time)} second(s).")
         if not nlist:
-            self.print_error("Could not process numa_maps data. If this is not a live analysis," \
-                    " check if the data in the input file is in the correct format; check the" \
-                    " man page for more details.")
+            self.print_error(
+                "Could not process numa_maps data. If this is not a live "
+                "analysis, check if the data in the input file is in the "
+                "correct format; check the man page for more details.")
         else:
             self.__display_numa_maps(nlist, num)
             self.__check_numa_maps_bindings()
@@ -257,7 +280,8 @@ class Numa(Base):
 
     def get_num_numa_nodes(self):
         """
-        Read '/sys/devices/system/node/online' to check number of NUMA nodes on this system.
+        Read '/sys/devices/system/node/online' to check number of NUMA nodes on
+        this system.
         For instance, on a 2-node system, that file will contain:
         # cat /sys/devices/system/node/online
         0-1
@@ -266,8 +290,9 @@ class Numa(Base):
         out = self.read_text_file(
             "/sys/devices/system/node/online", on_error="").strip()
         if not out:
-            self.print_error("Unable to read /sys/devices/system/node/online - " \
-                    "assuming there's one NUMA node.")
+            self.print_error(
+                "Unable to read /sys/devices/system/node/online - assuming "
+                "there's one NUMA node.")
             return num_nodes
         online_nodes = str(out).split("-")
         if len(online_nodes) > 1:
@@ -276,12 +301,14 @@ class Numa(Base):
 
     def __get_num_numa_nodes_numamaps(self):
         num_nodes = 1
-        i = 1 # There's at least one NUMA node (N0)
+        i = 1  # There's at least one NUMA node (N0)
         while i < constants.MAX_NUMA_NODES:
             found_another = False
             ni_search_str = "N" + str(i) + "="
             for line in self.numa_maps.splitlines():
-                ni_val = [elem for elem in line.split() if ni_search_str in elem]
+                ni_val = [
+                    elem for elem in line.split() if ni_search_str in elem
+                ]
                 if ni_val:
                     # Found ith NUMA node!
                     i += 1
@@ -303,12 +330,14 @@ class Numa(Base):
         for elem in hp_nr:
             # If all elements in a list are 0s, ignore that list.
             if not all(e == 0 for e in hp_nr[elem]):
-                self.print_pretty_numastat_kb("Total Hugepages (" + elem + " KB)", hp_nr[elem])
+                self.__print_pretty_numastat_kb(
+                    f"Total Hugepages ({elem} KB)", hp_nr[elem])
 
         hp_free = self.hugepages.get_free_hugepages_matrix_kb()
         for elem in hp_free:
             if not all(e == 0 for e in hp_free[elem]):
-                self.print_pretty_numastat_kb("Free Hugepages (" + elem + " KB)", hp_free[elem])
+                self.__print_pretty_numastat_kb(
+                    f"Free Hugepages ({elem} KB)", hp_free[elem])
 
     def __display_numa_meminfo(self):
         """
@@ -323,12 +352,13 @@ class Numa(Base):
         numa_slab_kb = []
         numa_shmem_kb = []
         if self.num_numa_nodes > 1:
-            print("NUMA is enabled on this system; number of NUMA nodes is",\
-                    str(self.num_numa_nodes) + ".")
+            print(
+                "NUMA is enabled on this system; number of NUMA nodes is "
+                f"{self.num_numa_nodes}.")
         else:
             print("NUMA is not enabled on this system.")
             return
-        self.print_numastat_headers()
+        self.__print_numastat_headers()
         while i < self.num_numa_nodes:
             nodei_meminfo = self.read_text_file(
                 f"/sys/devices/system/node/node{i}/meminfo")
@@ -347,12 +377,12 @@ class Numa(Base):
                     numa_shmem_kb.append(self.__get_numa_meminfo_val(line))
             i += 1
 
-        self.print_pretty_numastat_kb("MemTotal", numa_memtotal_kb)
-        self.print_pretty_numastat_kb("MemFree", numa_memfree_kb)
-        self.print_pretty_numastat_kb("FilePages", numa_filepages_kb)
-        self.print_pretty_numastat_kb("AnonPages", numa_anonpages_kb)
-        self.print_pretty_numastat_kb("Slab", numa_slab_kb)
-        self.print_pretty_numastat_kb("Shmem", numa_shmem_kb)
+        self.__print_pretty_numastat_kb("MemTotal", numa_memtotal_kb)
+        self.__print_pretty_numastat_kb("MemFree", numa_memfree_kb)
+        self.__print_pretty_numastat_kb("FilePages", numa_filepages_kb)
+        self.__print_pretty_numastat_kb("AnonPages", numa_anonpages_kb)
+        self.__print_pretty_numastat_kb("Slab", numa_slab_kb)
+        self.__print_pretty_numastat_kb("Shmem", numa_shmem_kb)
         self.__print_hugepage_stats_by_node()
 
         if not self.__is_low_memfree(numa_memfree_kb, numa_memtotal_kb):
@@ -366,15 +396,19 @@ class Numa(Base):
         self.__check_for_numa_imbalance("Slab", numa_slab_kb)
         self.__check_for_numa_imbalance("Shmem", numa_shmem_kb)
 
-    def memstate_check_numa(self, num=constants.NUM_TOP_NUMA_MAPS, verbose=False):
+    def memstate_check_numa(
+            self, num=constants.NUM_TOP_NUMA_MAPS, verbose=False):
+        """Display NUMA information and check some state."""
         self.print_header_l1("NUMA stats")
         self.__display_numa_meminfo()
         print("")
         if verbose is False:
             return
-        print("Note: this processing can take a long time - depending on the system config, " \
-                "load, etc.\nYou might also notice this script consuming > 95% CPU during this " \
-                "run, for a few minutes.\nSo it is not recommended to invoke -n/--numa with " \
-                "-v/--verbose too often.\n")
+        print(
+            "Note: this processing can take a long time - depending on the "
+            "system config, load, etc.\nYou might also notice this script "
+            "consuming > 95% CPU during this run, for a few minutes.\nSo it "
+            "is not recommended to invoke -n/--numa with -v/--verbose too "
+            "often.\n")
         if self.num_numa_nodes > 1:
             self.process_numa_maps(num)
