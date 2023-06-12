@@ -563,13 +563,13 @@ exit 0
 
 	def clean(self, subarg):
 		if "--all" in subarg:
-			val = raw_input("lkce removes all the files in %s dir. do you want to proceed(yes/no)? [no]:" % self.LKCE_OUTDIR)
+			val = input("lkce removes all the files in %s dir. do you want to proceed(yes/no)? [no]:" % self.LKCE_OUTDIR)
 			if "yes" in val:
 				cmd = "rm " + self.LKCE_OUTDIR + "/crash*out 2> /dev/null"
 				self.run_os_command(cmd)
 			#if "yes"
 		else:
-			val = raw_input("lkce deletes all but last three %s/crash*out files. do you want to proceed(yes/no)? [no]:" % self.LKCE_OUTDIR)
+			val = input("lkce deletes all but last three %s/crash*out files. do you want to proceed(yes/no)? [no]:" % self.LKCE_OUTDIR)
 			if "yes" in val:
 				cmd = "ls -r " + self.LKCE_OUTDIR + "/crash*out 2>/dev/null| tail -n +4 | xargs rm 2> /dev/null"
 				self.run_os_command(cmd) #start removing from 4th entry
