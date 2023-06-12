@@ -940,7 +940,7 @@ struct splitting_info {
 	mdf_pfn_t		end_pfn;
 	off_t			offset_eraseinfo;
 	unsigned long		size_eraseinfo;
-} splitting_info_t;
+};
 
 struct ppc64_vmemmap {
 	unsigned long		phys;
@@ -1645,8 +1645,8 @@ struct memory_range {
 };
 
 #define CRASH_RESERVED_MEM_NR   8
-struct memory_range crash_reserved_mem[CRASH_RESERVED_MEM_NR];
-int crash_reserved_mem_nr;
+extern struct memory_range crash_reserved_mem[CRASH_RESERVED_MEM_NR];
+extern int crash_reserved_mem_nr;
 
 int readmem(int type_addr, unsigned long long addr, void *bufptr, size_t size);
 int get_str_osrelease_from_vmlinux(void);

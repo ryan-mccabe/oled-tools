@@ -8922,7 +8922,7 @@ check_param_for_reassembling_dumpfile(int argc, char *argv[])
 		return FALSE;
 
 	if ((info->splitting_info
-	    = malloc(sizeof(splitting_info_t) * info->num_dumpfile))
+	    = malloc(sizeof(struct splitting_info) * info->num_dumpfile))
 	    == NULL) {
 		MSG("Can't allocate memory for splitting_info.\n");
 		return FALSE;
@@ -8995,7 +8995,7 @@ check_param_for_creating_dumpfile(int argc, char *argv[])
 			return FALSE;
 		}
 		if ((info->splitting_info
-		    = malloc(sizeof(splitting_info_t) * info->num_dumpfile))
+		    = malloc(sizeof(struct splitting_info) * info->num_dumpfile))
 		    == NULL) {
 			MSG("Can't allocate memory for splitting_info.\n");
 			return FALSE;
