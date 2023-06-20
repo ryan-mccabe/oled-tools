@@ -6,8 +6,8 @@ syswatch - Execute user-provided commands on CPU utilization.
 
 # SYNOPSIS
 
-syswatch [-h] [-b] [-C NR_CPUS] [-u %usr] [-n %nice] [-s %sys] [-i %iowait]
-\[-t TARGET_DIR] [-M MAX_FS_UTIL] [-I SECONDS] -a CMD [-a CMD ...]
+syswatch [-h] [-b] [-C NR_CPUS] -s STAT:PERCENTAGE [-t TARGET_DIR]
+\[-M MAX_FS_UTIL] [-I SECONDS] -c CMD [-c CMD ...]
 
 # DESCRIPTION
 
@@ -16,18 +16,19 @@ when the configured thresholds are reached.
 
 The tool samples CPU utilization for intervals of _SECONDS_ (5 seconds by
 default), and if the configured thresholds are reached in that interval, the
-commands specified with *-a* are executed.
+commands specified with *-c* are executed.
 
-At least one of *-u*, *-n*, *-s*, *-i* must be provided, which specify the CPU
-thresholds to watch.  If more than one threshold is specified, the commands
+At least one threshold to watch must be specified with *-s*.  If more than one
+threshold is specified, i.e. *-s* is specified more than once, the commands
 will only trigger if all the thresholds are reached in a given interval.  These
-values are percentages and must be integer values in the range [1, 100].
+values are percentages and must be integer values in the range [1, 100].  The
+sum of all thresholds must be <= 100.
 
 If _NR_CPUS_ is not specified or is <= 0, the cumulative utilization of all
 CPUs is used.  Otherwise, the commands trigger only if _at least_ _NR_CPUS_
 reach all the configured thresholds in the interval.
 
-Option *-a* must be specified at least once.  _CMD_ must be a valid shell
+Option *-c* must be specified at least once.  _CMD_ must be a valid shell
 command.  See *USER COMMAND CONSIDERATIONS* for important details.
 
 By default, *syswatch* will create logs in subdirectories in
@@ -62,17 +63,10 @@ executing the user commands.
 	# of CPUs to apply match criteria.  A value <= 0 means apply system
 	wide.  (default: 0)
 
-*-u %user*
-	%user utilization threshold.
-
-*-n %nice*
-	%nice utilization threshold.
-
-*-s %sys*
-	%sys utilization threshold.
-
-*-i %iowait*
-	%iowait utilization threshold.
+*-s STAT:PERCENTAGE*
+	CPU stat utilization to watch.  _STAT_ can be any of the following
+	values: usr, nice, sys, idle, iowait, irq, soft, steal, guest, gnice.
+	_PERCENTAGE_ must be an integer in the range [1, 100].
 
 *-t TARGET_DIR*
 	_TARGET_DIR_ to store logs (see *LOGGING*). (default:
@@ -84,7 +78,7 @@ executing the user commands.
 *-I SECONDS*
 	CPU utilization sampling interval, in seconds.  (default: 5)
 
-*-a CMD*
+*-c CMD*
 	User command to execute when thresholds are reached.
 
 # USER COMMAND CONSIDERATIONS
@@ -92,7 +86,7 @@ executing the user commands.
 - The user commands are assumed to be valid shell commands, and are executed
   within a shell (the equivalent of `sh -c '$CMD'`).
 
-- If more than one command is specified (i.e. *-a* appears more than once), all
+- If more than one command is specified (i.e. *-c* appears more than once), all
   of them are executed in parallel (a separate shell is spawned for each one).
 
 - Each command is execute in its own, dedicated directory (see *LOGGING*).
@@ -137,40 +131,44 @@ the whole TARGET_DIR can be collected instead.
 - Collect perf data once 99% sys utilization is reached system-wide:
 
 ```
-	$ syswatch -s 99 -a 'perf record -a -g -F99 -- sleep 15'
+	$ syswatch -s sys:99 -c 'perf record -c -g -F99 -- sleep 15'
 ```
 
-- Run `cmd1` and `cmd2` in parallel when 90 %sys and 30% user util is reached:
+- Run `cmd1` and `cmd2` in parallel when 70% sys and 30% user util is reached:
 
 ```
-	$ syswatch -s 99 -u 30 -a 'cmd1' -a 'cmd2'
+	$ syswatch -s sys:70 -s usr:30 -c 'cmd1' -c 'cmd2'
 ```
 
 - Run `cmd1` and `cmd2` serially and `cmd3` in parallel on 70% user util:
 
 ```
-	$ syswatch -u 70 -a 'cmd1 ; cmd2' -a 'cmd3' ...
+	$ syswatch -s usr:70 -c 'cmd1 ; cmd2' -c 'cmd3' ...
 ```
 
-- Run `cmd` if at least 3 CPUs reach 70% sys and 30% user within intervals of
+- Run `cmd` if at least 3 CPUs reach 70% irq and 30% user within intervals of
   2 seconds and the filesystem where the logs are stored has at most 80% space
   used (i.e. 20% free space):
 
 ```
-	$ syswatch -s 70 -u 30 -C 3 -I 2 -a 'cmd' -M 80
+	$ syswatch -s irq:70 -s usr:30 -C 3 -I 2 -c 'cmd' -M 80
 ```
 
 - Run syswatch continuously and run `cmd` every time 85% sys util is reached
   and use /tmp/syswatch as base dir for the logs:
 
 ```
-	$ syswatch -b -s 85 -a 'cmd' -t /tmp/syswatch
+	$ syswatch -b -s sys:85 -c 'cmd' -t /tmp/syswatch
 ```
 
 - Wait until system reached 90% sys util and exit, then run `cmd`:
 
 ```
-	$ syswatch -s 90 -a true && cmd
+	$ syswatch -s sys:90 -c true && cmd
 ```
+
+# AUTHOR
+
+Jose Lombera <jose.lombera@oracle.com>
 
 ; vim:set tw=79:

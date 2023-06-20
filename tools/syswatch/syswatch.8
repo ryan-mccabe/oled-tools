@@ -4,7 +4,7 @@
 .nh
 .ad l
 .\" Begin generated content:
-.TH "syswatch" "8" "2022-11-30"
+.TH "syswatch" "8" "2023-06-13"
 .P
 .SH NAME
 .P
@@ -12,8 +12,8 @@ syswatch - Execute user-provided commands on CPU utilization.
 .P
 .SH SYNOPSIS
 .P
-syswatch [-h] [-b] [-C NR_CPUS] [-u %usr] [-n %nice] [-s %sys] [-i %iowait]
-[-t TARGET_DIR] [-M MAX_FS_UTIL] [-I SECONDS] -a CMD [-a CMD ...]
+syswatch [-h] [-b] [-C NR_CPUS] -s STAT:PERCENTAGE [-t TARGET_DIR]
+[-M MAX_FS_UTIL] [-I SECONDS] -c CMD [-c CMD ...]
 .P
 .SH DESCRIPTION
 .P
@@ -22,18 +22,19 @@ when the configured thresholds are reached.
 .P
 The tool samples CPU utilization for intervals of \fISECONDS\fR (5 seconds by
 default), and if the configured thresholds are reached in that interval, the
-commands specified with \fB-a\fR are executed.
+commands specified with \fB-c\fR are executed.
 .P
-At least one of \fB-u\fR, \fB-n\fR, \fB-s\fR, \fB-i\fR must be provided, which specify the CPU
-thresholds to watch.  If more than one threshold is specified, the commands
+At least one threshold to watch must be specified with \fB-s\fR.  If more than one
+threshold is specified, i.e. \fB-s\fR is specified more than once, the commands
 will only trigger if all the thresholds are reached in a given interval.  These
-values are percentages and must be integer values in the range [1, 100].
+values are percentages and must be integer values in the range [1, 100].  The
+sum of all thresholds must be <= 100.
 .P
 If \fINR_CPUS\fR is not specified or is <= 0, the cumulative utilization of all
 CPUs is used.  Otherwise, the commands trigger only if \fIat least\fR \fINR_CPUS\fR
 reach all the configured thresholds in the interval.
 .P
-Option \fB-a\fR must be specified at least once.  \fICMD\fR must be a valid shell
+Option \fB-c\fR must be specified at least once.  \fICMD\fR must be a valid shell
 command.  See \fBUSER COMMAND CONSIDERATIONS\fR for important details.
 .P
 By default, \fBsyswatch\fR will create logs in subdirectories in
@@ -74,24 +75,11 @@ Run \fBsyswatch\fR indefinitely until it's manually terminated.
 wide.  (default: 0)
 .P
 .RE
-\fB-u %user\fR
+\fB-s STAT:PERCENTAGE\fR
 .RS 4
-%user utilization threshold.
-.P
-.RE
-\fB-n %nice\fR
-.RS 4
-%nice utilization threshold.
-.P
-.RE
-\fB-s %sys\fR
-.RS 4
-%sys utilization threshold.
-.P
-.RE
-\fB-i %iowait\fR
-.RS 4
-%iowait utilization threshold.
+CPU stat utilization to watch.  \fISTAT\fR can be any of the following
+values: usr, nice, sys, idle, iowait, irq, soft, steal, guest, gnice.
+\fIPERCENTAGE\fR must be an integer in the range [1, 100].
 .P
 .RE
 \fB-t TARGET_DIR\fR
@@ -110,7 +98,7 @@ Max filesystem utilization, in percentage.  (default: 85)
 CPU utilization sampling interval, in seconds.  (default: 5)
 .P
 .RE
-\fB-a CMD\fR
+\fB-c CMD\fR
 .RS 4
 User command to execute when thresholds are reached.
 .P
@@ -136,7 +124,7 @@ within a shell (the equivalent of `sh -c '$CMD'`).
 .el \{\
 .IP \(bu 4
 .\}
-If more than one command is specified (i.e. \fB-a\fR appears more than once), all
+If more than one command is specified (i.e. \fB-c\fR appears more than once), all
 of them are executed in parallel (a separate shell is spawned for each one).
 
 .RE
@@ -211,7 +199,7 @@ Collect perf data once 99% sys utilization is reached system-wide:
 .P
 .nf
 .RS 4
-	$ syswatch -s 99 -a 'perf record -a -g -F99 -- sleep 15'
+	$ syswatch -s sys:99 -c 'perf record -c -g -F99 -- sleep 15'
 .fi
 .RE
 .P
@@ -222,13 +210,13 @@ Collect perf data once 99% sys utilization is reached system-wide:
 .el \{\
 .IP \(bu 4
 .\}
-Run `cmd1` and `cmd2` in parallel when 90 %sys and 30% user util is reached:
+Run `cmd1` and `cmd2` in parallel when 70% sys and 30% user util is reached:
 
 .RE
 .P
 .nf
 .RS 4
-	$ syswatch -s 99 -u 30 -a 'cmd1' -a 'cmd2'
+	$ syswatch -s sys:70 -s usr:30 -c 'cmd1' -c 'cmd2'
 .fi
 .RE
 .P
@@ -245,7 +233,7 @@ Run `cmd1` and `cmd2` serially and `cmd3` in parallel on 70% user util:
 .P
 .nf
 .RS 4
-	$ syswatch -u 70 -a 'cmd1 ; cmd2' -a 'cmd3' \&.\&.\&.
+	$ syswatch -s usr:70 -c 'cmd1 ; cmd2' -c 'cmd3' \&.\&.\&.
 .fi
 .RE
 .P
@@ -256,7 +244,7 @@ Run `cmd1` and `cmd2` serially and `cmd3` in parallel on 70% user util:
 .el \{\
 .IP \(bu 4
 .\}
-Run `cmd` if at least 3 CPUs reach 70% sys and 30% user within intervals of
+Run `cmd` if at least 3 CPUs reach 70% irq and 30% user within intervals of
 2 seconds and the filesystem where the logs are stored has at most 80% space
 used (i.e. 20% free space):
 
@@ -264,7 +252,7 @@ used (i.e. 20% free space):
 .P
 .nf
 .RS 4
-	$ syswatch -s 70 -u 30 -C 3 -I 2 -a 'cmd' -M 80
+	$ syswatch -s irq:70 -s usr:30 -C 3 -I 2 -c 'cmd' -M 80
 .fi
 .RE
 .P
@@ -282,7 +270,7 @@ and use /tmp/syswatch as base dir for the logs:
 .P
 .nf
 .RS 4
-	$ syswatch -b -s 85 -a 'cmd' -t /tmp/syswatch
+	$ syswatch -b -s sys:85 -c 'cmd' -t /tmp/syswatch
 .fi
 .RE
 .P
@@ -299,7 +287,11 @@ Wait until system reached 90% sys util and exit, then run `cmd`:
 .P
 .nf
 .RS 4
-	$ syswatch -s 90 -a true && cmd
+	$ syswatch -s sys:90 -c true && cmd
 .fi
 .RE
+.P
+.SH AUTHOR
+.P
+Jose Lombera <jose.lombera@oracle.com>
 .P
