@@ -28,7 +28,7 @@ import sys
 import site
 
 MAJOR = "0"
-MINOR = "5"
+MINOR = "6"
 
 version = MAJOR + "." + MINOR
 dist = None

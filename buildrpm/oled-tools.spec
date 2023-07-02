@@ -1,6 +1,6 @@
 Name:		oled-tools
-Version:	0.5
-Release:	5%{?dist}
+Version:	0.6
+Release:	2%{?dist}
 Summary:	Diagnostic tools for more efficient and faster debugging on Oracle Linux
 Requires:	zlib
 Requires:	bzip2-libs
@@ -165,6 +165,24 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man8/oled-syswatch.8.gz
 
 %changelog
+* Tue Jul 2 2023 Jose Lombera <jose.lombera@oracle.com> - 0.6-2
+- Release oled-tools-0.6-2
+- Reapply missing fixes from v0.5-5 [Orabugs: 32038044, 33104580, 33107277,
+  33271828, 33304018]
+- Change license back to GPLv2.
+- Add pragma to d scripts (Nagappan Ramasamy Palaniappan) [Orabug: 34855326]
+- Fix bugs in lkce (Manjunath Patil) [Orabug: 35097936]
+
+* Mon Jan 30 2023 Manjunath Patil <manjunath.b.patil@oracle.com> - 0.6-1
+- Note: this release was removed from yum
+- release oled-tools-0.6-1
+- Remove tools memtracker, smtool and topstack
+- Remove lkce's command 'kdump_report' (Srinivas Eeda)
+- Add diagnostic DTrace scripts (Manjunath Patil, Praveen Kumar Kannoju,
+  Rama Nichanamatlu)
+- Add tool syswatch (Jose Lombera) [Orabug: 34858875]
+- Reinstate dependencies
+
 * Fri Sep 17 2021 Aruna Ramakrishna <aruna.ramakrishna@oracle.com> - 0.5-5
 - Release oled-tools-0.5-5
 
