@@ -59,32 +59,3 @@ uninstall:
 	rmdir $(OLEDBIN) || :
 	rmdir $(OLEDDIR) || :
 	@echo "oled-tools uninstalled"
-
-rpm:
-	rm -rf oled-tools-$(VERSION)
-	rm -f ./oled-tools-$(VERSION).tar.gz
-	mkdir -p oled-tools/tools
-	cp -R Makefile oled.man oled.py oled-tools/
-	cp -R tools/lkce oled-tools/tools
-	cp -R tools/kcore-utils oled-tools/tools
-	cp -R tools/memstate oled-tools/tools
-	cp -R tools/kstack oled-tools/tools
-	cp -R tools/syswatch oled-tools/tools
-	cp -R scripts oled-tools
-	mv oled-tools oled-tools-$(VERSION)
-	tar --xform 's/eppic_scripts/e_s/g' -chozf oled-tools-$(VERSION).tar.gz oled-tools-$(VERSION)
-	#rpmbuild
-	mkdir -p `pwd`/rpmbuild/{RPMS,BUILD{,ROOT},SRPMS}
-	exec rpmbuild -ba \
-	--define="_topdir `pwd`/rpmbuild" \
-	--define="_sourcedir `pwd`" \
-	--define="_specdir `pwd`" \
-	--define="_tmppath `pwd`/rpmbuild/BUILDROOT" \
-	buildrpm/oled-tools.spec
-	rm -rf oled-tools-$(VERSION)
-	rm -f ./oled-tools-$(VERSION).tar.gz
-	@echo "oled-tools rpms built"
-
-rpm_clean:
-	rm -rf ./rpmbuild
-	@echo "oled-tools RPM build dir cleaned"
