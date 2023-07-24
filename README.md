@@ -1,16 +1,24 @@
 # oled-tools
 
-Oracle Linux Enchanced Diagnostic (OLED) tools is a collection of tools, script, configs, etc. that collect and analyze data about the health of the system in order to root cause and resolve any system issues.
+Oracle Linux Enchanced Diagnostic (OLED) tools is a collection of tools,
+script, configs, etc. that collect and analyze data about the health of the
+system in order to root cause and resolve any system issues.
 
 ## Components
 
-The oled-tools repo includes the following debug tools/scripts that aid in gathering additional debug data from the system. Please review the corresponding man pages for more details.
+The oled-tools repo includes the following debug tools/scripts that aid in
+gathering additional debug data from the system. Please review the
+corresponding man pages for more details.
 
-- lkce: Extracts data from a vmcore or from within the kdump kernel after a crash
-- memstate: Captures and analyzes various memory usage statistics on the running system
+- lkce: Extracts data from a vmcore or from within the kdump kernel after a
+  crash
+- memstate: Captures and analyzes various memory usage statistics on the
+  running system
 - filecache: List the paths of the biggest files present in the page cache
-- dentrycache: Lists a sample of file paths which have active dentries in the dentry hash table
-- kstack: Collects the kernel stack trace for selected processes, based on status or PID
+- dentrycache: Lists a sample of file paths which have active dentries in the
+  dentry hash table
+- kstack: Collects the kernel stack trace for selected processes, based on
+  status or PID
 - syswatch: Execute user-provided commands when CPU utilization reaches a
   threshold
 
@@ -96,7 +104,9 @@ Note: Works on Oracle UEK4/UEK5/UEK6 kernels only. Check the man page for more i
 
 ## Contributing
 
-Your contributions are welcome! You will need to sign the Oracle Contributor Agreement before starting a pull request; see [CONTRIBUTING](CONTRIBUTING.md) for more information.
+Your contributions are welcome! You will need to sign the Oracle Contributor
+Agreement before starting a pull request; see [CONTRIBUTING](CONTRIBUTING.md)
+for more information.
 
 ## License
 
