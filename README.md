@@ -70,9 +70,13 @@ You can also consult man pages `oled(8)` and `oled-<subcommand>(8)`.
 
 ## Contributing
 
-Your contributions are welcome! You will need to sign the Oracle Contributor
-Agreement before starting a pull request; see [CONTRIBUTING](CONTRIBUTING.md)
-for more information.
+This project welcomes contributions from the community. Before submitting a
+pull request, please [review our contribution guide](./CONTRIBUTING.md)
+
+## Security
+
+Please consult the [security guide](./SECURITY.md) for our responsible security
+vulnerability disclosure process
 
 ## License
 
