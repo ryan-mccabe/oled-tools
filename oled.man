@@ -4,7 +4,7 @@
 oled - Interface to invoke other diagnostic tools
 
 .SH SYNOPSIS
-oled [sub_command] [options]
+oled [-h | --help | -v | --version] [sub_command] [options]
 
 .SH DESCRIPTION
 OLED (Oracle Linux Enhanced Diagnostics) is a collection of diagnostic tools
@@ -12,21 +12,22 @@ and scripts. The \fBoled\fR command is used to invoke these other tools/scripts.
 See usage below, for available options.
 
 .TP
-# oled help
-Oracle Linux Enhanced Diagnostic Tools
+# oled --help
+usage: oled {-h | -v | COMMAND [ARGS]}
 
-Usage:
-  /usr/sbin/oled <sub_command> <command_options>
+Valid commands:
+     lkce        -- Linux Kernel Core Extractor
+     memstate    -- Capture and analyze memory usage statistics
+     filecache   -- List the biggest files in page cache
+     dentrycache -- List a sample of active dentries
+     kstack      -- Gather kernel stack based on the process status or PID
+     syswatch    -- Execute user-provided commands based on the CPU utilization
 
-Valid sub-commands:
-     lkce            -- Linux Kernel Core Extractor
-     memstate        -- Capture and analyze memory usage statistics
-     filecache       -- List the biggest files in page cache
-     dentrycache     -- List a sample of active dentries
-     kstack          -- Gather kernel stack based on the process status or PID
-     syswatch        -- Execute user-provided commands based on the CPU utilization
-     help            -- Show this help message
-     version         -- Print version information
+optional arguments:
+  -h, --help     show this help message and exit
+  -v, --version  show program's version number and exit
+
+NOTE: Must run as root.
 
 Please check the man page of each sub-command to learn more about that tool and
 its usage.
