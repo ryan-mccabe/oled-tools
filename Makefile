@@ -33,27 +33,27 @@ export MANDIR
 
 all:
 	echo $(subdirs)
-	$(foreach dir,$(subdirs), make BINDIR=$(OLEDBIN) -C $(dir) all || exit 1;)
+	$(foreach dir,$(subdirs), $(MAKE) BINDIR=$(OLEDBIN) -C $(dir) all || exit 1;)
 
 clean:
 
-	$(foreach dir,$(subdirs), make BINDIR=$(OLEDBIN) -C $(dir) clean;)
+	$(foreach dir,$(subdirs), $(MAKE) BINDIR=$(OLEDBIN) -C $(dir) clean;)
 
 install:
 	@echo "install:$(CURDIR)"
-	make all
+	$(MAKE) all
 	mkdir -p $(OLEDDIR)
 	mkdir -p $(SBINDIR)
 	mkdir -p $(MANDIR)
 	mkdir -p $(OLEDBIN)
 	install -m 755 oled.py $(SBINDIR)/oled
 	gzip -c oled.man > $(MANDIR)/oled.8.gz; chmod 644 $(MANDIR)/oled.8.gz
-	$(foreach dir,$(subdirs), make BINDIR=$(OLEDBIN) -C $(dir) install || exit 1;)
+	$(foreach dir,$(subdirs), $(MAKE) BINDIR=$(OLEDBIN) -C $(dir) install || exit 1;)
 	@echo "oled-tools installed"
 
 uninstall:
 	@echo "uninstall:$(CURDIR)"
-	$(foreach dir, $(rev_subdirs), make BINDIR=$(OLEDBIN) -C $(dir) uninstall || exit 1;)
+	$(foreach dir, $(rev_subdirs), $(MAKE) BINDIR=$(OLEDBIN) -C $(dir) uninstall || exit 1;)
 	rm -f $(MANDIR)/oled.8.gz
 	rm -f $(SBINDIR)/oled
 	rmdir $(OLEDBIN) || :
