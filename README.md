@@ -11,44 +11,55 @@ The oled-tools repo includes the following debug tools/scripts that aid in gathe
 - filecache: List the paths of the biggest files present in the page cache
 - dentrycache: Lists a sample of file paths which have active dentries in the dentry hash table
 - kstack: Collects the kernel stack trace for selected processes, based on status or PID
+- syswatch: Execute user-provided commands when CPU utilization reaches a
+  threshold
 
 ## Using oled-tools
 
+### Dependencies
+
+#### Build dependencies
+
+- `make`
+- `python3`
+- `zlib-devel`
+- `bzip2-devel`
+- `elfutils-devel`
+
+#### Runtime dependencies
+
+- `python3`
+- `zlib`
+- `bzip2-libs`
+- `elfutils-libs`
+
 ### Local build and install
 
-#### OL6 and OL7
 ```bash
 $ git clone https://github.com/oracle/oled-tools.git
 $ cd oled-tools
-$ ./configure
-$ make install
-```
-
-#### OL8
-On OL8 systems, there's an additional setup script you'd have to run, before configure and build.
-```bash
-$ git clone https://github.com/oracle/oled-tools.git
-$ cd oled-tools
-$ ./setup.sh
-$ ./configure
 $ make install
 ```
 
 ### Usage examples
 
 ```bash
-$ oled
-Oracle Linux Enhanced Diagnostic Tools
-Usage:
-  /usr/sbin/oled <command> <subcommand>
+$ oled -h
+usage: oled.py {-h | -v | COMMAND [ARGS]}
+
 Valid commands:
-     lkce            -- Linux Kernel Core Extractor
-     memstate        -- Capture and analyze memory usage statistics
-     filecache       -- List the biggest files in page cache
-     dentrycache     -- List a sample of active dentries
-     kstack          -- Gather kernel stack based on the process status or PID
-     help            -- Show this help message
-     version         -- Print version information
+     lkce        -- Linux Kernel Core Extractor
+     memstate    -- Capture and analyze memory usage statistics
+     filecache   -- List the biggest files in page cache
+     dentrycache -- List a sample of active dentries
+     kstack      -- Gather kernel stack based on the process status or PID
+     syswatch    -- Execute user-provided commands based on the CPU utilization
+
+optional arguments:
+  -h, --help     show this help message and exit
+  -v, --version  show program's version number and exit
+
+NOTE: Must run as roo
 
 $ oled memstate -h
 usage: oled memstate [-h] [-p] [-w] [-s [FILE]] [-n [FILE]] [-a] [-v]
@@ -90,5 +101,3 @@ Your contributions are welcome! You will need to sign the Oracle Contributor Agr
 ## License
 
 oled-tools is licensed under [GPLv2](LICENSE.txt).
-
-
