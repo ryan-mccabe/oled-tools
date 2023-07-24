@@ -49,6 +49,13 @@ $ cd oled-tools
 $ make install
 ```
 
+`lkce` requires additional setup the firs time, it's recommended to run
+following command after oled-tools is installed:
+
+```bash
+$ [ -f /etc/oled/lkce/lkce.conf ] || sudo oled lkce configure --default
+```
+
 ### Usage examples
 
 ```bash

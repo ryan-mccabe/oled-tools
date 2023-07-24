@@ -36,9 +36,6 @@ install:
 	install -m 755 $(CURDIR)/scripts/kdump_report.py $(LKCE_KDUMPDIR)/kdump_report
 	gzip -c $(CURDIR)/lkce.man > $(MANDIR)/oled-lkce.8.gz
 	chmod 644 $(MANDIR)/oled-lkce.8.gz
-ifndef RPM_PACKAGE_NAME
-	[ -f $(LKCEDIR)/lkce.conf ] || $(BINDIR)/lkce configure --default
-endif
 	@echo "lkce successfully installed"
 
 uninstall:
