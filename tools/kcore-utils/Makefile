@@ -8,6 +8,7 @@ CC	= gcc
 
 LIBMAKEDUMPFILE_PATH167=libcore/makedumpfile_1.6.7
 LIBMAKEDUMPFILE_PATH157=libcore/makedumpfile_1.5.7
+
 CFLAGS      := -g -O2 -Wall -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -DVERSION='"$(VERSION)"' -DRELEASE_DATE='"$(DATE)"'
 
 SRC_PART_FILECACHE = filecache.c lib.c
@@ -33,29 +34,33 @@ LINK_TEST_PROG="int main() { return 0; }"
 LIBS := $(LIBS) $(call try-run,\
 	echo $(LINK_TEST_PROG) | $(CC) -o "$$TMP" -x c - -lebl,-lebl,)
 
-all: build_libcore filecache filecache_uek4 dentrycache dentrycache_uek4
+all: filecache filecache_uek4 dentrycache dentrycache_uek4
 
-build_libcore:
-	make -C libcore all
+${LIBMAKEDUMPFILE_PATH167}/libcore.a:
+	$(MAKE) -C ${LIBMAKEDUMPFILE_PATH167} libcore.a
 
-filecache:
+${LIBMAKEDUMPFILE_PATH157}/libcore.a:
+	$(MAKE) -C ${LIBMAKEDUMPFILE_PATH157} libcore.a
+
+filecache: ${LIBMAKEDUMPFILE_PATH167}/libcore.a
 	rm -f filecache.o
 	$(CC) -DKASLR -I${LIBMAKEDUMPFILE_PATH167} -L${LIBMAKEDUMPFILE_PATH167} $(SRC_PART_FILECACHE) -rdynamic -o $@ -lcore $< $(LIBS)
 
-filecache_uek4:
+filecache_uek4: ${LIBMAKEDUMPFILE_PATH157}/libcore.a
 	rm -f filecache.o
 	$(CC) -I${LIBMAKEDUMPFILE_PATH157} -L${LIBMAKEDUMPFILE_PATH157} $(SRC_PART_FILECACHE) -rdynamic -o $@ -lcore $< $(LIBS)
 
-dentrycache:
+dentrycache: ${LIBMAKEDUMPFILE_PATH167}/libcore.a
 	rm -f dentrycache.o
 	$(CC) -DKASLR -I${LIBMAKEDUMPFILE_PATH167} -L${LIBMAKEDUMPFILE_PATH167} $(SRC_PART_DENTRYCACHE) -rdynamic -o $@ -lcore $< $(LIBS)
 
-dentrycache_uek4:
+dentrycache_uek4: ${LIBMAKEDUMPFILE_PATH157}/libcore.a
 	rm -f dentrycache.o
 	$(CC) -I${LIBMAKEDUMPFILE_PATH157} -L${LIBMAKEDUMPFILE_PATH157} $(SRC_PART_DENTRYCACHE) -rdynamic -o $@ -lcore $< $(LIBS)
 
 clean:
-	make -C libcore clean
+	$(MAKE) -C ${LIBMAKEDUMPFILE_PATH167} clean
+	$(MAKE) -C ${LIBMAKEDUMPFILE_PATH157} clean
 	rm -f $(OBJ_PART) $(OBJ_ARCH) filecache filecache_uek4 dentrycache dentrycache_uek4 filecache.o dentrycache.o lib.o
 
 install:
