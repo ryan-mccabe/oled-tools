@@ -143,7 +143,7 @@ the whole TARGET_DIR can be collected instead.
 - Run `cmd1` and `cmd2` serially and `cmd3` in parallel on 70% user util:
 
 ```
-	$ syswatch -s usr:70 -c 'cmd1 ; cmd2' -c 'cmd3' ...
+	$ syswatch -s usr:70 -c 'cmd1 ; cmd2' -c 'cmd3'
 ```
 
 - Run `cmd` if at least 3 CPUs reach 70% irq and 30% user within intervals of
