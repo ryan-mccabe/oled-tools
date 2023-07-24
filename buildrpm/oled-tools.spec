@@ -42,10 +42,10 @@ make install DESTDIR=$RPM_BUILD_ROOT DIST=%{?dist} SPECFILE="1"
 %post
 if [ $1 -ge 1 ] ; then
 # package upgrade
-        if [ ! `grep -q '^kdump_pre /etc/oled/kdump_pre.sh$' /etc/kdump.conf 2> /dev/null` ]; then #present
-                sed --in-place '/kdump_pre \/etc\/oled\/kdump_pre.sh/d' /etc/kdump.conf 2> dev/null ||:
-                sed --in-place '/extra_bins \/bin\/timeout/d' /etc/kdump.conf 2> /dev/null || :
-        fi
+	if [ ! `grep -q '^kdump_pre /etc/oled/kdump_pre.sh$' /etc/kdump.conf 2> /dev/null` ]; then #present
+		sed --in-place '/kdump_pre \/etc\/oled\/kdump_pre.sh/d' /etc/kdump.conf 2> dev/null ||:
+		sed --in-place '/extra_bins \/bin\/timeout/d' /etc/kdump.conf 2> /dev/null || :
+	fi
 fi
 [ -f %{lkce_d}/lkce.conf ] || oled lkce configure --default > /dev/null
 
@@ -146,7 +146,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man8/oled-syswatch.8.gz
 
 %changelog
-* Tue Jul 2 2023 Jose Lombera <jose.lombera@oracle.com> - 0.6-2
+* Sun Jul 2 2023 Jose Lombera <jose.lombera@oracle.com> - 0.6-2
 - Release oled-tools-0.6-2
 - Reapply missing fixes from v0.5-5 [Orabugs: 32038044, 33104580, 33107277,
   33271828, 33304018]
