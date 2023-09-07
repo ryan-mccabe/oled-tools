@@ -97,6 +97,7 @@ rm -rf $RPM_BUILD_ROOT
 %{memstate_lib}/meminfo.py
 %{memstate_lib}/numa.py
 %{memstate_lib}/pss.py
+%{memstate_lib}/rss.py
 %{memstate_lib}/slabinfo.py
 %{memstate_lib}/swap.py
 %{memstate_lib}/__init__.py
