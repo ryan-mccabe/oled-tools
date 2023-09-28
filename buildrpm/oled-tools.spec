@@ -2,18 +2,19 @@ Name:		oled-tools
 Version:	0.6
 Release:	2%{?dist}
 Summary:	Diagnostic tools for more efficient and faster debugging on Oracle Linux
+Requires:	python3
+%ifarch x86_64
 Requires:	zlib
 Requires:	bzip2-libs
 Requires:	elfutils-libs
-Requires:	python3
-BuildRequires:	python3-devel
 BuildRequires:	zlib-devel
 BuildRequires:	bzip2-devel
 BuildRequires:	elfutils-devel
+%endif
+BuildRequires:	python3-devel
 Group:		Development/Tools
 License:	GPLv2
 Source0:	%{name}-%{version}.tar.gz
-
 
 %description
 oled-tools is a collection of command line tools, scripts, config files, etc.,
@@ -23,9 +24,10 @@ contains: lkce, memstate, kstack, filecache, dentrycache, syswatch and scanfs.
 %prep
 %setup -q
 
+%ifarch x86_64
 %build
 make %{?_smp_mflags}
-
+%endif
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -108,6 +110,7 @@ rm -rf $RPM_BUILD_ROOT
 %{lkce_kdump_d}/kdump_report
 %{_mandir}/man8/oled-lkce.8.gz
 
+%ifarch x86_64
 # kcore-utils
 %{oled_d}/dentrycache
 %{oled_d}/dentrycache_uek4
@@ -115,6 +118,7 @@ rm -rf $RPM_BUILD_ROOT
 %{oled_d}/filecache_uek4
 %{_mandir}/man8/oled-dentrycache.8.gz
 %{_mandir}/man8/oled-filecache.8.gz
+%endif
 
 #kstack
 %{oled_d}/kstack
