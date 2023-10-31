@@ -1,18 +1,18 @@
-Name:		oled-tools
-Version:	0.6
-Release:	2%{?dist}
-Summary:	Diagnostic tools for more efficient and faster debugging on Oracle Linux
-Requires:	zlib
-Requires:	bzip2-libs
-Requires:	elfutils-libs
-Requires:	python3
-BuildRequires:	python3-devel
-BuildRequires:	zlib-devel
-BuildRequires:	bzip2-devel
-BuildRequires:	elfutils-devel
-Group:		Development/Tools
-License:	GPLv2
-Source0:	%{name}-%{version}.tar.gz
+Name: oled-tools
+Version: 0.6
+Release: 2%{?dist}
+Summary: Diagnostic tools for more efficient and faster debugging on Oracle Linux
+Requires: zlib
+Requires: bzip2-libs
+Requires: elfutils-libs
+Requires: python3
+BuildRequires: python3-devel
+BuildRequires: zlib-devel
+BuildRequires: bzip2-devel
+BuildRequires: elfutils-devel
+Group: Development/Tools
+License: GPLv2
+Source0: %{name}-%{version}.tar.gz
 
 
 %description
@@ -31,14 +31,6 @@ make %{?_smp_mflags}
 rm -rf $RPM_BUILD_ROOT
 make install DESTDIR=$RPM_BUILD_ROOT DIST=%{?dist} SPECFILE="1"
 
-%define oled_d %{_usr}/libexec/oled-tools
-%define oled_etc_d /etc/oled/
-%define memstate_lib %{python3_sitelib}/memstate_lib/
-%define lkce_d %{oled_etc_d}/lkce
-%define lkce_kdump_d %{lkce_d}/lkce_kdump.d
-%define scripts_d %{oled_d}/scripts
-%define scripts_docs_d %{oled_d}/scripts/docs
-
 %post
 if [ $1 -ge 1 ] ; then
 # package upgrade
@@ -47,7 +39,9 @@ if [ $1 -ge 1 ] ; then
 		sed --in-place '/extra_bins \/bin\/timeout/d' /etc/kdump.conf 2> /dev/null || :
 	fi
 fi
-[ -f %{lkce_d}/lkce.conf ] || oled lkce configure --default > /dev/null
+
+# configure lkce
+[ -f /etc/oled/lkce/lkce.conf ] || oled lkce configure --default > /dev/null
 
 %preun
 if [ $1 -lt 1 ] ; then
@@ -56,24 +50,6 @@ if [ $1 -lt 1 ] ; then
 fi
 
 %postun
-if [ $1 -lt 1 ] ; then
-# package uninstall, not upgrade
-	#memstate
-	%if 0%{?el8}
-		rm -rf %{memstate_lib}/__pycache__
-	%else
-		rm -f %{memstate_lib}/*.pyc || :
-		rm -f %{memstate_lib}/*.pyo || :
-	%endif
-
-	#lkce
-	rm -rf %{lkce_kdump_d} || :
-	rm -rf %{lkce_d} || :
-
-	#oled
-	rm -rf %{oled_etc_d} || :
-fi
-
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -82,68 +58,23 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-,root,root,-)
 
-#oled-tools
 %{_sbindir}/oled
-%{_mandir}/man8/oled.8.gz
+%{_mandir}/man8/*
 
-# memstate
-%exclude %{memstate_lib}/__pycache__/*.pyc
-%{oled_d}/memstate
-%{memstate_lib}/base.py
-%{memstate_lib}/buddyinfo.py
-%{memstate_lib}/constants.py
-%{memstate_lib}/hugepages.py
-%{memstate_lib}/logfile.py
-%{memstate_lib}/meminfo.py
-%{memstate_lib}/numa.py
-%{memstate_lib}/pss.py
-%{memstate_lib}/slabinfo.py
-%{memstate_lib}/swap.py
-%{memstate_lib}/__init__.py
-%{_mandir}/man8/oled-memstate.8.gz
+# owned directories
 
-# lkce
-%{oled_d}/lkce
-%{lkce_kdump_d}/kdump_report
-%{_mandir}/man8/oled-lkce.8.gz
+# memstate_lib python module
+%{python3_sitelib}/memstate_lib/
 
-# kcore-utils
-%{oled_d}/dentrycache
-%{oled_d}/dentrycache_uek4
-%{oled_d}/filecache
-%{oled_d}/filecache_uek4
-%{_mandir}/man8/oled-dentrycache.8.gz
-%{_mandir}/man8/oled-filecache.8.gz
+# all oled-tools configuration
+/etc/oled/
 
-#kstack
-%{oled_d}/kstack
-%{_mandir}/man8/oled-kstack.8.gz
+# track auto generated files so that they are removed during uninstall
+%ghost /etc/oled/lkce/crash_cmds_file
+%ghost /etc/oled/lkce/lkce.conf
 
-#scripts
-%{scripts_d}/arp_origin.d
-%{scripts_docs_d}/arp_origin_example.txt
-%{scripts_d}/rds_bcopy_metric.d
-%{scripts_docs_d}/rds_bcopy_metric_example.txt
-%{scripts_d}/rds_check_tx_stall.d
-%{scripts_docs_d}/rds_check_tx_stall_example.txt
-%{scripts_d}/rds_conn2irq.d
-%{scripts_docs_d}/rds_conn2irq_example.txt
-%{scripts_d}/rds_egress_TP.d
-%{scripts_docs_d}/rds_egress_TP_example.txt
-%{scripts_d}/rds_rdma_lat.d
-%{scripts_docs_d}/rds_rdma_lat_example.txt
-%{scripts_d}/rds_rdma_xfer_rate.d
-%{scripts_docs_d}/rds_rdma_xfer_rate_example.txt
-%{scripts_d}/rds_tx_funccount.d
-%{scripts_docs_d}/rds_tx_funccount_example.txt
-%{scripts_d}/ping_lat.d
-%{scripts_docs_d}/ping_lat_example.txt
-%{scripts_d}/spinlock_time.d
-%{scripts_docs_d}/spinlock_time_example.txt
-
-#syswatch
-%{oled_d}/syswatch
-%{_mandir}/man8/oled-syswatch.8.gz
+# all oled-tools subcommands and scripts
+%{_libexecdir}/oled-tools/
 
 %changelog
 * Sun Jul 2 2023 Jose Lombera <jose.lombera@oracle.com> - 0.6-2
