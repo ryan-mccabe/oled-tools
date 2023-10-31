@@ -58,6 +58,9 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-,root,root,-)
 
+%license LICENSE.txt
+%doc README.md
+
 %{_sbindir}/oled
 %{_mandir}/man8/*
 
