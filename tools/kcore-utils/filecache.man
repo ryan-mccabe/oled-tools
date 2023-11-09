@@ -1,4 +1,4 @@
-.TH OLED FILECACHE 8 "Jul 2021" "Oracle Linux Enhanced Diagnostics" "0.5"
+.TH OLED FILECACHE 8 "Jul 2021" "Oracle Linux Enhanced Diagnostics"
 
 .SH NAME
 oled filecache - List the paths of the biggest files present in the page cache.
@@ -14,6 +14,9 @@ of the file on disk).
 
 The page cache can hold too many small files, but most of them are not very
 interesting for debug purposes since they don't use too much memory.
+
+Note that this command is only supported on UEK4, UEK5 and UEK6 kernels on
+the x86-64 architecture.
 
 Sample output:
 .TS

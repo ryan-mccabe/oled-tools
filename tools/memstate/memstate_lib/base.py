@@ -30,7 +30,7 @@ import platform
 import socket
 import sys
 from datetime import datetime
-from typing import Optional
+from typing import Set, Optional
 
 from memstate_lib import constants
 
@@ -39,7 +39,7 @@ class Base:
     """ Contains general helper functions used by all other modules. """
     # pylint: disable=too-many-public-methods
 
-    logged_messages = set()
+    logged_messages: Set[str] = set()
     debug_log_configured = False
 
     def create_file_path(self, filename):
@@ -60,7 +60,7 @@ class Base:
         otherwise raise an exception.
         """
         try:
-            with open(path) as fdesc:
+            with open(path, "r", encoding="utf8") as fdesc:
                 return fdesc.read()
         except Exception as exn:
             self.log_debug(f"Unable to read file '{path}': {exn}")
@@ -78,33 +78,38 @@ class Base:
         output = ""
         try:
             args = cmd.split()
-            proc = subprocess.Popen(
-                args, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                shell=False)  # nosec
-            (output, error) = proc.communicate()
-            output = output.decode('utf-8')
-            if error:
-                self.log_debug(
-                    f"Command '{cmd}' returned error: {error.decode('utf-8')}")
+            result = subprocess.run(
+                        args, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                        shell=False, check=True)  # nosec
+            output = result.stdout.decode('utf-8')
         except Exception as exn:  # pylint: disable=broad-except
             output = ""
             self.log_debug(f"Command '{cmd}' failed with error: {exn}")
         return output
 
     @staticmethod
+    def get_page_size():
+        """Get the default page size on the current system."""
+        try:
+            return os.sysconf("SC_PAGE_SIZE")
+        except ValueError:
+            print("Unable to read the PAGE_SIZE of this system; exiting.\n")
+            sys.exit(1)
+
+    @staticmethod
     def print_error(warn_str):
         """Print an error message."""
-        print("[Error] " + warn_str)
+        print(f"{'[ERR] ': <8}{warn_str}")
 
     @staticmethod
     def print_warn(err_str):
         """Print a warning message."""
-        print("[Warning] " + err_str)
+        print(f"{'[WARN] ': <8}{err_str}")
 
     @staticmethod
     def print_info(msg_str):
         """Print an info message."""
-        print("[OK] " + msg_str)
+        print(f"{'[OK] ': <8}{msg_str}")
 
     def create_memstate_debug_log(self):
         """Create memstate debug log file."""
@@ -153,33 +158,18 @@ class Base:
     def convert_bytes_to_numpages(val_in_bytes):
         """Return number of bytes to number pages."""
         val_in_4k = \
-            float(val_in_bytes) / (constants.PAGE_SIZE_KB * constants.ONE_KB)
+            float(val_in_bytes) / (Base.get_page_size() * constants.ONE_KB)
         return round(val_in_4k, 1)
 
     @staticmethod
     def print_pretty_gb(str_msg, int_arg):
         """Print GB value in a pretty format."""
-        print(f"{str_msg: <30}:{int_arg: >8} GB")
+        print(f"{str_msg: <30}{int_arg: >12}")
 
     @staticmethod
     def print_pretty_kb(str_msg, int_arg):
         """Print KB value in a pretty format."""
-        print(f"{str_msg: <30}:{int_arg: >12} KB")
-
-    @staticmethod
-    def print_header_l0(str_msg):
-        """Print a level 0 header."""
-        print("==" * 8 + " " + str_msg + " " + "==" * 8)
-
-    @staticmethod
-    def print_header_l1(str_msg):
-        """Print a level 1 header."""
-        print("=" * 4 + " " + str_msg + " " + "=" * 4)
-
-    @staticmethod
-    def print_header_l2(str_msg):
-        """Print a level 2 header."""
-        print("=" * 2 + " " + str_msg + " " + "=" * 2)
+        print(f"{str_msg: <30}{int_arg: >12}")
 
     @staticmethod
     def get_kernel_ver():
@@ -192,7 +182,7 @@ class Base:
 
         If current time could not be determined, return "Unknown".
         """
-        current_time = datetime.now().strftime("<%m/%d/%Y %H:%M:%S>")
+        current_time = datetime.now().strftime("%m/%d/%Y %H:%M:%S")
         if not current_time:
             current_time = "Unknown"
         return current_time.strip()
@@ -214,7 +204,7 @@ class Base:
 
         If an OSError occurs, return an empty string instead."""
         try:
-            return open(filename, mode)
+            return open(filename, mode, encoding="utf8")
         except OSError:
             # Ignore if file does not exist
             return ""
@@ -226,7 +216,7 @@ class Base:
         For instance: if order = 3, return 32 (KB).
         """
         pages = 2**order
-        return pages * constants.PAGE_SIZE_KB
+        return pages * Base.get_page_size() / constants.ONE_KB
 
 
 class LockFile(Base):
@@ -252,9 +242,10 @@ class LockFile(Base):
     def __create_lock(self):
         """ Creates the directory and lock file """
         self.create_file_path(self.lock_filename)
-        self.lock_fd = open(self.lock_filename, "w")
 
         try:
+            # pylint: disable-next=consider-using-with
+            self.lock_fd = open(self.lock_filename, "w", encoding="utf8")
             # Exclusive lock | non-blocking request
             fcntl.flock(self.lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
             self.locked = True

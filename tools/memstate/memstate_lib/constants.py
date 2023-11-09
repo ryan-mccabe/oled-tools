@@ -21,34 +21,49 @@
 # questions.
 """Common global constants used by memstate."""
 
-#### Global constants
-## Do not change these values!
-PAGE_SIZE_KB = 4
-FRAG_SIZE_KB = 16
-STRUCT_PAGE_SIZE = 64
+#
+# Begin: Global Constants
+#
+# Do not change these values!
+#
 ONE_KB = 1024.00
 ONE_MB = ONE_KB * ONE_KB
 ONE_GB = ONE_KB * ONE_MB
+VMA_KB = 256 * ONE_KB
 PERCENT = 0.01
 NO_LIMIT = -1
-# The assumption here is that the system can be at most an 8-socket system.
-MAX_NUMA_NODES = 8
+DEFAULT_SHOW_PSS_SUMMARY = -1
 # For parsing output from /proc/buddyinfo. Lower orders are 0-3, higher order
 # buckets are 4-10.
 BUDDYINFO_START_INDEX = 0
 LOW_ORDER_MAX_INDEX = 3
 HIGH_ORDER_MAX_INDEX = 10
-#### End: global constants
+# Hardcoded constants. These could theoretically change in newer UEKs.
+FRAG_SIZE_KB = 16
+STRUCT_PAGE_SIZE = 64
+# The assumption here is that the system can be at most an 8-socket system.
+MAX_NUMA_NODES = 8
 
-#### Begin: config values
-## These values control how many lines of output are printed for different
-## categories. Change them if you want more/less output.
+#
+# End: Global Constants
+#
+
+#
+# Begin: Config Values
+#
+
+#
+# These values control how many lines of output are printed for different
+# categories. Change them if you want more/less output.
+#
 NUM_TOP_SLAB_CACHES = 10      # N biggest slab caches
 NUM_TOP_MEM_USERS = 10        # N top memory consumers (user processes)
 NUM_TOP_SWAP_USERS = 10       # N top users of swap space
 NUM_TOP_NUMA_MAPS = 20        # N biggest consumers of memory on each NUMA node
 
-## Thresholds for warnings
+#
+# Thresholds for warnings
+#
 # For instance, print a warning if X slab cache usage exceeds
 # SLAB_USE_PERCENT * (TotalRAM - TotalHugepages). These values are a bit
 # arbitrary, and represent what we think are "safe" thresholds for most
@@ -80,10 +95,11 @@ LOCK_FILE_DIR = "/run/lock/"
 LOCK_FILE_DIR_OL6 = "/var/run/"
 DEFAULT_INTERVAL = 30           # Unit: seconds
 
-
 # This is the max allowed "Use%" field in 'df -h' output for the logfile path;
 # the tool will exit if there's not enough space on disk.
 MAX_DISKSPACE_UTIL = 85
-
 MIN_DISKSPACE_NEEDED = 50       # Unit: MB
-#### End: config values
+
+#
+# End: config values
+#

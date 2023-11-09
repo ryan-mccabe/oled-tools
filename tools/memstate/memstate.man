@@ -1,23 +1,27 @@
-.TH OLED MEMSTATE 8 "Jul 2021" "Oracle Linux Enhanced Diagnostics" "0.5"
+.TH OLED MEMSTATE 8 "Jul 2021" "Oracle Linux Enhanced Diagnostics"
 
 .SH NAME
 oled memstate - Captures and analyzes various memory usage statistics on the
 running system.
 
 .SH SYNOPSIS
-oled memstate [-h] [-p] [-w] [-s [FILE]] [-n [FILE]] [-a] [-v] [-f [INTERVAL]]
+oled memstate [-h] [-p [PID]] [-s [FILE]] [-n [FILE]] [-a] [-v] \
+[-f [INTERVAL]]
 
 .SH DESCRIPTION
 The memstate tool gathers data about memory usage on the system where it's run,
 and analyzes the raw data to compute various statistics, including total memory
 used by kernel/userspace allocations, a list of top 10 processes consuming most
-memory, the 10 biggest slab caches, the top 10 swap space consumers, etc. It
-can also display per-process memory usage, including how the allocations are
+memory (RSS), the 10 biggest slab caches, the top 10 swap space consumers, etc. It
+can also display per-process memory usage (PSS), including how the allocations are
 split across the NUMA nodes (if applicable). The tool checks, and prints warnings
 for, any abnormalities detected; for instance -  excessive slab growth or large
 page tables, NUMA imbalance, or invalid vm.min_free_kbytes config. The tool also
 supports an offline mode to analyze slab and NUMA stats - see OPTIONS for more
 details.
+
+Note: RSS is not an accurate metric to measure per-process memory usage. For
+more accurate values, use the -p option, which extracts per-process PSS values.
 
 .SH OPTIONS
 .TP
@@ -26,24 +30,22 @@ details.
 can be passed to the tool.
 
 .TP
--p, --pss
+-p [PID], --pss [PID]
     Displays per-process memory usage, for the top 10 process
-memory consumers. This gathers data from /proc/<pid>/smaps files and sorts them,
-to display the most memory intensive processes on the system. Use with
--v/--verbose to get memory usage data for all processes on the system. Note
-that this processing can be quite expensive w.r.t. time taken/CPU cycles, esp.
-if run on a heavily-loaded system. So it is not recommended to invoke this
-option (with or without -v/--verbose - that does not matter) too often.
-
-.TP
--w, --swap
-    Displays per-process swap usage, for the top 10 swap consumers. This
-data is gathered from /proc/<pid>/status files and sorted. Does not support
--v/--verbose output.
+memory consumers. This gathers data from /proc/<pid>/smaps_rollup files and
+sorts them, to display the most memory intensive processes on the system. It
+displays the following metrics per process: PSS, RSS, private, swap-pss.
+Use with -v/--verbose to get memory usage data for all processes on the system.
+Note that this processing can be quite expensive w.r.t. time taken/CPU cycles,
+esp. if run on a heavily-loaded system. Therefore, it is not recommended to
+invoke this option (with or without -v/--verbose - that does not matter) too
+often. If a process's pid is passed as input, this option will display the
+memory mappings and usage summary for that process only, extracted from
+/proc/<pid>/smaps file.
 
 .TP
 -s [FILE], --slab [FILE]
-     Analyzes/displays slab usage. It takes an optional file
+    Analyzes/displays slab usage. It takes an optional file
 input, which should contain the output of 'cat /proc/slabinfo'. This can be
 used to analyze the slab usage on another system offline. To display the
 slab usage on the current/running system, simply omit the file input. This
@@ -59,7 +61,8 @@ meminfo data from /sys/devices/system/node/nodeX/meminfo. When combined with
 system and computes their total memory allocations on each NUMA node, and
 displays them in a sorted fashion. Note that this processing can be quite
 expensive w.r.t. time taken/CPU cycles, esp. if run on a heavily-loaded system.
-So it is not recommended to invoke -n/--numa with -v/--verbose too often.
+Therefore, it is not recommended to invoke -n/--numa with -v/--verbose too
+often.
 
 It also takes an optional file input (this can be used for offline processing),
 which should contain the contents of /proc/*/numa_maps files as well as
@@ -67,7 +70,7 @@ which should contain the contents of /proc/*/numa_maps files as well as
 script:
 
 PROCS=/proc/*; for p in $PROCS; do COMM=$(cat $p/comm); \
-	MAPS=$(cat $p/numa_maps); echo "$COMM:"; echo "$MAPS"; done
+	MAPS=$(cat $p/numa_maps); echo "$COMM(${p##*/}):"; echo "$MAPS"; done
 
 and redirecting it to a file. This file can be passed as input, with
 -n, to analyze and display per-NUMA node memory allocation statistics for each
@@ -83,8 +86,7 @@ details.
 
 .TP
 -v, --verbose
-    Verbose data capture; this should be combined with other
-options except -w/--swap (see other options for details).
+    Verbose data capture; this should be combined with other options.
 
 .TP
 -f [INTERVAL], --frequency [INTERVAL]

@@ -1,6 +1,4 @@
-#!/usr/bin/env python3
-#
-# Copyright (c) 2023, Oracle and/or its affiliates.
+# Copyrigcanht (c) 2023, Oracle and/or its affiliates.
 # DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
 #
 # This code is free software; you can redistribute it and/or modify it
@@ -19,19 +17,22 @@
 # Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
 # or visit www.oracle.com if you need additional information or have any
 # questions.
-"""Public exports of memstate_lib module."""
 
-# flake8: noqa
+all:
+	@echo "all:$(CURDIR)"
 
-from .base import Base
-from .base import LockFile
-from .buddyinfo import Buddyinfo
-from .logfile import Logfile
-from .hugepages import Hugepages
-from .meminfo import Meminfo
-from .rss import Rss
-from .numa import Numa
-from .pss import Pss
-from .slabinfo import Slabinfo
-from .swap import Swap
-from . import constants
+clean:
+	@echo "clean:$(CURDIR)"
+
+install:
+	@echo "install:$(CURDIR)"
+	install -m 755 $(CURDIR)/vmcore_sz.py $(BINDIR)/vmcore_sz
+	gzip -c $(CURDIR)/vmcore_sz.man > $(MANDIR)/oled-vmcore_sz.8.gz
+	chmod 644 $(MANDIR)/oled-vmcore_sz.8.gz
+	@echo "vmcore-utils successfully installed!"
+
+uninstall:
+	@echo "uninstall:$(CURDIR)"
+	rm -f $(BINDIR)/vmcore_sz
+	rm -f $(MANDIR)/oled-vmcore_sz.8.gz
+	@echo "vmcore-utils successfully uninstalled!"

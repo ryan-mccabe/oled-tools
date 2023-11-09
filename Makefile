@@ -18,9 +18,14 @@
 # or visit www.oracle.com if you need additional information or have any
 # questions.
 
-VERSION="0.6"
+VERSION="0.7"
+ARCH := $(shell uname -m)
 
-subdirs := tools/lkce tools/kcore-utils tools/memstate tools/kstack tools/syswatch
+ifeq ($(ARCH), x86_64)
+	subdirs := tools/lkce tools/kcore-utils tools/memstate tools/kstack tools/syswatch tools/scanfs tools/vmcore-utils
+else
+	subdirs := tools/lkce tools/memstate tools/kstack tools/syswatch tools/scanfs tools/vmcore-utils
+endif
 subdirs := $(subdirs) scripts
 rev_subdirs := $(shell echo -n "$(subdirs) " | tac -s ' ')
 OLEDDIR := $(DESTDIR)/etc/oled

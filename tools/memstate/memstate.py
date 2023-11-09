@@ -36,6 +36,7 @@ from memstate_lib import Hugepages
 from memstate_lib import Pss
 from memstate_lib import Swap
 from memstate_lib import Logfile
+from memstate_lib import Rss
 from memstate_lib import constants
 
 
@@ -49,19 +50,19 @@ class Memstate(Base):
         self.slabinfo = Slabinfo()
         self.buddyinfo = Buddyinfo()
         self.pss = Pss()
+        self.rss = Rss()
         self.swap = Swap()
         self.print_header = True
 
     def print_time(self):
-        """Print time ('zzz <time>')."""
-        print("zzz " + self.get_current_time())
+        """Print time"""
+        print(f"{'TIME: ': >12}{self.get_current_time()}")
 
     def memstate_header(self):
         """Print memstate header to stdout if it has not been printed yet."""
         if self.print_header:
-            self.print_header_l0("Gathering memory usage data")
-            print("Kernel version: " + self.get_kernel_ver())
-            print("Hostname: " + self.get_hostname())
+            print(f"{'KERNEL: ': >12}{self.get_kernel_ver()}")
+            print(f"{'HOSTNAME: ': >12}{self.get_hostname()}")
             self.print_time()
             print("")
             self.print_header = False
@@ -71,8 +72,9 @@ class Memstate(Base):
         Display the memory usage summary, and run a quick health check.
         """
         self.meminfo.display_usage_summary()
-        self.slabinfo.memstate_check_slab()
         self.numa.memstate_check_numa()
+        self.slabinfo.memstate_check_slab()
+        self.rss.memstate_check_rss()
         self.check_health()
 
     def memstate_opt_all(self, verbose):
@@ -82,27 +84,23 @@ class Memstate(Base):
         """
         self.meminfo.display_usage_summary()
         if verbose:
-            self.slabinfo.memstate_check_slab(constants.NO_LIMIT)
             self.numa.memstate_check_numa()
-            self.pss.memstate_check_pss(constants.NO_LIMIT)
+            self.slabinfo.memstate_check_slab(constants.NO_LIMIT)
+            self.rss.memstate_check_rss(constants.NO_LIMIT)
             self.swap.memstate_check_swap(constants.NO_LIMIT)
         else:
-            self.slabinfo.memstate_check_slab()
             self.numa.memstate_check_numa()
-            self.pss.memstate_check_pss()
+            self.slabinfo.memstate_check_slab()
+            self.rss.memstate_check_rss()
             self.swap.memstate_check_swap()
         self.check_health()
 
-    def memstate_opt_pss(self, verbose=False):
+    def memstate_opt_pss(self, pid, verbose=False):
         """Run PSS checks."""
         if verbose:
-            self.pss.memstate_check_pss(constants.NO_LIMIT)
+            self.pss.memstate_check_pss(pid, constants.NO_LIMIT)
         else:
-            self.pss.memstate_check_pss()
-
-    def memstate_opt_swap(self):
-        """Run Swap checks."""
-        self.swap.memstate_check_swap(constants.NO_LIMIT)
+            self.pss.memstate_check_pss(pid)
 
     def memstate_opt_slab(self, verbose=False):
         """Run Slabinfo checks."""
@@ -119,7 +117,7 @@ class Memstate(Base):
         """
         Check the various memory usage stats against the acceptable thresholds.
         """
-        self.print_header_l1("Health checks")
+        print("HEALTH CHECKS:")
         self.check_sysctl_config()
         self.meminfo.check_pagetables_size()
         self.check_rds_cache_size()
@@ -168,13 +166,13 @@ class Memstate(Base):
         mfk_update_str = (
             "Please update to the recommended value using either 'sysctl -w' "
             "or in /etc/sysctl.conf.")
-        if recommended_mfk_kb > current_mfk_kb:
+        if round(current_mfk_kb/recommended_mfk_kb, 1) < 0.8:
             self.print_warn(mfk_warning_str)
             print(
                 "There is a higher possiblity of compaction stalls due to "
                 "fragmentation if free memory dips too low.")
             print(mfk_update_str)
-        elif current_mfk_kb >= 2*recommended_mfk_kb:
+        elif round(current_mfk_kb/recommended_mfk_kb, 1) > 1.5:
             self.print_warn(mfk_warning_str)
             print(
                 "There is a higher possibility of the OOM-killer being invoked"
@@ -195,6 +193,10 @@ class Memstate(Base):
             print("")
             self.print_warn(
                 f"vm.watermark_scale_factor has been increased to {wsf}.")
+        else:
+            print("")
+            self.print_info(
+                f"The value of vm.watermark_scale_factor is: {wsf}.")
 
     def check_rds_cache_size(self):
         """Check that RDS cache size is not too large.
@@ -209,6 +211,10 @@ class Memstate(Base):
         if (rds_size_gb > 0 and rds_size_gb >= max_rds_size):
             print("")
             self.print_warn(f"RDS receive cache is large: {rds_size_gb} GB.")
+        elif rds_size_gb > 0:
+            print("")
+            self.print_info(
+                f"RDS receive cache size is: {rds_size_gb} GB.")
 
     def check_for_pmem(self):
         """
@@ -284,17 +290,12 @@ def validate_args(args):
     Checks if there are any invalid combinations of arguments:
       - "all" cannot be mixed with other options (except "verbose" and
         "frequency")
-      - "verbose" can be combined with almost any other option except "swap"
+      - "verbose" can be combined with any other option
       - "frequency" cannot be used if an input file is provided (for "slab" or
         "numa")
       - "frequency" cannot be used with "numa" for live capture too (it's too
         expensive)
     """
-    if args.verbose and args.swap:
-        print(
-            "Option -w/--swap does not support -v/--verbose; "
-            "see usage for more details.")
-        return 1
     if args.frequency:
         if args.numa is not None:
             print(
@@ -308,7 +309,7 @@ def validate_args(args):
             return 1
     if args.all:
         # pylint: disable=too-many-boolean-expressions
-        if (args.pss or args.swap
+        if (args.pss
                 or (args.numa is not None and args.numa != 'nofile')
                 or (args.slab is not None and args.slab != 'nofile')):
             print(
@@ -327,11 +328,9 @@ def main():
             'memstate: Capture and analyze memory usage data on this system.'))
 
     parser.add_argument(
-        "-p", "--pss", action="store_true",
+        "-p", "--pss", metavar="PID", nargs="?",
+        const=constants.DEFAULT_SHOW_PSS_SUMMARY,
         help="display per-process memory usage")
-    parser.add_argument(
-        "-w", "--swap", action="store_true",
-        help="display per-process swap usage")
     parser.add_argument(
         "-s", "--slab", metavar="FILE", help="analyze/display slab usage",
         nargs="?", const="nofile")
@@ -417,10 +416,7 @@ def main():
             memstate.memstate_opt_all(opt_verbose)
         if args.pss:
             args_passed = True
-            memstate.memstate_opt_pss(opt_verbose)
-        if args.swap:
-            args_passed = True
-            memstate.memstate_opt_swap()
+            memstate.memstate_opt_pss(args.pss, opt_verbose)
         if args.slab is not None:
             args_passed = True
             memstate.memstate_opt_slab(opt_verbose)

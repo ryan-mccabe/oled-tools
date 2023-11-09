@@ -73,7 +73,7 @@ class Numa(Base):
             if not fdesc:
                 continue
             data = fdesc.read()
-            pstr = str(comm) + "(pid:" + pid + "):"
+            pstr = str(comm) + "(" + pid + "):"
             if data:
                 self.numa_maps += pstr
                 self.numa_maps += newline
@@ -89,23 +89,23 @@ class Numa(Base):
         self.numa_maps += separator
         self.numa_maps += newline
 
-    def __print_numa_headers(self):
-        print("{0: >41}".format("Node 0"), end=' ')
+    def __print_numa_maps_headers(self):
+        print(f"{'PROCESS(PID)': <30}{'NODE 0': >15}", end=' ')
         for i in range(1, self.num_numa_nodes):
-            print("{0: >15}".format("Node " + str(i)), end=' ')
+            print(f"{'NODE ' + str(i): >14}", end=' ')
         print("")
 
     def __print_numastat_headers(self):
-        print("{0: >48}".format("Node 0"), end=' ')
+        print(f"{'NODE 0': >45}", end=' ')
         for i in range(1, self.num_numa_nodes):
-            print("{0: >17}".format("Node " + str(i)), end=' ')
+            print(f"{'NODE '  + str(i): >14}", end=' ')
         print("")
 
     @staticmethod
     def __print_pretty_numastat_kb(str_msg, numa_arr_kb):
-        print("{0: <30}".format(str_msg + ": "), end=' ')
+        print(f"{str_msg: <30}", end=' ')
         for _, val in enumerate(numa_arr_kb):
-            print("{0: >14}".format(str(val)) + " KB", end=' ')
+            print(f"{str(val): >14}", end=' ')
         print("")
 
     def __check_numa_maps_bindings(self):
@@ -129,7 +129,7 @@ class Numa(Base):
                     and line[-1] == ":"):
                 # This needs to find both these patterns of strings (with or
                 # without pid):
-                # "oracle_105390_w:" as well as "systemd-journal(pid:3187):"
+                # "oracle_105390_w:" as well as "systemd-journal(3187):"
                 header_str = line + "\n"
                 if found_something:
                     matched = matched + "\n" + printstr
@@ -187,7 +187,8 @@ class Numa(Base):
             sorted(nlist.items(), key=lambda x: x[1], reverse=True))
         comm_ignore = []
         num_printed = 0
-        self.__print_numa_headers()
+        page_size_kb = Base.get_page_size() / constants.ONE_KB
+        self.__print_numa_maps_headers()
         for elem in nlist_sorted:
             if num != constants.NO_LIMIT and num_printed >= num:
                 break
@@ -207,11 +208,11 @@ class Numa(Base):
             for pid_elem in per_pid_sorted:
                 if hdr_printed is False:
                     comm = pid_elem.split()[0]
-                    print("{0: <25}".format(comm), end=' ')
+                    print(f"{comm: <30}", end=' ')
                     hdr_printed = True
                     comm_ignore.append(comm)
-                value_kb = int(nlist_sorted[pid_elem]) * constants.PAGE_SIZE_KB
-                print(f"{value_kb} KB", end=" ")
+                value_kb = int(nlist_sorted[pid_elem]) * page_size_kb
+                print(f"{value_kb: >14}", end=" ")
             print("")
             num_printed += 1
 
@@ -235,34 +236,33 @@ class Numa(Base):
             return
 
         if num != constants.NO_LIMIT:
-            self.print_header_l1(
-                f"Per-NUMA node memory usage (top {num} processes)")
+            hdr = "Per-node memory usage, per process " + \
+                    f"(in KB, top {num} processes):"
         else:
-            self.print_header_l1("Per-NUMA node memory usage")
+            hdr = "Per-node memory usage, per process (in KB):"
+        print(hdr)
         i = 0
         nlist = {}
-        hdr = None
+        key = None
         start_time = time.time()
         while i < self.num_numa_nodes:
             pages = 0
             for line in self.numa_maps.splitlines():
                 ni_search_str = "N" + str(i) + "="
-                hdr_printed = False
                 if line[:1].isalpha() and line.endswith(":"):
                     comm = line[:-1].strip()
-                    hdr = comm + " " + ni_search_str[:-1].strip()
-                    hdr_printed = False
+                    key = comm + " " + ni_search_str[:-1].strip()
+                    key_stored = False
                 node_i = [
                     elem for elem in line.split() if ni_search_str in elem
                 ]
-                if node_i:
-                    if hdr_printed is False:
-                        hdr_printed = True
-                        pages = 0  # Reset!
-                    for elem in node_i:
-                        pages += int(str(elem).split("=")[1])
-                    if hdr:
-                        nlist[hdr] = int(pages) * constants.PAGE_SIZE_KB
+                if key_stored is False:
+                    key_stored = True
+                    pages = 0  # Reset!
+                for elem in node_i:
+                    pages += int(str(elem).split("=")[1])
+                if key:
+                    nlist[key] = pages
             i += 1  # Check next numa node
         end_time = time.time()
         self.log_debug(
@@ -327,17 +327,17 @@ class Numa(Base):
 
     def __print_hugepage_stats_by_node(self):
         hp_nr = self.hugepages.get_nr_hugepages_matrix_kb()
-        for elem in hp_nr:
+        for hp_size, nr_kb in hp_nr.items():
             # If all elements in a list are 0s, ignore that list.
-            if not all(e == 0 for e in hp_nr[elem]):
+            if not all(e == 0 for e in nr_kb):
                 self.__print_pretty_numastat_kb(
-                    f"Total Hugepages ({elem} KB)", hp_nr[elem])
+                    f"Total Hugepages ({hp_size} KB)", nr_kb)
 
         hp_free = self.hugepages.get_free_hugepages_matrix_kb()
-        for elem in hp_free:
-            if not all(e == 0 for e in hp_free[elem]):
+        for hp_size, nr_kb in hp_free.items():
+            if not all(e == 0 for e in nr_kb):
                 self.__print_pretty_numastat_kb(
-                    f"Free Hugepages ({elem} KB)", hp_free[elem])
+                    f"Free Hugepages ({hp_size} KB)", nr_kb)
 
     def __display_numa_meminfo(self):
         """
@@ -358,6 +358,7 @@ class Numa(Base):
         else:
             print("NUMA is not enabled on this system.")
             return
+        print("Per-node memory usage summary (in KB):")
         self.__print_numastat_headers()
         while i < self.num_numa_nodes:
             nodei_meminfo = self.read_text_file(
@@ -399,16 +400,12 @@ class Numa(Base):
     def memstate_check_numa(
             self, num=constants.NUM_TOP_NUMA_MAPS, verbose=False):
         """Display NUMA information and check some state."""
-        self.print_header_l1("NUMA stats")
+        print("NUMA STATISTICS:")
         self.__display_numa_meminfo()
         print("")
         if verbose is False:
             return
-        print(
-            "Note: this processing can take a long time - depending on the "
-            "system config, load, etc.\nYou might also notice this script "
-            "consuming > 95% CPU during this run, for a few minutes.\nSo it "
-            "is not recommended to invoke -n/--numa with -v/--verbose too "
-            "often.\n")
         if self.num_numa_nodes > 1:
+            print("Reading /proc/<pid>/numa_maps (this could take " +
+                  "a while) ...\n")
             self.process_numa_maps(num)

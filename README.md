@@ -1,6 +1,6 @@
 # oled-tools
 
-Oracle Linux Enchanced Diagnostic (OLED) tools is a collection of tools,
+Oracle Linux Enhanced Diagnostic (OLED) tools is a collection of tools,
 scripts, configs, etc. that collect and analyze data about the health of the
 system in order to root cause and resolve any system issues.
 
@@ -15,12 +15,16 @@ corresponding man pages for more details.
 - memstate: Captures and analyzes various memory usage statistics on the
   running system
 - filecache: List the paths of the biggest files present in the page cache
+  (note: this is present only on the x86-64 architecture)
 - dentrycache: Lists a sample of file paths which have active dentries in the
   dentry hash table
+  (note: this is present only on the x86-64 architecture)
 - kstack: Collects the kernel stack trace for selected processes, based on
   status or PID
 - syswatch: Execute user-provided commands when CPU utilization reaches a
   threshold
+- scanfs: Scan KVM images for corruption, supports XFS and EXT4
+- vmcore-utils: Estimating vmcore size before kernel dump
 
 ## Installation
 
@@ -48,8 +52,8 @@ $ make
 $ make install
 ```
 
-`lkce` requires additional setup the firs time, it's recommended to run
-following command after oled-tools is installed:
+`lkce` requires additional setup the first time - it is recommended to run
+the following command after oled-tools is installed:
 
 ```bash
 $ [ -f /etc/oled/lkce/lkce.conf ] || sudo oled lkce configure --default
