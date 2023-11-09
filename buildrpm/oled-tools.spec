@@ -20,7 +20,8 @@ Source0: %{name}-%{version}.tar.gz
 %description
 oled-tools is a collection of command line tools, scripts, config files, etc.,
 that will aid in faster and better debugging of problems on Oracle Linux. It
-contains: lkce, memstate, kstack, filecache, dentrycache and syswatch.
+contains: lkce, memstate, kstack, filecache, dentrycache, syswatch, scanfs and
+vmcore_sz.
 
 %prep
 %setup -q
