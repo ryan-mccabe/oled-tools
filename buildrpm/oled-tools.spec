@@ -1,6 +1,6 @@
 Name: oled-tools
-Version: 0.6
-Release: 2%{?dist}
+Version: 0.7
+Release: 1%{?dist}
 Summary: Diagnostic tools for more efficient and faster debugging on Oracle Linux
 # kcore-utils requirements
 %ifarch x86_64
@@ -86,6 +86,24 @@ rm -rf $RPM_BUILD_ROOT
 %{_libexecdir}/oled-tools/
 
 %changelog
+* Thu Nov 9 2023 Jose Lombera <jose.lombera@oracle.com> - 0.7-1
+- Update to v0.7.
+- Clean up oled-tools.spec
+- Add doc and license files to RPM
+- Migrate all Python scripts to Python3
+- Install oled subcommands in /usr/libexec/
+- Clean up python scripts and fix pylint/flake8/mypy/bandit errors/warnings
+- oled: escape passthrough arguments (Jose Lombera) [Orabug: 35064194]
+- kcore-utils: fix build in OL9 (Jose Lombera)
+- Only build kcore-utils on x86-64
+- syswatch: support monitoring all CPU stat metrics
+- memsate: several improvements
+- memstate: NUMA: fix per-node memory accounting
+- memstate: determine PAGE_SIZE at runtime (Aruna Ramakrishna)
+  [Orabug: 35074520]
+- Add tool scanfs (Srikanth C S) [Orabug: 34502391]
+- Add tool vmcore_sz (Partha Satapathy, Srikanth C S) [Orabug: 35824470]
+
 * Sun Jul 2 2023 Jose Lombera <jose.lombera@oracle.com> - 0.6-2
 - Release oled-tools-0.6-2
 - Reapply missing fixes from v0.5-5 [Orabugs: 32038044, 33104580, 33107277,
