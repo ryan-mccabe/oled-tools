@@ -1,10 +1,10 @@
-.TH OLED LKCE 8 "Jul 2021" "Oracle Linux Enhanced Diagnostics"
+.TH OLED LKCE 8 "Mar 2024" "Oracle Linux Enhanced Diagnostics"
 
 .SH NAME
 oled lkce \- Linux Kernel Core Extractor
 
 .SH SYNOPSIS
-\fB oled lkce\fR [report \fIreport-options\fR] [configure \fIconfig-options\fR] [enable_kexec|disable_kexec|status] [clean|list|help]
+\fBoled lkce\fR [report \fIreport-options\fR] [configure \fIconfig-options\fR] [enable_kexec|disable_kexec|status] [clean|list|help]
 
 .SH DESCRIPTION
 \fBlkce command\fR is used to interact with Linux Kernel Core Extractor[LKCE]. It is used to generate report from vmcore. lkce can run user scripts in kexec kernel.
@@ -18,16 +18,13 @@ Once configured it can generate a report from a kexec kernel when system crashes
 report-options:
 .RE
 .RS 3
-\fB\-\-vmcore=\fI/path/to/vmcore\fR	- path to vmcore file for report generation (required)
+[\fB\-\-corelens_args_file=\fI/path/to/args/file\fR] - path to file containing corelens command line arguments
 .RE
 .RS 3
-[\fB\-\-vmlinux=\fI/path/to/vmlinux\fR]	- use this vmlinux instead of already configured value
+[\fB\-\-vmcore=\fI/path/to/vmcore\fR]                - path to vmcore file for report generation (required)
 .RE
 .RS 3
-[\fB\-\-crash_cmds=\fIcmd1,cmd2,...\fR]	- comma seperated crash cmds to be used in report generation instead of configured commands
-.RE
-.RS 3
-[\fB\-\-outfile=\fI/path/to/outfile\fR]	- write output to outfile. By default output goes to stdout
+[\fB\-\-outfile=\fI/path/to/outfile\fR]              - write output to outfile. By default output goes to stdout
 .RE
 
 .TP
@@ -41,16 +38,13 @@ report-options:
 config-options:
 .RE
 .RS 3
-[\fB\-\-vmlinux_path=\fI/path/to/vmlinux\fR]  - set vmliux_path to given value
+[\fB\-\-corelens_args_file=\fI/path/to/file\fR]  - set corelens_args_file to given value
 .RE
 .RS 3
-[\fB\-\-crash_cmds_file=\fI/path/to/file\fR]  - set crash_cmds_file to given value
+[\fB\-\-vmcore=\fIyes/no\fR]                     - set vmcore to given value. Controls vmcore generation in kexec kernel.
 .RE
 .RS 3
-[\fB\-\-vmcore=\fIyes/no\fR]	- set vmcore to given value. Controls vmcore generation in kexec kernel.
-.RE
-.RS 3
-[\fB\-\-max_out_files=\fI<number>\fR]	- set max_out_files to given value
+[\fB\-\-max_out_files=\fI<number>\fR]            - set max_out_files to given value
 .RE
 
 .TP
@@ -87,10 +81,10 @@ Crash the system manually. Once the machine boots, run 'oled lkce list'. Verify 
 # oled lkce report --vmcore=/var/crash/127.0.0.1-2020-12-29-17\:17\:45/vmcore
 .RE
 .RS 0
-# oled lkce report --vmcore=/var/crash/127.0.0.1-2020-12-29-17\:17\:45/vmcore --crash_cmds=bt,sys
+# oled lkce report --vmcore=/var/crash/127.0.0.1-2020-12-29-17\:17\:45/vmcore --corelens_args_file=/etc/oled/lkce/corelens_args_file
 .RE
 .RS 0
-# oled lkce report --vmcore=/var/crash/127.0.0.1-2020-12-29-17\:17\:45/vmcore --crash_cmds=bt,sys --outfile=/tmp/outfile.txt
+# oled lkce report --vmcore=/var/crash/127.0.0.1-2020-12-29-17\:17\:45/vmcore --corelens_args_file=/etc/oled/lkce/corelens_args_file --outfile=/tmp/outfile.txt
 .RE
 
 .RS 0
@@ -100,7 +94,7 @@ Crash the system manually. Once the machine boots, run 'oled lkce list'. Verify 
 # oled lkce configure --show
 .RE
 .RS 0
-# oled lkce configure --vmlinux_path=/usr/lib/debug/lib/modules/4.14.35-1902.3.1.el7uek.x86_64/vmlinux
+# oled lkce configure oled lkce configure --max_out_files=40
 .RE
 
 # oled lkce help
