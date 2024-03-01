@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Copyright (c) 2023, Oracle and/or its affiliates.
+# Copyright (c) 2023-2024, Oracle and/or its affiliates.
 # DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
 #
 # This code is free software; you can redistribute it and/or modify it
@@ -22,7 +22,7 @@
 
 """
 Program that runs inside kdump kernel
-Program to run crash utility inside the kdump kernel
+Program to run corelens utility inside the kdump kernel
 """
 import glob
 import time
@@ -32,6 +32,7 @@ import re
 import shutil
 import subprocess  # nosec
 import sys
+from typing import Optional, List
 
 
 class KdumpReport:
@@ -39,25 +40,23 @@ class KdumpReport:
     # pylint: disable=too-many-instance-attributes
     def __init__(self) -> None:
         """Constructor for KdumpReport class"""
-        self.vmlinux = ""
         self.vmcore = "/proc/vmcore"
         self.kdump_kernel_ver = platform.uname().release
 
         self.kdump_report_home = "/etc/oled/lkce"
         self.kdump_report_config_file = self.kdump_report_home + "/lkce.conf"
-        self.kdump_report_crash_cmds_file = self.kdump_report_home + \
-            "/crash_cmds_file"
+        self.kdump_report_corelens_args_file = self.kdump_report_home + \
+            "/corelens_args_file"
         self.kdump_report_out = "/var/oled/lkce"
         self.kdump_report_out_file = self.kdump_report_out + \
-            "/crash_" + time.strftime("%Y%m%d-%H%M%S") + ".out"
+            "/corelens_" + time.strftime("%Y%m%d-%H%M%S") + ".out"
         self.timedout_action = "reboot -f"
 
         # default values
         self.kdump_report = "yes"
-        self.vmlinux_path = "/usr/lib/debug/lib/modules/" + \
-            self.kdump_kernel_ver + "/vmlinux"
-        self.crash_cmds_file = self.kdump_report_crash_cmds_file
+        self.corelens_args_file = self.kdump_report_corelens_args_file
         self.max_out_files = "50"
+        self.corelens_args = ["-a"]
 
         self.read_config(self.kdump_report_config_file)
     # def __init__
@@ -81,11 +80,9 @@ class KdumpReport:
             line = re.sub(r"\s+", "", line)
 
             entry = re.split("=", line)
-            if "vmlinux_path" in entry[0] and entry[1]:
-                self.vmlinux_path = entry[1]
 
-            elif "crash_cmds_file" in entry[0] and entry[1]:
-                self.crash_cmds_file = entry[1]
+            if "corelens_args_file" in entry[0] and entry[1]:
+                self.corelens_args_file = entry[1]
 
             elif "enable_kexec" in entry[0] and entry[1]:
                 self.kdump_report = entry[1]
@@ -96,47 +93,38 @@ class KdumpReport:
         return 0
     # def read_config
 
-    def get_vmlinux(self) -> int:
-        """Check for vmlinux in config path and then in default location.
+    def read_args(self, filename: str) -> Optional[List[str]]:
+        """Read command line arguments file and return the args as a list"""
+        try:
+            with open(filename, 'r') as f:
+                args = [
+                    w.strip()
+                    for l in f
+                    for w in l.split()
+                    if not l.startswith('#')
+                ]
+                return args
+        except Exception as e:
+            print(f"kdump_report: Unable to operate on file: {filename}: {e}")
+            return None
+    # def read_args
 
-        Report error if not found
-        """
-        vmlinux_1 = self.vmlinux_path
-        vmlinux_2 = "/usr/lib/debug/lib/modules/" + \
-                    self.kdump_kernel_ver + "/vmlinux"
+    def run_corelens(self) -> int:
+        """Run corelens utility against vmcore"""
+        corelens_path = shutil.which("corelens")
 
-        if os.path.exists(vmlinux_1) and os.path.isfile(vmlinux_1):
-            self.vmlinux = vmlinux_1
-        elif os.path.exists(vmlinux_2) and os.path.isfile(vmlinux_2):
-            self.vmlinux = vmlinux_2
-        else:
-            print("kdump_report: vmlinux not found in following locations.")
-            print("kdump_report: %s" % vmlinux_1)
-            print("kdump_report: %s" % vmlinux_2)
-            sys.exit(1)
-
-        print("kdump_report: vmlinux found at %s" % self.vmlinux)
-        return 0
-    # def get_vmlinux
-
-    def run_crash(self) -> int:
-        """Run crash utility against vmcore"""
-        crash_path = shutil.which("crash")
-
-        if not crash_path:
-            print("kdump_report: 'crash' executable not found")
-            return 1
-
-        self.get_vmlinux()
-        if not (os.path.exists(self.crash_cmds_file) and
-                os.path.isfile(self.crash_cmds_file)):
-            print("kdump_report: %s not found" % self.crash_cmds_file)
+        if not corelens_path:
+            print("kdump_report: 'corelens' executable not found")
             return 1
 
         os.makedirs(self.kdump_report_out, exist_ok=True)
 
-        args = (crash_path, self.vmlinux, self.vmcore, "-i",
-                self.crash_cmds_file)
+        args = [corelens_path, self.vmcore]
+        corelens_args = self.read_args(self.corelens_args_file)
+        if corelens_args:
+            args.extend(corelens_args)
+        else:
+            args.extend(self.corelens_args)
         print(f"kdump_report: Executing '{' '.join(args)}'; output file "
               f"'{self.kdump_report_out_file}'")
 
@@ -145,18 +133,18 @@ class KdumpReport:
                            stderr=output_fd, stdin=subprocess.DEVNULL,
                            shell=False, check=True)  # nosec
         return 0
-    # def run_crash
+    # def run_corelens
 
     def clean_up(self) -> None:
-        """Clean up old crash reports to save space"""
+        """Clean up old corelens reports to save space"""
         max_files = int(self.max_out_files)
-        crash_files = glob.glob(f"{self.kdump_report_out}/crash*out")
+        corelens_files = glob.glob(f"{self.kdump_report_out}/corelens*out")
 
-        if len(crash_files) > max_files:
+        if len(corelens_files) > max_files:
             print(f"kdump_report: found more than {max_files}[max_out_files] "
                   "out files. Deleting older ones")
 
-            for file in sorted(crash_files, reverse=True)[max_files:]:
+            for file in sorted(corelens_files, reverse=True)[max_files:]:
                 try:
                     os.remove(file)
                 except OSError:
@@ -174,7 +162,7 @@ def main() -> int:
         sys.exit(1)
     else:
         print("kdump_report: kdump_report is enabled to run")
-        kdump_report.run_crash()
+        kdump_report.run_corelens()
         kdump_report.clean_up()
         sys.exit(0)
 # def main
