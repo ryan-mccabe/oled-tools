@@ -91,6 +91,9 @@ class Pss(Base):
                                     int(line.split(":")[1].strip().split()[0])
                 except OSError:
                     pass
+                if ((num_files_scanned % 100) == 0):
+                    # Sleep for 1 ms every 100 files, to avoid hogging the CPU
+                    time.sleep(0.001)
         except OSError:
             pass
 
