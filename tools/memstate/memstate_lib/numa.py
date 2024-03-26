@@ -75,13 +75,12 @@ class Numa(Base):
             data = fdesc.read()
             pstr = str(comm) + "(" + pid + "):"
             if data:
-                self.numa_maps += pstr
-                self.numa_maps += newline
-                self.numa_maps += data
-                self.numa_maps += newline
+                self.numa_maps += ''.join([pstr, newline, data, newline])
             num_files_scanned = num_files_scanned + 1
             fdesc.close()
-            time.sleep(0.01)  # Sleep for 10 ms, to avoid hogging CPU
+            if ((num_files_scanned % 100) == 0):
+                # Sleep for 1 ms every 100 files, to avoid hogging the CPU
+                time.sleep(0.001)
         end_time = time.time()
         self.log_debug(
             f"Time taken to read {num_files_scanned} /proc/<pid>/numa_maps "

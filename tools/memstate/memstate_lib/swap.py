@@ -65,7 +65,11 @@ class Swap(Base):
                 for match in match_list:
                     swap_kb = int(match.split(":")[1].strip())
                     swap[hdr] = swap_kb + swap.get(hdr, 0)
-                time.sleep(0.01)  # Sleep for 10 ms to avoid hogging CPU
+
+                if ((num_files_scanned % 100) == 0):
+                    # Sleep for 1 ms every 100 files, to avoid hogging the CPU
+                    time.sleep(0.001)
+
             except OSError:
                 pass
         end_time = time.time()
