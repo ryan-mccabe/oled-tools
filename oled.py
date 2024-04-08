@@ -34,7 +34,7 @@ BINDIR = "/usr/libexec/oled-tools"
 
 # Valid oled subcomands
 OLED_CMDS = (
-    "kstack", "lkce", "memstate", "syswatch", "scanfs", "vmcore_sz")
+    "kstack", "lkce", "memstate", "syswatch", "scanfs", "vmcore_sz", "scripts")
 
 
 def parse_args(args: Sequence[str]) -> argparse.Namespace:
@@ -44,11 +44,12 @@ def parse_args(args: Sequence[str]) -> argparse.Namespace:
         usage="%(prog)s {-h | -v | COMMAND [ARGS]}",
         description="""\
 Valid commands:
+     kstack      -- Gather kernel stack based on the process status or PID
      lkce        -- Linux Kernel Core Extractor
      memstate    -- Capture and analyze memory usage statistics
-     kstack      -- Gather kernel stack based on the process status or PID
-     syswatch    -- Execute user-provided commands based on the CPU utilization
      scanfs      -- Scan KVM images for corruption, supports XFS and EXT4
+     scripts     -- Run additional oled-tools scripts
+     syswatch    -- Execute user-provided commands based on the CPU utilization
      vmcore_sz   -- Estimating vmcore size before kernel dump
 """,
         epilog="NOTE: Must run as root.")

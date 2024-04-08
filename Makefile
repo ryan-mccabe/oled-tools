@@ -21,9 +21,15 @@
 VERSION="0.7"
 ARCH := $(shell uname -m)
 
-subdirs := tools/lkce tools/memstate tools/kstack tools/syswatch tools/scanfs tools/vmcore-utils
+subdirs := scripts \
+	tools/kstack \
+	tools/lkce \
+	tools/memstate \
+	tools/scanfs \
+	tools/scripts \
+	tools/syswatch \
+	tools/vmcore-utils
 
-subdirs := $(subdirs) scripts
 rev_subdirs := $(shell echo -n "$(subdirs) " | tac -s ' ')
 OLEDDIR := $(DESTDIR)/etc/oled
 SBINDIR := $(DESTDIR)/usr/sbin
