@@ -71,7 +71,7 @@ class Swap(Base):
         end_time = time.time()
         self.log_debug(
             f"Time taken to extract swap usage values from {num_files_scanned}"
-            f" /proc/<pid>/status files is {round(end_time - start_time)} "
+            f" /proc/<pid>/status files is {(end_time - start_time):.2f} "
             "second(s).")
         swap_sorted = OrderedDict(
             sorted(swap.items(), key=lambda x: x[1], reverse=True))

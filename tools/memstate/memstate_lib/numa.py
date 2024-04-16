@@ -85,7 +85,7 @@ class Numa(Base):
         end_time = time.time()
         self.log_debug(
             f"Time taken to read {num_files_scanned} /proc/<pid>/numa_maps "
-            f"files is: {round(end_time - start_time)} second(s).")
+            f"files is: {(end_time - start_time):.2f} second(s).")
         self.numa_maps += separator
         self.numa_maps += newline
 
@@ -141,7 +141,7 @@ class Numa(Base):
         end_time = time.time()
         self.log_debug(
             "Time taken to check numa_maps for explicit binding, etc., is "
-            f"{round(end_time - start_time)} second(s).")
+            f"{(end_time - start_time):.2f} second(s).")
         if matched:
             print("\nParsing numa_maps; these lines might be interesting:")
             print(matched)
@@ -267,7 +267,7 @@ class Numa(Base):
         end_time = time.time()
         self.log_debug(
             "Time taken to process numa_maps files is: "
-            f"{round(end_time - start_time)} second(s).")
+            f"{(end_time - start_time):.2f} second(s).")
         if not nlist:
             self.print_error(
                 "Could not process numa_maps data. If this is not a live "
