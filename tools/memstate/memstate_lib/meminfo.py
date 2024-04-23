@@ -68,6 +68,10 @@ class Meminfo(Base):
                     num_frags * constants.FRAG_SIZE_KB)
         return round(size_gb, 1)
 
+    def __meminfo_get_value_kb(self, line):
+        kb_value = line.split(":")[1].strip().split(" ")[0]
+        return int(kb_value)
+
     def __meminfo_get_value_gb(self, line):
         kb_value = line.split(":")[1].strip().split(" ")[0]
         return self.convert_kb_to_gb(int(kb_value))
@@ -145,8 +149,8 @@ class Meminfo(Base):
         anonpages = 0
         mapped = 0
         shmem = 0
-        swap_total = 0
-        swap_free = 0
+        swap_total_kb = 0
+        swap_free_kb = 0
         user_allocs = 0
 
         data = self.__read_meminfo()
@@ -173,14 +177,14 @@ class Meminfo(Base):
             if line.startswith("Shmem:"):
                 shmem = self.__meminfo_get_value_gb(line)
             if line.startswith("SwapTotal:"):
-                swap_total = self.__meminfo_get_value_gb(line)
+                swap_total_kb = self.__meminfo_get_value_kb(line)
             if line.startswith("SwapFree:"):
-                swap_free = self.__meminfo_get_value_gb(line)
+                swap_free_kb = self.__meminfo_get_value_kb(line)
             if line.startswith("Committed_AS:"):
                 self.committed_as_gb = self.__meminfo_get_value_gb(line)
 
         self.rds_cache_size_gb = self.__calc_rds_cache_size()
-        self.swap_used_kb = round(swap_total - swap_free, 1)
+        self.swap_used_kb = max(0, swap_total_kb - swap_free_kb)
 
         # Userspace allocations include process stack and heap, page cache, I/O
         # buffers. The page cache value includes mapped files as well as shared
