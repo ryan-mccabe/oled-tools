@@ -143,6 +143,7 @@ class Meminfo(Base):
         vmalloc = 0
         kernelstack = 0
         anonpages = 0
+        mapped = 0
         shmem = 0
         swap_total = 0
         swap_free = 0

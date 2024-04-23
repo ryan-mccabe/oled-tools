@@ -105,7 +105,7 @@ class Pss(Base):
 
         self.log_debug(
             f"Time taken to extract Pss values from {num_files_scanned} "
-            f"/proc/<pid>/smaps_rollup files is {round(end_time - start_time)}"
+            f"/proc/<pid>/smaps_rollup files is {(end_time - start_time):.2f}"
             " second(s).")
         pss_sorted = OrderedDict(
             sorted(pss.items(), key=lambda x: x[1], reverse=True))
