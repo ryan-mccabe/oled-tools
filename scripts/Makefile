@@ -27,6 +27,14 @@ all:
 clean:
 	@echo "clean:$(CURDIR)"
 
+additional-scripts.8: additional-scripts.8.scd
+	scdoc < $< > $@
+
+# Whenever additional-scripts.8.scd is modified, `make man` must be run and 
+# the resulting changes to additional-scripts.8 must be committed together 
+# with additional-scripts.8.scd
+man: additional-scripts.8
+
 install:
 	@echo "install:$(CURDIR)"
 	mkdir -p $(SCRIPTSDIR)
