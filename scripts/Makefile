@@ -61,6 +61,12 @@ install:
 	install -m 755 $(CURDIR)/net/rds_tx_funccount_example.txt $(DOCSDIR)
 	install -m 755 $(CURDIR)/net/ping_lat.d $(SCRIPTSDIR)
 	install -m 755 $(CURDIR)/net/ping_lat_example.txt $(DOCSDIR)
+	install -m 755 $(CURDIR)/net/cm_destroy_id.d $(SCRIPTSDIR)
+	install -m 755 $(CURDIR)/net/cm_destroy_id_example.txt $(DOCSDIR)
+	install -m 755 $(CURDIR)/net/mlx_vhcaid.d $(SCRIPTSDIR)
+	install -m 755 $(CURDIR)/net/mlx_vhcaid_example.txt $(DOCSDIR)
+	install -m 755 $(CURDIR)/net/mlxqpdump.sh $(SCRIPTSDIR)
+	install -m 755 $(CURDIR)/net/mlxqpdump_example.txt $(DOCSDIR)
 #io
 	install -m 755 $(CURDIR)/io/nvme_io_comp.d $(SCRIPTSDIR)
 	install -m 755 $(CURDIR)/io/nvme_io_comp_example.txt $(DOCSDIR)
