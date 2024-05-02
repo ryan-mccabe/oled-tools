@@ -20,7 +20,6 @@
 
 SCRIPTSDIR := $(BINDIR)/scripts.d
 DOCSDIR := $(BINDIR)/scripts.d/docs
-MANDIR := /usr/share/man/man8
 
 all:
 	@echo "all:$(CURDIR)"
