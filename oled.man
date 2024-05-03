@@ -37,8 +37,7 @@ its usage.
 .TP
 
 # oled memstate -h
-usage: oled memstate [-h] [-p [PID]] [-s] [-n [FILE]] [-a] [-v]
-                     [-f [INTERVAL]]
+usage: oled memstate [-h] [-p [PID]] [-s] [-n [FILE]] [-v] [-f [INTERVAL]]
 
 memstate: Capture and analyze memory usage data on this system.
 
@@ -49,7 +48,6 @@ optional arguments:
   -s, --slab            analyze/display slab usage
   -n [FILE], --numa [FILE]
                         analyze/display NUMA stats
-  -a, --all             display all data
   -v, --verbose         verbose data capture; combine with other options
   -f [INTERVAL], --frequency [INTERVAL]
                         interval at which data should be collected (default:

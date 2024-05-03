@@ -5,8 +5,8 @@ oled memstate - Captures and analyzes various memory usage statistics on the
 running system.
 
 .SH SYNOPSIS
-oled memstate [-h] [-p [PID]] [-s] [-n [FILE]] [-a] [-v] \
-[-f [INTERVAL]]
+
+oled memstate [-h] [-p [PID]] [-s] [-n [FILE]] [-v] [-f [INTERVAL]]
 
 .SH DESCRIPTION
 The memstate tool gathers data about memory usage on the system where it's run,
@@ -79,16 +79,8 @@ and redirecting it to a file. This file can be passed as input, with
 process.
 
 .TP
--a, --all
-    Displays all data. This option displays a basic memory usage summary,
-plus the biggest slab caches, the top swap space consumers along with the NUMA
-stats summary. If combined with -v/--verbose, it also checks/displays per-process
-memory use, but this can be an expensive operation. See -p/--pss for more
-details.
-
-.TP
 -v, --verbose
-    Verbose data capture; this should be combined with other options.
+    Verbose data capture. This can be combined with other options.
 
 .TP
 -f [INTERVAL], --frequency [INTERVAL]
