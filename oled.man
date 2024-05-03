@@ -37,7 +37,7 @@ its usage.
 .TP
 
 # oled memstate -h
-usage: oled memstate [-h] [-p [PID]] [-s [FILE]] [-n [FILE]] [-a] [-v]
+usage: oled memstate [-h] [-p [PID]] [-s] [-n [FILE]] [-a] [-v]
                      [-f [INTERVAL]]
 
 memstate: Capture and analyze memory usage data on this system.
@@ -46,8 +46,7 @@ optional arguments:
   -h, --help            show this help message and exit
   -p [PID], --pss [PID]
                         display per-process memory usage
-  -s [FILE], --slab [FILE]
-                        analyze/display slab usage
+  -s, --slab            analyze/display slab usage
   -n [FILE], --numa [FILE]
                         analyze/display NUMA stats
   -a, --all             display all data

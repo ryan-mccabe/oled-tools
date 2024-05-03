@@ -302,16 +302,10 @@ def validate_args(args):
                 "Option -n/--numa does not support -f/--frequency; "
                 "see usage for more details.")
             return 1
-        if (args.slab is not None and args.slab != 'nofile'):
-            print(
-                "Option -s/--slab INPUT_FILE does not support -f/--frequency; "
-                "see usage for more details.")
-            return 1
     if args.all:
         # pylint: disable=too-many-boolean-expressions
         if (args.pss
-                or (args.numa is not None and args.numa != 'nofile')
-                or (args.slab is not None and args.slab != 'nofile')):
+                or (args.numa is not None and args.numa != 'nofile')):
             print(
                 "Option -a/--all can only be combined with -v/--verbose and "
                 "-f/--frequency; see usage for more details.")
@@ -332,8 +326,8 @@ def main():
         const=constants.DEFAULT_SHOW_PSS_SUMMARY,
         help="display per-process memory usage")
     parser.add_argument(
-        "-s", "--slab", metavar="FILE", help="analyze/display slab usage",
-        nargs="?", const="nofile")
+        "-s", "--slab", action="store_true",
+        help="analyze/display slab usage")
     parser.add_argument(
         "-n", "--numa", metavar="FILE", nargs="?", const="nofile",
         help="analyze/display NUMA stats")
@@ -378,12 +372,6 @@ def main():
         numa.process_numa_maps(constants.NO_LIMIT)
         return
 
-    if args.slab is not None and args.slab != 'nofile':
-        print("Reading slabinfo from file: " + args.slab)
-        slabinfo = Slabinfo(args.slab)
-        slabinfo.memstate_check_slab(constants.NO_LIMIT)
-        return
-
     # Live memstate data capture (either one-shot or periodic).
     if args.frequency is not None:
         interval = int(args.frequency)
@@ -417,7 +405,7 @@ def main():
         if args.pss:
             args_passed = True
             memstate.memstate_opt_pss(args.pss, opt_verbose)
-        if args.slab is not None:
+        if args.slab:
             args_passed = True
             memstate.memstate_opt_slab(opt_verbose)
         if args.numa is not None:
