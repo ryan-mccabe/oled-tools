@@ -125,7 +125,7 @@ class Pss(Base):
             num_printed += 1
         print("")
         print(
-            "Total memory used by all processes: "
+            ">> Total memory used by all processes: "
             f"{self.__get_total_pss_gb(pss_sorted)} GB")
 
     def __display_single_process_mem(self, pid):

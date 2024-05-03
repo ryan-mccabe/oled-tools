@@ -85,6 +85,6 @@ class Rss(Base):
         else:
             hdr = f"TOP {num} MEMORY CONSUMERS (in KB):"
         print(hdr)
-        print(f"{'PROCESS(PID)': <30}{'RSS': >12}")
+        print(f"{'PROCESS(PID)': <30}{'RSS': >16}")
         self.__display_top_vmrss(num)
         print("")
