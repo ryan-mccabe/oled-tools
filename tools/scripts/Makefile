@@ -38,11 +38,14 @@ install:
 	chmod 644 $(MANDIR)/oled-scripts.8.gz
 	install -D $(CURDIR)/oled-tools-scripts.service \
 		$(DESTDIR)/usr/lib/systemd/system/oled-tools-scripts.service
+	install -D $(CURDIR)/startup-scripts.conf \
+		$(DESTDIR)/usr/libexec/oled-tools/scripts.d/startup-scripts.conf
 	@echo "SCRIPTS successfully installed!"
 
 uninstall:
 	@echo "uninstall:$(CURDIR)"
 	rm -f $(MANDIR)/oled-scripts.8.gz
 	rm -f $(BINDIR)/scripts
+	rm -f $(OLEDBIN)/scripts.d/startup-scripts.conf
 	@echo "SCRIPTS successfully uninstalled!"
 
