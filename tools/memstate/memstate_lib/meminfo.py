@@ -78,7 +78,8 @@ class Meminfo(Base):
                     num_frags * constants.FRAG_SIZE_KB)
         return round(size_gb, 1)
 
-    def __meminfo_get_value_kb(self, line):
+    @staticmethod
+    def __meminfo_get_value_kb(line):
         kb_value = line.split(":")[1].strip().split(" ")[0]
         return int(kb_value)
 
