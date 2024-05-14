@@ -125,19 +125,24 @@ class Slabinfo(Base):
                 print(f"{slab: <30}{size_kb: >16}{' ': ^12}{aliases: <60}")
                 num_printed += 1
 
-        self.__compute_total_slab_size_gb(slabs_list)
+        slab_total_kb = self.__compute_total_slab_size(slabs_list)
         print("")
-        print(
-            ">> Total memory used by all slab caches: "
-            f"{self.slab_total_gb} GB")
+        if self.slab_total_gb > 1:
+            print(
+                ">> Total memory used by all slab caches: "
+                f"{self.slab_total_gb} GB")
+        else:
+            print(
+                ">> Total memory used by all slab caches: "
+                f"{slab_total_kb} KB")
 
-    def __compute_total_slab_size_gb(self, slabs_list=None):
+    def __compute_total_slab_size(self, slabs_list=None):
         if slabs_list is None:
             self.print_error("Slab caches list unavailable!")
             return None
         slab_size_kb = sum(slabs_list.values())
         self.slab_total_gb = self.convert_kb_to_gb(slab_size_kb)
-        return self.slab_total_gb
+        return slab_size_kb
 
     def __check_slab_usage(self, num):
         """
