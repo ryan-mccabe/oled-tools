@@ -125,10 +125,11 @@ def list_scripts() -> None:
 
     if scripts:
         print(
-            "(Enabled: '*' = enabled; '+' = enabled by user; '-' disabled by "
-            "user)\n")
-        header = f"{'Script':<30} Startup Enabled"
-        print(f"{header}\n{'=' * len(header)}")
+            "(Startup Enabled: '*' = enabled by default; '+' = enabled by user;"
+            " '-' disabled by user)\n")
+        print(f"{' ':<30}\tStartup \tStartup")
+        print(f"{'Script Name':<30}\tEligible\tEnabled")
+        print(f"{'=' * 30}\t{'=' * 8}\t{'=' * 7}")
 
     for name in scripts:
         startup_str = ""
@@ -144,7 +145,7 @@ def list_scripts() -> None:
                 # not enabled by default; override if enabled by user
                 enabled_str = "" if not user_config.get(name, False) else "+"
 
-        print(f"{name:<30} {startup_str:^7} {enabled_str:^7}")
+        print(f"{name:<30}\t{startup_str:^8}\t{enabled_str:^7}")
 
 
 def run_script(script_name: str, args: List[str]) -> None:
