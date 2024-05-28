@@ -404,12 +404,13 @@ def parse_args(args: Optional[List[str]] = None) -> argparse.Namespace:
         "--outdir", dest="run_startup_outdir", metavar="OUTDIR",
         default=STARTUP_SCRIPTS_OUT_DIR, help="Output dir")
 
-    return parser.parse_args(args)
+    return parser
 
 
 def main(args: Optional[List[str]] = None) -> None:
     """Main function."""
-    options = parse_args(args)
+    parser = parse_args(args)
+    options = parser.parse_args(args)
 
     setup_logging()
 
@@ -429,6 +430,8 @@ def main(args: Optional[List[str]] = None) -> None:
         disable_startup(options.disable_script)
     elif options.cmd == "run-startup-enabled":
         run_startup_enabled(options.run_startup_outdir)
+    else:
+        parser.print_help(sys.stderr)
 
 
 def exit_signal_handler(*_args, **_kwargs) -> None:
