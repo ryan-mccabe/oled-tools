@@ -21,6 +21,12 @@ The additional diagnostic scripts provided in the oled-tools package extend the 
 - cm_destroy_id.d - Probes for _cm_destroy_id_wait_timeout()_ and prints the cm_id, qp_num and pci_id of the associated QP.  The script exits after 5 probes.  This script also calls mlxqpdump.sh.
 
 
+- cq.d -  Tracks new RDS connections and prints the Completion Queue objects and the associated completion queue numbers.
+
+
+- cqn_track.d - Tracks an RDS Completion Queue number and prints when there is a new completion by tracking completion handler, tasklet, arming, and poll_cq calls.
+
+
 - mlx_vhcaid.d - Prints 'vhca id' of the Mellanox devices (CX5) from a VM.
 
 

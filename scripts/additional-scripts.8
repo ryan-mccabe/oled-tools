@@ -4,7 +4,7 @@
 .nh
 .ad l
 .\" Begin generated content:
-.TH "additional-scripts" "8" "2024-05-03"
+.TH "additional-scripts" "8" "2024-06-06"
 .P
 .SH NAME
 .P
@@ -60,6 +60,30 @@ arp_origin.d - Detects and prints the details of all ARP requests, replies, and 
 .IP \(bu 4
 .\}
 cm_destroy_id.d - Probes for \fIcm_destroy_id_wait_timeout()\fR and prints the cm_id, qp_num and pci_id of the associated QP.  The script exits after 5 probes.  This script also calls mlxqpdump.sh.
+
+.RE
+.P
+.P
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.IP \(bu 4
+.\}
+cq.d -  Tracks new RDS connections and prints the Completion Queue objects and the associated completion queue numbers.
+
+.RE
+.P
+.P
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.IP \(bu 4
+.\}
+cqn_track.d - Tracks an RDS Completion Queue number and prints when there is a new completion by tracking completion handler, tasklet, arming, and poll_cq calls.
 
 .RE
 .P
