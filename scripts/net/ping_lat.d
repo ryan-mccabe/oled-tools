@@ -53,9 +53,9 @@ fbt:ib_ipoib:ipoib_cm_send:entry
 (this->icmphdr->type == ICMP_ECHO)
 /
 {
-	this->sip = inet_ntoa((ipaddr_t *)(&this->iphdr->saddr));
-	this->dip = inet_ntoa((ipaddr_t *)(&this->iphdr->daddr));
-	this->icmp_seq = this->icmphdr->un.echo.sequence;
+	this->sip = inet_ntoa((__be32 *)(&this->iphdr->saddr));
+	this->dip = inet_ntoa((__be32 *)(&this->iphdr->daddr));
+	this->icmp_seq = ntohs(this->icmphdr->un.echo.sequence);
 	this->icmp_id = ntohs(this->icmphdr->un.echo.id);
 
 	timestamp_info[this->sip, this->dip, this->icmp_seq, this->icmp_id, probefunc] = timestamp;
@@ -75,9 +75,9 @@ fbt:ib_ipoib:ipoib_start_xmit:entry
 (this->icmphdr->type == ICMP_ECHO)
 /
 {
-	this->sip = inet_ntoa((ipaddr_t *)(&this->iphdr->saddr));
-	this->dip = inet_ntoa((ipaddr_t *)(&this->iphdr->daddr));
-	this->icmp_seq = this->icmphdr->un.echo.sequence;
+	this->sip = inet_ntoa((__be32 *)(&this->iphdr->saddr));
+	this->dip = inet_ntoa((__be32 *)(&this->iphdr->daddr));
+	this->icmp_seq = ntohs(this->icmphdr->un.echo.sequence);
 	this->icmp_id = ntohs(this->icmphdr->un.echo.id);
 
 	timestamp_info[this->sip, this->dip, this->icmp_seq, this->icmp_id, probefunc] = timestamp;
@@ -93,9 +93,9 @@ fbt:vmlinux:icmp_rcv:entry
 (this->icmphdr->type == ICMP_ECHO_REPLY)
 /
 {
-	this->sip = inet_ntoa((ipaddr_t *)(&this->iphdr->daddr));
-	this->dip = inet_ntoa((ipaddr_t *)(&this->iphdr->saddr));
-	this->icmp_seq = this->icmphdr->un.echo.sequence;
+	this->sip = inet_ntoa((__be32 *)(&this->iphdr->daddr));
+	this->dip = inet_ntoa((__be32 *)(&this->iphdr->saddr));
+	this->icmp_seq = ntohs(this->icmphdr->un.echo.sequence);
 	this->icmp_id = ntohs(this->icmphdr->un.echo.id);
 
 	this->ip_send_skb_time = timestamp_info[this->sip, this->dip, this->icmp_seq, this->icmp_id, "ip_send_skb"];
