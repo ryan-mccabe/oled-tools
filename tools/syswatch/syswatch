@@ -429,6 +429,7 @@ def main() -> None:
     thresholds = "\n".join(
         f"\t\t{k.name}: {v}%" for k, v in args.stat_thresholds.items())
     config_str = (
+        f"\tHost Name: {os.uname()[1]}\n"
         f"\tRun continuously: {args.run_continuously}\n"
         f"\t# CPUs: {'ALL' if args.nr_cpus <= 0 else args.nr_cpus}\n"
         f"\tThresholds:\n{thresholds}\n"
