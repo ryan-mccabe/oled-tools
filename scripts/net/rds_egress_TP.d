@@ -40,14 +40,14 @@ dtrace:::BEGIN
  *							conn ? &conn->c_faddr : NULL,
  *							reason);
  */
-fbt:rds:trace_event_raw_event_rds_drop_egress:entry
-/ arg3 != NULL /
+*:*:*rds_drop_egress*
+/ arg2 != NULL /
 {
-	this->conn = (struct rds_connection *)arg3;
+	this->conn = (struct rds_connection *)arg2;
 	this->sip = &this->conn->c_laddr.in6_u.u6_addr32[3];
 	this->dip = &this->conn->c_faddr.in6_u.u6_addr32[3];
 	this->tos = this->conn->c_tos;
-	this->reason = stringof(arg7);
+	this->reason = stringof(arg6);
 
 	printf("%Y pid=%d comm=%s [<%s,%s,%d>] reason=%s\n",
 			walltimestamp, pid, execname,
