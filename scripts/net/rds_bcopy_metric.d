@@ -30,13 +30,6 @@
  * Sample output: Refer to the file rds_bcopy_metric_example.txt
  */
 
-#define DT_VERSION_NUMBER_(M, m, u) \
-        ((((M) & 0xFF) << 24) | (((m) & 0xFFF) << 12) | ((u) & 0xFFF))
-
-#if __SUNW_D_VERSION >= DT_VERSION_NUMBER_(2,0,0)
-#pragma D option lockmem=unlimited
-#endif
-
 dtrace:::BEGIN
 {
 	printf("%Y %16s %10s \n", walltimestamp, "[<connection> op]", "MB/s");

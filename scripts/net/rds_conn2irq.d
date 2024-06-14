@@ -29,13 +29,6 @@
  * Sample output: Refer to the file rds_conn2irq_example.txt
  */
 
-#define DT_VERSION_NUMBER_(M, m, u) \
-        ((((M) & 0xFF) << 24) | (((m) & 0xFFF) << 12) | ((u) & 0xFFF))
-
-#if __SUNW_D_VERSION >= DT_VERSION_NUMBER_(2,0,0)
-#pragma D option lockmem=unlimited
-#endif
-
 dtrace:::BEGIN
 {
         printf("%Y print rds conn to irq mapping. Run rds-info -I parallelly to populate. ctrl+c to stop and print summary\n", walltimestamp);

@@ -35,8 +35,6 @@
 #pragma D option dynvarsize=16000000
 #pragma D option bufsize=16m
 
-#pragma D option lockmem=unlimited
-
 #define container_of(__ptr, __type, __member) ((__type *)((unsigned long long)__ptr - (unsigned long long)offsetof(__type, __member)))
 
 uint64_t cq_add_to_tasklet_timestmaps[struct mlx5_core_cq *];

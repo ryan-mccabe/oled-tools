@@ -31,13 +31,6 @@
  * Sample output: Refer to the file arp_origin_example.txt
  */
 
-#define DT_VERSION_NUMBER_(M, m, u) \
-        ((((M) & 0xFF) << 24) | (((m) & 0xFFF) << 12) | ((u) & 0xFFF))
-
-#if __SUNW_D_VERSION >= DT_VERSION_NUMBER_(2,0,0)
-#pragma D option lockmem=unlimited
-#endif
-
 #define arp_protocol 0x0806
 #define arp_request_opcode 1
 #define arp_reply_opcode 2
