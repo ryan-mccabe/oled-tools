@@ -29,6 +29,10 @@
  * Sample output: Refer to the file rds_egress_TP_example.txt
  */
 
+/*
+ * min_kernel 4.14.35-2042,5.4.17,5.15.0-200.103.1
+ */
+
 dtrace:::BEGIN
 {
 	printf("%Y ctrl+c to stop\n", walltimestamp);

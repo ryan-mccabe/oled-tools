@@ -15,6 +15,10 @@
  *    When the probe is fired, it prints qp_num, cm_id, pci_id and runs 'mlxqpdump.sh'
  */
 
+/*
+ * min_kernel 4.14.35-2047.536.3,5.4.17-2136.330.7.4,5.15.0-206.149.3
+ */
+
 #pragma D option destructive
 
 dtrace:::BEGIN

@@ -31,6 +31,10 @@
  * Sample output: Refer to the file arp_origin_example.txt
  */
 
+/*
+ * min_kernel 4.14.35-2042,5.4.17,5.15.0-200.103.1
+ */
+
 #define arp_protocol 0x0806
 #define arp_request_opcode 1
 #define arp_reply_opcode 2

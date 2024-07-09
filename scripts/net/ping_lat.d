@@ -31,6 +31,10 @@
  * Sample output: Refer to the file ping_lat_example.txt
 */
 
+/*
+ * min_kernel 4.14.35-2042,5.4.17,5.15.0-200.103.1
+ */
+
 #define ICMP_PROTOCOL   1
 #define ICMP_ECHO       8
 #define ICMP_ECHO_REPLY 0

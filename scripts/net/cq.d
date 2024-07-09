@@ -30,6 +30,10 @@
  * Sample output: Refer to the file cq_example.txt
  */
 
+/*
+ * min_kernel 4.14.35-2042,5.4.17,5.15.0-200.103.1
+ */
+
 fbt:mlx5_ib:mlx5_ib_create_cq:entry
 {
 	self->ib_cq = (struct ib_cq *)arg0;
