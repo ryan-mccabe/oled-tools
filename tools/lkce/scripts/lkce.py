@@ -553,7 +553,7 @@ exit 0
         self.configure(subargs=["--show"])
 
         if subprocess.run(
-                ("rpm", "-q", "python-drgn-tools"), shell=False,  # nosec
+                ("rpm", "-q", "drgn-tools"), shell=False,  # nosec
                 check=False).returncode != 0:
             print("NOTE: corelens is not installed")
     # def status
