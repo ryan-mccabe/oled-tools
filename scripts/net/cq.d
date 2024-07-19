@@ -31,7 +31,7 @@
  */
 
 /*
- * min_kernel 4.14.35-2042,5.4.17,5.15.0-200.103.1
+ * min_kernel 5.4.17,5.15.0-200.103.1
  */
 
 fbt:mlx5_ib:mlx5_ib_create_cq:entry

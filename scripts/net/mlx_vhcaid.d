@@ -30,6 +30,10 @@
  * Sample output: Refer to the file mlx_vhcaid_example.txt
  */
 
+/*
+ * min_kernel 4.14.35-2047.505.1,5.4.17-2136.315.5.8,5.15.0-200.103.1
+ */
+
 #define container_of(__ptr, __type, __member) ((__type *)((unsigned long long)__ptr - (unsigned long long)offsetof(__type, __member)))
 #define __mlx5_nullp(typ) ((struct mlx5_ifc_##typ##_bits *)0)
 #define __mlx5_bit_sz(typ, fld) sizeof(__mlx5_nullp(typ)->fld)

@@ -31,6 +31,10 @@
  * Sample output: Refer to the file rds_rdma_xfer_rate_example.txt
  */
 
+/*
+ * min_kernel 4.14.35-2047.511.5.5.3,5.15.0-200.103.1
+ */
+
 #define container_of(__ptr, __type, __member) ((__type *)((unsigned long long)__ptr - (unsigned long long)offsetof(__type, __member)))
 
 dtrace:::BEGIN

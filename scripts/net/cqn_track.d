@@ -31,6 +31,10 @@
  * Sample output: Refer to the file cqn_track_example.txt
  */
 
+/*
+ * min_kernel 5.4.17-2136.315.5.8,5.15.0-200.103.1
+ */
+
 #pragma D option cleanrate=50hz
 #pragma D option dynvarsize=16000000
 #pragma D option bufsize=16m
