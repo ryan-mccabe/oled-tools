@@ -670,7 +670,7 @@ def main() -> int:
     elif arg == "list":
         lkce.listfiles()
 
-    elif arg in ("help", "-help", "--help"):
+    elif arg in ("help", "-help", "--help", "-h"):
         usage()
 
     else:
