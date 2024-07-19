@@ -48,8 +48,6 @@ class KdumpReport:
         self.kdump_report_corelens_args_file = self.kdump_report_home + \
             "/corelens_args_file"
         self.kdump_report_out = "/var/oled/lkce"
-        self.kdump_report_out_file = self.kdump_report_out + \
-            "/corelens_" + time.strftime("%Y%m%d-%H%M%S") + ".out"
         self.timedout_action = "reboot -f"
 
         # default values
@@ -59,6 +57,9 @@ class KdumpReport:
         self.corelens_args = ["-a"]
 
         self.read_config(self.kdump_report_config_file)
+
+        self.kdump_report_out_file = self.kdump_report_out + \
+            "/corelens_" + time.strftime("%Y%m%d-%H%M%S") + ".out"
     # def __init__
 
     def read_config(self, filename: str) -> int:
@@ -89,6 +90,9 @@ class KdumpReport:
 
             elif "max_out_files" in entry[0] and entry[1]:
                 self.max_out_files = entry[1]
+
+            elif "lkce_outdir" in entry[0] and entry[1]:
+                self.kdump_report_out = entry[1]
 
         return 0
     # def read_config
