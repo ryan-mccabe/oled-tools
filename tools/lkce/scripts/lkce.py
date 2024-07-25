@@ -583,8 +583,9 @@ exit 0
         Based on subarg, you can configure with default values, show the values
         and also set to given values
         """
-        if not subargs:  # default
-            subargs = ["--show"]
+        if not subargs:
+            print("error: No arguments or parameters given.")
+            return
 
         values_to_update = {}
         filename = self.lkce_config_file
