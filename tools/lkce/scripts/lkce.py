@@ -103,6 +103,7 @@ class Lkce:
         self.vmcore = "yes"
         self.report_cmd = "corelens"
         self.lkce_outdir = "/var/oled/lkce"
+        self.kdump_dirty = False
 
         self.set_defaults()
 
@@ -602,6 +603,11 @@ exit 0
 
         if values_to_update:
             update_key_values_file(filename, values_to_update, sep="=")
+
+        if self.kdump_dirty is True:
+            self.create_lkce_kdump()
+            restart_kdump_service()
+            self.kdump_dirty = False
     # def configure
 
     def config_vmcore(self, value: str) -> int:
@@ -620,8 +626,7 @@ exit 0
             return 1
 
         self.vmcore = value
-        self.create_lkce_kdump()
-        restart_kdump_service()
+        self.kdump_dirty = True
         return 0
     # def config_vmcore
 
@@ -654,15 +659,16 @@ exit 0
         # output directory is not on the root filesystem and it needs to be
         # made available in kexec mode.
         self.lkce_outdir = value
-        self.create_lkce_kdump()
-        restart_kdump_service()
+        self.kdump_dirty = True
         return 0
     # def config_lkce_outdir
 
     def enable_lkce_kexec(self) -> None:
         """Enable lkce to generate report on crashed kernel in kexec mode"""
-        if not os.path.exists(self.lkce_kdump_sh):
-            self.create_lkce_kdump()
+
+        # Generate kdump script in case configuration has changed since
+        # the last enable
+        self.create_lkce_kdump()
 
         if self.update_kdump_conf("--add") == 1:
             return
