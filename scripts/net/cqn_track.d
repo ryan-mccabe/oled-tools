@@ -32,7 +32,7 @@
  */
 
 /*
- * min_kernel 5.4.17-2136.315.5.8,5.15.0-200.103.1
+ * min_kernel 4.14.35-2047.505.1,5.4.17-2136.315.5.8,5.15.0-200.103.1
  */
 
 #pragma D option cleanrate=50hz
@@ -41,10 +41,10 @@
 
 #define container_of(__ptr, __type, __member) ((__type *)((unsigned long long)__ptr - (unsigned long long)offsetof(__type, __member)))
 
-uint64_t cq_add_to_tasklet_timestmaps[struct mlx5_core_cq *];
-uint64_t comp_timestmaps[struct ib_cq *];
-uint64_t arm_timestmaps[struct ib_cq *];
-uint64_t poll_timestmaps[struct ib_cq *];
+uint64_t cq_add_to_tasklet_timestamp[struct mlx5_core_cq *];
+uint64_t comp_timestamp[struct ib_cq *];
+uint64_t arm_timestamp[struct ib_cq *];
+uint64_t poll_timestamp[struct ib_cq *];
 
 fbt:mlx5_core:mlx5_add_cq_to_tasklet:entry
 /
@@ -56,8 +56,8 @@ fbt:mlx5_core:mlx5_add_cq_to_tasklet:entry
 /
 {
 	this->irqn = this->m_core_cq->irqn;
-	this->cq_add_to_tasklet_lat = cq_add_to_tasklet_timestmaps[this->m_core_cq] > 0 ? ((timestamp - cq_add_to_tasklet_timestmaps[this->m_core_cq])/1000) : 0;
-	cq_add_to_tasklet_timestmaps[this->m_core_cq] = timestamp;
+	this->cq_add_to_tasklet_lat = cq_add_to_tasklet_timestamp[this->m_core_cq] > 0 ? ((timestamp - cq_add_to_tasklet_timestamp[this->m_core_cq])/1000) : 0;
+	cq_add_to_tasklet_timestamp[this->m_core_cq] = timestamp;
 
 	printf("%Y:%lu:%s: m_core_cq=%p cqn=%d irqn=%d last_call(usecs ago):%lu\n",
 		walltimestamp, timestamp, probefunc, this->m_core_cq, this->cqn,
@@ -78,11 +78,15 @@ fbt:ib_uverbs:ib_uverbs_comp_handler:entry
 	this->irqn = this->m_core_cq->irqn;
 
         this->uobj = (struct ib_ucq_object *)this->ib_cq->uobject;
+	#ifdef uek5
+	this->uobject = (struct ib_uobject *)&this->uobj->uobject;
+	#else
         this->uobject = (struct ib_uobject *)&this->uobj->uevent.uobject;
+	#endif
         this->fd = this->uobject->id;
 
-	this->comp_lat = comp_timestmaps[this->ib_cq] > 0 ? ((timestamp - comp_timestmaps[this->ib_cq])/1000) : 0;
-	comp_timestmaps[this->ib_cq] = timestamp;
+	this->comp_lat = comp_timestamp[this->ib_cq] > 0 ? ((timestamp - comp_timestamp[this->ib_cq])/1000) : 0;
+	comp_timestamp[this->ib_cq] = timestamp;
 
         printf("%Y:%lu:%s: ibdev=%p m_core_cq=%p ib_cq=%p cqn=%d irqn=%d channel_fd=%d last_call(usecs ago)=%lu\n",
                 walltimestamp, timestamp, probefunc, this->ib_cq->device, this->m_core_cq, this->ib_cq,
@@ -101,8 +105,8 @@ fbt:mlx5_ib:mlx5_ib_poll_cq:entry
 /
 {
 	this->irqn = this->m_core_cq->irqn;
-	this->poll_lat = poll_timestmaps[this->ib_cq] > 0 ? ((timestamp - poll_timestmaps[this->ib_cq])/1000) : 0;
-	poll_timestmaps[this->ib_cq] = timestamp;
+	this->poll_lat = poll_timestamp[this->ib_cq] > 0 ? ((timestamp - poll_timestamp[this->ib_cq])/1000) : 0;
+	poll_timestamp[this->ib_cq] = timestamp;
 
         printf("%Y:%lu:%s: ib_dev=%p m_core_cq=%p ib_cq=%p cqn=%d irqn=%d last_call(usecs ago)=%lu\n",
                 walltimestamp, timestamp, probefunc, this->ib_cq->device, this->m_core_cq, this->ib_cq,
@@ -121,8 +125,8 @@ fbt:mlx5_ib:mlx5_ib_arm_cq:entry
 /
 {
 	this->irqn = this->m_core_cq->irqn;
-	this->arm_lat = arm_timestmaps[this->ib_cq] > 0 ? ((timestamp - arm_timestmaps[this->ib_cq])/1000) : 0;
-	arm_timestmaps[this->ib_cq] = timestamp;
+	this->arm_lat = arm_timestamp[this->ib_cq] > 0 ? ((timestamp - arm_timestamp[this->ib_cq])/1000) : 0;
+	arm_timestamp[this->ib_cq] = timestamp;
 
         printf("%Y:%lu:%s: ibdev=%p m_core_cq=%p ib_cq=%p cqn=%d irqn=%d last_call(usecs ago)=%lu\n",
                 walltimestamp, timestamp, probefunc, this->ib_cq->device, this->m_core_cq, this->ib_cq,

@@ -3,6 +3,10 @@ is a new completion by tracking completion handler, tasklet, arming and
 poll_cq calls.
 
 Arguments: CQ number
+1) For UEK6 and UEK7
+./cqn_track.d 1038
+2) And provide "-D uek5" as additional argument(for UEK5)
+./cqn_track.d 1038 -D uek5
 
 Output format: each line lists
 For mlx5_add_cq_to_tasklet() probe:
