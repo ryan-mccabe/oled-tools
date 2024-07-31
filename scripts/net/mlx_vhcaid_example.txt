@@ -1,11 +1,11 @@
 Purpose: Print 'vhca id' of the mellanox devices (CX5) from a VM
 
 Note: The Mellanox macro/data structure is modified starting from UEK7.
-Hence in UEK7, you need to pass the argument '-D v2'.
+Hence in UEK7, you need to pass the argument '-D uek7'.
 For UEK5 and UEK6, no argument is required
 
 command, arguments:
-1) ./mlx_vhcaid.d -D v2  (for UEK7) 
+1) ./mlx_vhcaid.d -D uek7  (for UEK7)
 2) ./mlx_vhcaid.d (for UEK5,UEK6)
 
 
@@ -18,7 +18,7 @@ Sample output:
 [root@ol815 ~]# uname -r
 5.15.0-200.119.13.el8uek.x86_64
 
-[root@ol815 ~]# ./mlx_vhcaid.d -D v2
+[root@ol815 ~]# ./mlx_vhcaid.d -D uek7
 DTrace 2.0.0 [Pre-Release with limited functionality]
 1) ip_addr=192.168.100.58 vhca_id=65535 rds_dev=ffff991585e62000 ib_dev=ffff991598c68000 name=mlx5_0 mdev=ffff9915998801e0 bdf=0000:00:0a.0
 2) ip_addr=192.168.100.60 vhca_id=65535 rds_dev=ffff9915835f0000 ib_dev=ffff991598c74000 name=mlx5_1 mdev=ffff991599fc01e0 bdf=0000:00:0b.0
@@ -44,6 +44,6 @@ Number of devices: 2
 
 3) If a wrong argument is passed, the script would fail with an error:
 
-[root@ol78 ~]# ./mlx_vhcaid.d -D v2
+[root@ol78 ~]# ./mlx_vhcaid.d -D uek7
 dtrace: failed to compile script ./mlx_vhcaid.d: line 81: hca is not a member of struct
 

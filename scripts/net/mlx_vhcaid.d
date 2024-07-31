@@ -26,7 +26,7 @@
  * Author: Arumugam Kolappan
  * Purpose: Print 'vhca id' of the mellanox devices (CX5) from a VM
  * The mellanox macro in UEK7 is different from UEK[5,6]. When running
- * the script in UEK7, add the '-D v2' argument to the command.
+ * the script in UEK7, add the '-D uek7' argument to the command.
  * Sample output: Refer to the file mlx_vhcaid_example.txt
  */
 
@@ -43,7 +43,7 @@
 #define __mlx5_dw_off(typ, fld) (__mlx5_bit_off(typ, fld) / 32)
 #define MLX5_GET(typ, p, fld) ((ntohl(*((__be32 *)(p) + __mlx5_dw_off(typ, fld))) >> __mlx5_dw_bit_off(typ, fld)) & __mlx5_mask(typ, fld))
 
-#ifdef v2
+#ifdef uek7
 /* Macro for UEK7 kernel */
 #define MLX5_CAP_GEN(mdev, cap) MLX5_GET(cmd_hca_cap, mdev->caps.hca, cap)
 #else
