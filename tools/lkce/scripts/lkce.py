@@ -29,7 +29,6 @@ import glob
 import os
 import platform
 import re
-import shutil
 import stat
 import subprocess  # nosec
 import sys
@@ -106,13 +105,6 @@ class Lkce:
         self.lkce_kdump_sh = self.lkce_home + "/lkce_kdump.sh"
         self.lkce_kdump_dir = self.lkce_home + "/lkce_kdump.d"
         self.kdump_conf = "/etc/kdump.conf"
-
-        tmp = shutil.which("timeout")
-        if tmp is None:
-            print("timeout command not found.")
-            sys.exit(1)
-
-        self.timeout_path = tmp
     # def __init__
 
     # default values
@@ -282,18 +274,19 @@ mkdir $LKCE_DIR
 mount -o bind /proc $LKCE_DIR/proc
 mount -o bind /dev $LKCE_DIR/dev
 
-LKCE_KDUMP_SCRIPTS=$LKCE_DIR""" + self.lkce_kdump_dir + """/*
+LKCE_KDUMP_SCRIPTS=""" + self.lkce_kdump_dir + """/*
 
 #get back control after $LKCE_TIMEOUT to proceed
 export LKCE_KDUMP_SCRIPTS
 export LKCE_DIR
-""" + self.timeout_path + """ $LKCE_TIMEOUT /bin/sh -c '
+export LKCE_TIMEOUT
+
+chroot $LKCE_DIR /usr/bin/timeout -k 2 $LKCE_TIMEOUT /bin/sh -c '
 echo "LKCE_KDUMP_SCRIPTS=$LKCE_KDUMP_SCRIPTS";
-for file in $LKCE_KDUMP_SCRIPTS;
+for cmd in $LKCE_KDUMP_SCRIPTS;
 do
-    cmd=${file#$LKCE_DIR};
     echo "Executing $cmd";
-    chroot $LKCE_DIR $cmd;
+    $cmd;
 done;'
 
 umount $LKCE_DIR/dev
@@ -302,6 +295,7 @@ umount $LKCE_DIR
 
 unset LKCE_KDUMP_SCRIPTS
 unset LKCE_DIR
+unset LKCE_TIMEOUT
 
 if [ "$LKCE_VMCORE" == "no" ]; then
     echo "lkce_kdump.sh: vmcore generation is disabled"
@@ -335,7 +329,6 @@ exit 0
             return 1
 
         kdump_pre_line = f"kdump_pre {self.lkce_kdump_sh}"
-        kdump_timeout_line = f"extra_bins {self.timeout_path}"
 
         with open(self.kdump_conf) as conf_fd:
             conf_lines = conf_fd.read().splitlines()
@@ -353,7 +346,7 @@ exit 0
             # remove lkce_kdump config
             with open(self.kdump_conf, "w") as conf_fd:
                 for line in conf_lines:
-                    if line not in (kdump_pre_line, kdump_timeout_line):
+                    if line != kdump_pre_line:
                         conf_fd.write(f"{line}\n")
 
             restart_kdump_service()
@@ -374,7 +367,7 @@ exit 0
             # add lkce_kdump config
             with open(self.kdump_conf, "a") as conf_fd:
                 conf_fd.write(
-                    f"{kdump_pre_line}\n{kdump_timeout_line}\n")
+                    f"{kdump_pre_line}\n")
             restart_kdump_service()
 
         return 0
