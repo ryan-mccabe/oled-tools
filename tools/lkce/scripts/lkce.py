@@ -57,6 +57,7 @@ def update_key_values_file(
 
             if key in key_values:
                 new_value = key_values[key]
+                del key_values[key]
 
                 # If new_value is not None, update the value; otherwise remove
                 # it (i.e. don't write key-new_value back to the file).
@@ -65,6 +66,12 @@ def update_key_values_file(
             else:
                 # line doesn't match lines to update; write it back as is
                 fdesc.write(f"{line}\n")
+
+        # write out any params that do not have existing entries.
+        for key in key_values:
+            new_value = key_values[key]
+            if new_value:
+                fdesc.write(f"\n{key}{sep}{new_value}\n")
 
 
 def read_args_from_file(filename: str) -> Optional[List[str]]:
