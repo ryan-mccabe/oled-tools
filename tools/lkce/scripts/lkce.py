@@ -29,6 +29,7 @@ import glob
 import os
 import platform
 import re
+import shutil
 import stat
 import subprocess  # nosec
 import sys
@@ -117,6 +118,7 @@ class Lkce:
         self.lkce_kdump_sh = self.lkce_home + "/lkce_kdump.sh"
         self.lkce_kdump_dir = self.lkce_home + "/lkce_kdump.d"
         self.kdump_conf = "/etc/kdump.conf"
+        self.kdump_backup = f"{self.lkce_home}/kdump.conf.bak"
     # def __init__
 
     # default values
@@ -393,12 +395,13 @@ fi
 
 exit 0
 """
+        filename = self.lkce_kdump_sh
         try:
             file = open(filename, "w")
             file.write(content)
             file.close()
-        except OSError:
-            print("Unable to operate on file: {filename}")
+        except OSError as e:
+            print(f"Unable to operate on file: {filename}: {e}")
             return 1
 
         mode = os.stat(filename).st_mode
@@ -416,6 +419,61 @@ exit 0
         return self.update_kdump_conf("--remove")
     # def remove_lkce_kdump()
 
+    def backup_kdump_conf(self) -> int:
+        """Back up the existing /etc/kdump.conf file
+           to /etc/oled/lkce/kdump.conf.bak
+        """
+        try:
+            shutil.copyfile(self.kdump_conf, self.kdump_backup)
+        except OSError as e:
+            print(f"error: Unable to copy {self.kdump_conf} to",
+                  f"{self.kdump_backup}: {e}")
+            return 1
+        return 0
+    # def backup_kdump_conf
+
+    def restore_kdump_conf(self) -> int:
+        """Restore the LKCE kdump.conf backup from
+           /etc/oled/lkce/kdump.conf.bak to /etc/kdump.conf
+        """
+        try:
+            shutil.copyfile(self.kdump_backup, self.kdump_conf)
+        except OSError as e:
+            print(f"error: Unable to copy {self.kdump_backup} to",
+                  f"{self.kdump_conf}: {e}")
+            return 1
+        return 0
+    # def restore_kdump_conf
+
+    def restart_kdump_service_failsafe(self) -> int:
+        """Restart the kdump service, and if it fails, try restoring
+           the backed-up kdump.conf file, then try restarting with that.
+        """
+        if restart_kdump_service():
+            print("error: Unable to restart the kdump service. Attempting",
+                  "to restore /etc/kdump.conf from a backup and restart.")
+
+            if self.restore_kdump_conf():
+                print("error: Unable to restore the /etc/kdump.conf file",
+                      "from backup.\n"
+                      "Manual intervention is needed. You must correct the",
+                      "issues with /etc/kdump.conf, then manually restart",
+                      "the kdump service successfully or crashes may result",
+                      "in system hangs.")
+                return 1
+
+            if restart_kdump_service():
+                print("error: Unable to restart the kdump service",
+                      "even after restoring /etc/kdump.conf\n"
+                      "Manual intervention is needed. You must correct the",
+                      "issues with /etc/kdump.conf, then manually restart",
+                      "the kdump service successfully or crashes may result",
+                      "in system hangs.")
+                return 1
+            return 2
+        return 0
+    # def restart_kdump_service_failsafe
+
     def update_kdump_conf(self, arg: str) -> int:
         """Add/remove /etc/kdump.conf with kdump_pre hook"""
         if not os.path.exists(self.kdump_conf):
@@ -424,6 +482,9 @@ exit 0
             return 1
 
         kdump_pre_line = f"kdump_pre {self.lkce_kdump_sh}"
+
+        if self.backup_kdump_conf():
+            print(f"warning: Unable to backup {self.kdump_conf}")
 
         with open(self.kdump_conf) as conf_fd:
             conf_lines = conf_fd.read().splitlines()
@@ -435,23 +496,31 @@ exit 0
 
         if arg == "--remove":
             if kdump_pre_value != kdump_pre_line:
-                print(f"lkce_kdump entry not set in {self.kdump_conf}")
+                print(
+                    f"warning: LKCE kdump entry not set in {self.kdump_conf}")
+
+            # remove LKCE /etc/kdump.conf config
+            try:
+                with open(self.kdump_conf, "w") as conf_fd:
+                    ign_lines = (kdump_pre_line)
+
+                    for line in conf_lines:
+                        if line not in ign_lines:
+                            conf_fd.write(f"{line}\n")
+            except OSError as e:
+                print(f"Error updating /etc/kdump.conf: {e}")
                 return 1
 
-            # remove lkce_kdump config
-            with open(self.kdump_conf, "w") as conf_fd:
-                for line in conf_lines:
-                    if line != kdump_pre_line:
-                        conf_fd.write(f"{line}\n")
+            if self.restart_kdump_service_failsafe():
+                return 1
 
-            restart_kdump_service()
             return 0
 
         # arg == "--add"
         if kdump_pre_value == kdump_pre_line:
             print(
                 "info: /etc/kdump.conf has already been modified to run the",
-                "LKCE kdump script.\nNot duplicating configuration.")
+                "LKCE kdump script.")
         elif kdump_pre_value:
             # kdump_pre is enabled, but it is not our lkce_kdump script
             print(f"lkce_kdump entry not set in {self.kdump_conf} "
@@ -460,13 +529,22 @@ exit 0
                   "Hint: edit the present kdump_pre script and make it run"
                   f" {self.lkce_kdump_sh}")
             return 1
-        else:
-            # add lkce_kdump config
-            with open(self.kdump_conf, "a") as conf_fd:
-                conf_fd.write(
-                    f"{kdump_pre_line}\n")
-            restart_kdump_service()
 
+        changes = False
+        # add lkce_kdump config, if necessary
+        try:
+            with open(self.kdump_conf, "a") as conf_fd:
+                if not kdump_pre_value:
+                    conf_fd.write(f"{kdump_pre_line}\n")
+                    changes = True
+        except OSError as e:
+            print(f"Error updating /etc/kdump.conf: {e}")
+            return 1
+
+        if changes:
+            if self.restart_kdump_service_failsafe():
+                return 1
+            self.backup_kdump_conf()
         return 0
     # def update_kdump_conf
 
@@ -649,9 +727,12 @@ exit 0
             update_key_values_file(filename, values_to_update, sep="=")
 
         if self.kdump_dirty is True:
-            self.create_lkce_kdump()
-            restart_kdump_service()
-            self.kdump_dirty = False
+            if self.create_lkce_kdump():
+                print(f"error: Unable to create kdump_pre script.",
+                      "Not restarting kdump service. Please try again.")
+            else:
+                if not self.restart_kdump_service_failsafe():
+                    self.kdump_dirty = False
     # def configure
 
     def config_vmcore(self, value: str) -> int:
@@ -716,23 +797,24 @@ exit 0
             print("error: Unable to setup LKCE in kexec mode.")
             return 1
 
-        if self.update_kdump_conf("--add") == 1:
-            return 0
+        if self.update_kdump_conf("--add"):
+            return 1
 
         update_key_values_file(
             self.lkce_config_file, {"enable_kexec": "yes"}, sep="=")
-        print("enabled_kexec mode")
+
+        print("enabled LKCE in kexec mode")
         return 0
     # def enable_lkce_kexec
 
-    def disable_lkce_kexec(self) -> None:
+    def disable_lkce_kexec(self) -> int:
         """Disable lkce to generate report on crashed kernel in kexec mode"""
         if not os.path.exists(self.lkce_config_file):
             print(f"config file '{self.lkce_config_file}' not found")
-            return
+            return 1
 
-        if self.update_kdump_conf("--remove") == 1:
-            return
+        if self.update_kdump_conf("--remove"):
+            return 1
 
         update_key_values_file(
             self.lkce_config_file, {"enable_kexec": "no"}, sep="=")
@@ -741,7 +823,9 @@ exit 0
             os.remove(self.lkce_kdump_sh)
         except OSError:
             pass
-        print("disabled kexec mode")
+
+        print("disabled LKCE in kexec mode")
+        return 0
     # def disable kexec
 
     def status(self) -> None:
@@ -812,9 +896,14 @@ def restart_kdump_service() -> int:
     cmd = ("systemctl", "restart", "kdump")  # OL7 and above
 
     print("Restarting kdump service...")
-    r = subprocess.run(cmd, shell=False, check=True)  # nosec
-    print("done!")
-    return r.returncode
+    try:
+        r = subprocess.run(cmd, shell=False, check=True)  # nosec
+        if r.returncode == 0:
+            print("done!")
+        return r.returncode
+    except subprocess.CalledProcessError:
+        pass
+    return 1
 # def restart_kdump_service
 
 
