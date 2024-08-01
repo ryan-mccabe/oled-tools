@@ -71,7 +71,6 @@ class KdumpReport:
         self.timedout_action = "reboot -f"
 
         # default values
-        self.kdump_report = "yes"
         self.vmlinux_path = "/usr/lib/debug/lib/modules/" + \
             self.kdump_kernel_ver + "/vmlinux"
         self.crash_cmds_file = self.kdump_report_crash_cmds_file
@@ -121,9 +120,6 @@ class KdumpReport:
 
             elif "corelens_args_file" in entry[0] and entry[1]:
                 self.corelens_args_file = entry[1]
-
-            elif "enable_kexec" in entry[0] and entry[1]:
-                self.kdump_report = entry[1]
 
             elif "max_out_files" in entry[0] and entry[1]:
                 self.max_out_files = entry[1]
@@ -246,14 +242,10 @@ def main() -> int:
     """Main routine"""
     kdump_report = KdumpReport()
 
-    if kdump_report.kdump_report != "yes":
-        print("kdump_report: kdump_report is disabled to run")
-        sys.exit(1)
-    else:
-        print("kdump_report: kdump_report is enabled to run")
-        kdump_report.run_report()
-        kdump_report.clean_up()
-        sys.exit(0)
+    print("kdump_report: kdump_report is enabled to run")
+    kdump_report.run_report()
+    kdump_report.clean_up()
+    sys.exit(0)
 # def main
 
 

@@ -194,7 +194,6 @@ class Lkce:
     # default values
     def set_defaults(self) -> None:
         """set default values"""
-        self.enable_kexec = "no"
         self.vmlinux_path = "/usr/lib/debug/lib/modules/" + \
             self.kdump_kernel_ver + "/vmlinux"
         self.crash_cmds_file = self.lkce_home + "/crash_cmds_file"
@@ -289,9 +288,8 @@ class Lkce:
             print(f"error: Unable to create {self.lkce_home}: {e}")
             return 1
 
-        if self.enable_kexec == "yes":
-            print("trying to disable lkce")
-            self.disable_lkce_kexec()
+        # The default is to not enable LKCE in kdump
+        self.disable_lkce_kexec()
 
         self.set_defaults()
 
@@ -387,9 +385,6 @@ quit
 #report command to use for lkce
 report_cmd=""" + self.report_cmd + """
 
-#enable lkce in kexec kernel
-enable_kexec=""" + self.enable_kexec + """
-
 #debuginfo vmlinux path. Need to install debuginfo kernel to get it
 vmlinux_path=""" + self.vmlinux_path + """
 
@@ -440,10 +435,8 @@ max_out_files=""" + self.max_out_files
             line = re.sub(r"\s+", "", line)
 
             entry = re.split("=", line)
-            if "enable_kexec" in entry[0] and entry[1]:
-                self.enable_kexec = entry[1]
 
-            elif "report_cmd" in entry[0] and entry[1]:
+            if "report_cmd" in entry[0] and entry[1]:
                 self.report_cmd = entry[1]
 
             elif "corelens_args_file" in entry[0] and entry[1]:
@@ -1083,9 +1076,6 @@ exit 0
             if self.need_kdump_conf():
                 self.backup_kdump_conf()
 
-        update_key_values_file(
-            self.lkce_config_file, {"enable_kexec": "yes"}, sep="=")
-
         print("enabled LKCE in kexec mode")
         return 0
     # def enable_lkce_kexec
@@ -1111,9 +1101,6 @@ exit 0
             self.kdump_dirty = False
             if self.need_kdump_conf():
                 self.backup_kdump_conf()
-
-        update_key_values_file(
-            self.lkce_config_file, {"enable_kexec": "no"}, sep="=")
 
         print("disabled LKCE in kexec mode")
         return 0
