@@ -33,7 +33,7 @@ import shutil
 import stat
 import subprocess  # nosec
 import sys
-from typing import Mapping, Optional, List, Sequence
+from typing import Mapping, Optional, List, Tuple, Union, Sequence
 
 
 def update_key_values_file(
@@ -89,6 +89,54 @@ def read_args_from_file(filename: str) -> Optional[List[str]]:
     except OSError as e:
         print(f"kdump_report: Unable to operate on file: {filename}: {e}")
         return None
+
+
+def get_dev_and_mount(path: str) -> Tuple[Union[str, None], Union[str, None]]:
+    """ Return the device path and mountpoint for a file or directory"""
+    try:
+        st = os.stat(path)
+        dev_id = st.st_dev
+
+        with open("/proc/mounts", "r") as mounts:
+            for line in mounts:
+                tok = line.split()
+                dev = tok[0]
+                mp = tok[1]
+
+                st = os.stat(mp)
+                if st.st_dev == dev_id:
+                    return (dev, mp)
+        return (None, None)
+    except FileNotFoundError:
+        print(f"error: '{path}' not found.")
+        return (None, None)
+
+
+def get_dev_uuid(dev: str) -> Union[str, None]:
+    """ Return the UUID for a device"""
+    try:
+        st = os.stat(dev)
+        dev_id = st.st_rdev
+    except OSError as e:
+        print(f"error: Unable to stat {dev}: {e}")
+        return None
+
+    try:
+        files = os.listdir("/dev/disk/by-uuid")
+    except OSError as e:
+        print(f"error: Unable to list /dev/disk/by-uuid: {e}")
+        return None
+
+    try:
+        for f in files:
+            path = f"/dev/disk/by-uuid/{f}"
+            st = os.stat(path, follow_symlinks=True)
+            if st.st_rdev == dev_id:
+                return f
+    except OSError as e:
+        print(f"error: Unable to stat {f}: {e}")
+
+    return None
 
 
 class Lkce:
@@ -330,7 +378,20 @@ max_out_files=""" + self.max_out_files
 
         lkce_kdump.sh is attached as kdump_pre hook in /etc/kdump.conf
         """
-        filename = self.lkce_kdump_sh
+
+        (dev, mnt) = get_dev_and_mount("/")
+        if not dev or not mnt:
+            print(
+                f"error: Unable to find the device for /")
+            return 1
+
+        uuid = get_dev_uuid(dev)
+        if not uuid:
+            print(f"error: Unable to find the UUID for {dev}")
+            return 1
+
+        dumpdir_env_set = f'''LKCE_SYSROOT_DEV="{dev}"
+LKCE_SYSROOT_UUID="{uuid}"\n'''
 
         try:
             os.makedirs(self.lkce_kdump_dir, exist_ok=True)
@@ -344,49 +405,178 @@ max_out_files=""" + self.max_out_files
             print(f"error: Unable to create {self.lkce_outdir}: {e}")
             return 1
 
-        mount_cmd = "mount -o bind /sysroot"  # OL7 and above
+        (dev, mnt) = get_dev_and_mount(self.lkce_outdir)
+        if not dev or not mnt:
+            print(
+                f"error: Unable to find the mountpoint for {self.lkce_outdir}")
+            return 1
+
+        uuid = get_dev_uuid(dev)
+        if not uuid:
+            print(f"error: Unable to find the UUID for {dev}")
+            return 1
+
+        if mnt != "/":
+            dumpdir_env_set += f'''LKCE_DUMP_DEV="{dev}"
+LKCE_DUMP_DEV_UUID="{uuid}"
+LKCE_DUMP_DEV_MNT="{mnt}"'''
 
         # create lkce_kdump.sh script
-        content = """#!/bin/sh
+        content = '''#!/bin/sh
 # This is a kdump_pre script
 # /etc/kdump.conf is used to configure kdump_pre script
 
-# Generate vmcore post lkce_kdump scripts execution
-LKCE_VMCORE=""" + self.vmcore + """
+# Generate vmcore post LKCE kdump scripts execution
+LKCE_VMCORE="''' + self.vmcore + '''"
 
-# Timeout for lkce_kdump scripts in seconds
+# Timeout for LKCE kdump scripts in seconds
 LKCE_TIMEOUT="120"
 
 # Temporary directory to mount the actual root partition
 LKCE_DIR="/lkce_kdump"
 
-mkdir $LKCE_DIR
-""" + mount_cmd + """ $LKCE_DIR
-mount -o bind /proc $LKCE_DIR/proc
-mount -o bind /dev $LKCE_DIR/dev
+LKCE_KDUMP_SCRIPTS=''' + self.lkce_kdump_dir + '''/*
+LKCE_OUTDIR="''' + self.lkce_outdir + '"\n' + dumpdir_env_set + '''
+FAIL=0
+declare -a LKCE_MOUNTS=()
 
-LKCE_KDUMP_SCRIPTS=""" + self.lkce_kdump_dir + """/*
+function mount_by_uuid {
+    if [ $# -ne 2 ]; then
+        echo "mount_by_uuid takes two arguments: uuid, mountpoint"
+        return 1
+    fi
 
-#get back control after $LKCE_TIMEOUT to proceed
-export LKCE_KDUMP_SCRIPTS
-export LKCE_DIR
-export LKCE_TIMEOUT
+    local UUID=$1
+    local MP=$2
+    local d
 
-chroot $LKCE_DIR /usr/bin/timeout -k 2 $LKCE_TIMEOUT /bin/sh -c '
-echo "LKCE_KDUMP_SCRIPTS=$LKCE_KDUMP_SCRIPTS";
-for cmd in $LKCE_KDUMP_SCRIPTS;
-do
-    echo "Executing $cmd";
-    $cmd;
-done;'
+    d="$(blkid 2>/dev/null | grep "$UUID")"
+    if [ $? -eq 0 ]; then
+        local m
+        mkdir -p "$MP"
+        if [ $? -ne 0 ]; then
+            echo "Unable to create directory $MP"
+            return 1
+        fi
+        d="$(echo $d | cut -d: -f1)"
+        [ -n "$d" ] && m="$(grep -e "^$d " /proc/mounts)"
+        if [ $? -eq 0 ]; then
+            m="$(echo $m | head -1 | cut -d' ' -f2)"
+            # already mounted
+            if [ "$m" == "$MP" ]; then
+                echo "error: source and dest for bind mount $m are the same"
+                return 1
+            fi
+            mount --bind "$m" "$MP"
+            if [ $? -ne 0 ]; then
+                echo "bind mount of $m to $MP failed"
+                return 1
+            fi
+        else
+            # not mounted, mount by UUID
+            mount -U "$UUID" "$MP"
+            if [ $? -ne 0 ]; then
+                echo "mount of $UUID on $MP failed"
+                return 1
+            fi
+        fi
+    else
+        echo "Unable to find device with UUID $UUID"
+        return 1
+    fi
+    return 0
+}
 
-umount $LKCE_DIR/dev
-umount $LKCE_DIR/proc
-umount $LKCE_DIR
+mkdir "$LKCE_DIR"
+if [ $? -ne 0 ]; then
+    echo "Unable to create $LKCE_DIR. Unable to proceed."
+    exit 0
+fi
 
-unset LKCE_KDUMP_SCRIPTS
-unset LKCE_DIR
-unset LKCE_TIMEOUT
+type lvm &>/dev/null &&
+vgs="$(lvm lvs --noheadings -o vg_name $LKCE_SYSROOT_DEV $LKCE_DUMP_DEV
+       2>/dev/null)"
+if [ -n "$vgs" ]; then
+    lvm vgchange -ay -- $vgs
+fi
+
+if [ ! -d /sysroot ] || [ ! -d /sysroot/usr/bin ]; then
+    # /sysroot has not been prepared by kdump, try mounting by UUID
+    mkdir -p /sysroot
+    if [ $? -ne 0 ]; then
+        "Unable to create /sysroot. Unable to proceed."
+        exit 0
+    fi
+    if [ -n "LKCE_SYSROOT_UUID" ]; then
+        mount_by_uuid "$LKCE_SYSROOT_UUID" "/sysroot"
+        if [ $? -ne 0 ]; then
+            "Unable to mount the root volume on /sysroot. Unable to proceed."
+            exit 0
+        fi
+        LKCE_MOUNTS+=("/sysroot")
+    else
+        "Unable to find the UUID for the root volume. Unable to proceed."
+        exit 0
+    fi
+fi
+
+mount --bind /sysroot "$LKCE_DIR" || FAIL=1
+[ $FAIL -eq 0 ] && mount --bind /proc "$LKCE_DIR/proc" || FAIL=1
+[ $FAIL -eq 0 ] && mount --bind /dev "$LKCE_DIR/dev" || FAIL=1
+
+if [ $FAIL -eq 0 ] && [ -n "$LKCE_DUMP_DEV_UUID" ]; then
+    mount_by_uuid "$LKCE_DUMP_DEV_UUID" "$LKCE_DIR/$LKCE_DUMP_DEV_MNT"
+    if [ $? -ne 0 ]; then
+        echo "Unable to mount LKCE report output directory."
+        FAIL=1
+    fi
+    LKCE_MOUNTS+=("$LKCE_DIR/$LKCE_DUMP_DEV_MNT")
+fi
+
+mkdir -p "$LKCE_DIR/$LKCE_OUTDIR"
+if [ $? -ne 0 ]; then
+    echo "error: Unable to create $LKCE_DIR/$LKCE_OUTDIR"
+    FAIL=1
+fi
+
+if [ $FAIL -eq 0 ]; then
+    export LKCE_KDUMP_SCRIPTS
+    export LKCE_TIMEOUT
+
+    # get back control after $LKCE_TIMEOUT to proceed
+    chroot "$LKCE_DIR" /usr/bin/timeout -k 2 $LKCE_TIMEOUT /bin/sh -c '
+    echo "LKCE_KDUMP_SCRIPTS=$LKCE_KDUMP_SCRIPTS";
+    for cmd in $LKCE_KDUMP_SCRIPTS;
+    do
+        echo "Executing $cmd";
+        $cmd;
+    done;'
+
+    unset LKCE_KDUMP_SCRIPTS
+    unset LKCE_TIMEOUT
+else
+    echo "not running LKCE kdump report because of envrionment setup errors"
+fi
+
+umount "$LKCE_DIR/dev"
+umount "$LKCE_DIR/proc"
+
+UMOUNT_SYSROOT=0
+
+for i in ${LKCE_MOUNTS[@]}; do
+    if [ "$i" == "/sysroot" ]; then
+        # needs to be unmounted later
+        UMOUNT_SYSROOT=1
+    else
+        umount "$i"
+    fi
+done
+
+umount "$LKCE_DIR"
+
+if [ $UMOUNT_SYSROOT -eq 1 ]; then
+    umount "/sysroot"
+fi
 
 if [ "$LKCE_VMCORE" == "no" ]; then
     echo "lkce_kdump.sh: vmcore generation is disabled"
@@ -394,7 +584,7 @@ if [ "$LKCE_VMCORE" == "no" ]; then
 fi
 
 exit 0
-"""
+'''
         filename = self.lkce_kdump_sh
         try:
             file = open(filename, "w")
