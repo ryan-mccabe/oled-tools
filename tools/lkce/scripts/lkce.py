@@ -611,7 +611,19 @@ mount --bind /sysroot "$LKCE_DIR" || FAIL=1
 [ $FAIL -eq 0 ] && mount --bind /dev "$LKCE_DIR/dev" || FAIL=1
 
 if [ $FAIL -eq 0 ] && [ -n "$LKCE_DUMP_DEV_UUID" ]; then
-    mount_by_uuid "$LKCE_DUMP_DEV_UUID" "$LKCE_DIR/$LKCE_DUMP_DEV_MNT"
+    o=$(mount_by_uuid "$LKCE_DUMP_DEV_UUID" "$LKCE_DIR/$LKCE_DUMP_DEV_MNT" 2>&1)
+    if [ $? -ne 0 ]; then
+        fs="$(grep 'unknown filesystem type' <<< $o)"
+        if [ $? -eq 0 ] && [ -n "$fs" ]; then
+            fs=$(cut -d\\\' -f2 <<< "$fs")
+            echo "Attempting to insert module for filesystem $fs"
+            chroot /sysroot modprobe "$fs"
+            mount_by_uuid "$LKCE_DUMP_DEV_UUID" "$LKCE_DIR/$LKCE_DUMP_DEV_MNT"
+        else
+            FAIL=1
+            echo $o
+        fi
+    fi
     if [ $? -ne 0 ]; then
         echo "Unable to mount LKCE report output directory."
         FAIL=1
