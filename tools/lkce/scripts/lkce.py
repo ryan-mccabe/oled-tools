@@ -104,12 +104,14 @@ class Lkce:
         self.report_cmd = "corelens"
         self.lkce_outdir = "/var/oled/lkce"
         self.kdump_dirty = False
+        self.is_configured = False
 
         self.set_defaults()
 
         # set values from config file
         if os.path.exists(self.lkce_config_file):
-            self.read_config(self.lkce_config_file)
+            if self.read_config(self.lkce_config_file) == 0:
+                self.is_configured = True
 
         # lkce as a kdump_pre hook to kexec-tools
         self.lkce_kdump_sh = self.lkce_home + "/lkce_kdump.sh"
@@ -132,19 +134,30 @@ class Lkce:
         self.lkce_outdir = "/var/oled/lkce"
     # def set_default
 
-    def configure_default(self) -> None:
+    def configure_default(self) -> int:
         """Configure lkce with default values
 
         Creates self.corelens_args_file, self.crash_cmds_file,
         and self.lkce_config_file
         """
-        os.makedirs(self.lkce_home, exist_ok=True)
+        try:
+            os.makedirs(self.lkce_home, exist_ok=True)
+        except OSError as e:
+            print(f"error: Unable to create {self.lkce_home}: {e}")
+            return 1
 
         if self.enable_kexec == "yes":
             print("trying to disable lkce")
             self.disable_lkce_kexec()
 
         self.set_defaults()
+
+        # Create lkce output directory
+        try:
+            os.makedirs(self.lkce_outdir, exist_ok=True)
+        except OSError as e:
+            print(f"error: Unable to create {self.lkce_outdir}: {e}")
+            return 1
 
         # crash_cmds_file
         filename = self.crash_cmds_file
@@ -173,7 +186,7 @@ quit
             file.close()
         except OSError as e:
             print(f"error: Unable to operate on file: {filename}: {e}")
-            return
+            return 1
 
         # corelens_args_file
         filename = self.corelens_args_file
@@ -219,7 +232,7 @@ quit
             file.close()
         except OSError as e:
             print(f"error: Unable to operate on file: {filename}: {e}")
-            return
+            return 1
 
         # config file
         filename = self.lkce_config_file
@@ -258,21 +271,23 @@ max_out_files=""" + self.max_out_files
             file.close()
         except OSError:
             print("Unable to operate on file: {filename}")
-            return
+            return 1
 
-        print("configured with default values")
+        self.is_configured = True
+        print("LKCE has been configured with default values.")
+        return 0
     # def configure_default
 
-    def read_config(self, filename: str) -> None:
+    def read_config(self, filename: str) -> int:
         """Read config file and update the class variables"""
         if not os.path.exists(filename):
-            return
+            return 1
 
         try:
             file = open(filename, "r")
         except OSError:
             print("Unable to open file: {filename}")
-            return
+            return 1
 
         for line in file.readlines():
             if re.search("^#", line):  # ignore lines starting with '#'
@@ -305,15 +320,27 @@ max_out_files=""" + self.max_out_files
 
             elif "max_out_files" in entry[0] and entry[1]:
                 self.max_out_files = entry[1]
+        return 0
     # def read_config
 
-    def create_lkce_kdump(self) -> None:
+    def create_lkce_kdump(self) -> int:
         """create lkce_kdump.sh script.
 
         lkce_kdump.sh is attached as kdump_pre hook in /etc/kdump.conf
         """
         filename = self.lkce_kdump_sh
-        os.makedirs(self.lkce_kdump_dir, exist_ok=True)
+
+        try:
+            os.makedirs(self.lkce_kdump_dir, exist_ok=True)
+        except OSError as e:
+            print(f"error: Unable to create {self.lkce_kdump_dir}: {e}")
+            return 1
+
+        try:
+            os.makedirs(self.lkce_outdir, exist_ok=True)
+        except OSError as e:
+            print(f"error: Unable to create {self.lkce_outdir}: {e}")
+            return 1
 
         mount_cmd = "mount -o bind /sysroot"  # OL7 and above
 
@@ -372,10 +399,16 @@ exit 0
             file.close()
         except OSError:
             print("Unable to operate on file: {filename}")
-            return
+            return 1
 
         mode = os.stat(filename).st_mode
-        os.chmod(filename, mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+        try:
+            os.chmod(filename,
+                     mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+        except OSError as e:
+            print(f"error: Unable to make {filename} executable: {e}")
+            return 1
+        return 0
     # def create_lkce_kdump
 
     def remove_lkce_kdump(self) -> int:
@@ -416,7 +449,9 @@ exit 0
 
         # arg == "--add"
         if kdump_pre_value == kdump_pre_line:
-            print("lkce_kdump is already enabled to run lkce scripts")
+            print(
+                "info: /etc/kdump.conf has already been modified to run the",
+                "LKCE kdump script.\nNot duplicating configuration.")
         elif kdump_pre_value:
             # kdump_pre is enabled, but it is not our lkce_kdump script
             print(f"lkce_kdump entry not set in {self.kdump_conf} "
@@ -556,10 +591,13 @@ exit 0
         for subarg in subargs:
             subarg.strip()
             if subarg == "--default":
-                self.configure_default()
+                if self.configure_default():
+                    print("error: LKCE default configuration failed.")
+                    return
             elif subarg == "--show":
                 if not os.path.exists(filename):
-                    print("config file not found")
+                    print(f"error: LKCE config file {filename} not found.\n"
+                          "Please run 'oled lkce configure --default' first.")
                     return
 
                 print("%18s : %s" % ("report_cmd", self.report_cmd))
@@ -587,8 +625,13 @@ exit 0
                     return
 
                 values_to_update[entry[0].strip("-")] = entry[1].strip()
-        # for
 
+        if not self.is_configured:
+            print(f"error: LKCE has not been configured.\n"
+                  "Please run 'oled lkce configure --default' first.")
+            return
+
+        # for
         report_cmd = values_to_update.get("report_cmd", None)
         if report_cmd and self.config_report_cmd(report_cmd):
             return
@@ -663,19 +706,22 @@ exit 0
         return 0
     # def config_lkce_outdir
 
-    def enable_lkce_kexec(self) -> None:
+    def enable_lkce_kexec(self) -> int:
         """Enable lkce to generate report on crashed kernel in kexec mode"""
 
         # Generate kdump script in case configuration has changed since
         # the last enable
-        self.create_lkce_kdump()
+        if self.create_lkce_kdump():
+            print("error: Unable to setup LKCE in kexec mode.")
+            return 1
 
         if self.update_kdump_conf("--add") == 1:
-            return
+            return 0
 
         update_key_values_file(
             self.lkce_config_file, {"enable_kexec": "yes"}, sep="=")
         print("enabled_kexec mode")
+        return 0
     # def enable_lkce_kexec
 
     def disable_lkce_kexec(self) -> None:
@@ -815,16 +861,27 @@ def main() -> int:
 
     arg = sys.argv[1]
     if arg == "report":
+        if not lkce.is_configured:
+            print("warning: LKCE has not been configured.\n"
+                  "Please run 'oled lkce configure --default'")
         lkce.report(sys.argv[2:])
 
     elif arg == "configure":
         lkce.configure(sys.argv[2:])
 
     elif arg == "enable_kexec":
-        lkce.enable_lkce_kexec()
+        if lkce.is_configured:
+            lkce.enable_lkce_kexec()
+        else:
+            print("error: LKCE has not been configured.\n"
+                  "Please run 'oled lkce configure --default' first.")
 
     elif arg == "disable_kexec":
-        lkce.disable_lkce_kexec()
+        if lkce.is_configured:
+            lkce.disable_lkce_kexec()
+        else:
+            print("error: LKCE has not been configured.\n"
+                  "Please run 'oled lkce configure --default' first.")
 
     elif arg == "status":
         lkce.status()
@@ -848,7 +905,7 @@ def main() -> int:
 
 if __name__ == '__main__':
     if not os.geteuid() == 0:
-        print("Please run lkce as root user.")
+        print("Please run LKCE as the root user.")
         sys.exit(1)
 
     LOCK_DIR = "/var/run/oled-tools"
