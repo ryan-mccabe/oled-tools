@@ -24,6 +24,7 @@
 Program for user-interaction
 """
 
+import errno
 import fcntl
 import glob
 import os
@@ -139,6 +140,24 @@ def get_dev_uuid(dev: str) -> Union[str, None]:
     return None
 
 
+def get_kdump_pre_line(filename: str) -> Union[str, None]:
+    """Scan /etc/kdump.conf and return a configuration line
+       if it starts with 'kdump_pre ' or else return None
+       if no such line is found.
+    """
+    try:
+        with open(filename) as conf_fd:
+            conf_lines = conf_fd.read().splitlines()
+            conf_fd.close()
+        for line in conf_lines:
+            if line.startswith("kdump_pre "):
+                return line
+    except OSError:
+        pass
+
+    return None
+
+
 class Lkce:
     """Class to include user interaction related functionality"""
     # pylint: disable=too-many-instance-attributes
@@ -154,6 +173,9 @@ class Lkce:
         self.lkce_outdir = "/var/oled/lkce"
         self.kdump_dirty = False
         self.is_configured = False
+        self.has_kdump_d = False
+        self.kdump_d_dir = "/etc/kdump/pre.d"
+        self.kdump_d_file = f"{self.kdump_d_dir}/10-lkce_kdump.sh"
 
         self.set_defaults()
 
@@ -182,7 +204,78 @@ class Lkce:
         self.report_cmd = "corelens"
         self.max_out_files = "50"
         self.lkce_outdir = "/var/oled/lkce"
+
+        try:
+            self.has_kdump_d = os.path.exists(self.kdump_d_dir)
+        except OSError:
+            self.has_kdump_d = False
     # def set_default
+
+    def need_kdump_conf(self) -> bool:
+        """Returns True if we need to edit /etc/kdump.conf to
+           enable/disable LKCE, otherwise returns False
+        """
+        return self.has_kdump_d is not True
+
+    def kdump_pre_d_link(self):
+        """Enable LKCE in kdump mode by creating a symlink
+           to our script in /etc/kdump/pre.d
+           Returns 0 on success, 1 on failure, 2 if already enabled
+        """
+        try:
+            os.symlink(self.lkce_kdump_sh, self.kdump_d_file)
+            self.kdump_dirty = True
+            print(f"info: Created link {self.kdump_d_file}")
+            return 0
+        except OSError as e:
+            if e.errno == errno.EEXIST:
+                print("LKCE is already enabled in kexec mode")
+                return 2
+            print(f"error: Unable symlink {self.lkce_kdump_sh}",
+                  f"to {self.kdump_d_file}: {e}")
+        return 1
+
+    def kdump_pre_d_unlink(self):
+        """Disable LKCE in kdump mode by removing the symlink
+           to our script from /etc/kdump/pre.d
+
+           Returns 0 on success, 1 on failure, 2 if already disabled
+
+        """
+        try:
+            os.unlink(self.kdump_d_file)
+            self.kdump_dirty = True
+            print(f"info: Removed link {self.kdump_d_file}")
+            return 0
+        except OSError as e:
+            if e.errno == errno.ENOENT:
+                print("LKCE is not currently enabled in kexec mode")
+                return 2
+            print(f"error: Unable to remove link {self.kdump_d_file}: {e}")
+        return 1
+
+    def kexec_enabled(self):
+        """Return True if LKCE is enabled in kdump mode, else return False"""
+        if self.need_kdump_conf():
+            # We determine whether LKCE is enabled by the presence, or
+            # lack thereof, of a "kdump_pre" configuration line that contains
+            # the path to our script.
+            kdump_pre_value = get_kdump_pre_line(self.kdump_conf)
+            if kdump_pre_value == f"kdump_pre {self.lkce_kdump_sh}":
+                return True
+            return False
+
+        try:
+            # We determine whether LKCE is enabled by the presence, or
+            # thereof, of a symlink to our kdump_pre script in
+            # /etc/kdump/pre.d/
+            # If that symlink exists and the target is executable, return True
+            st = os.stat(self.kdump_d_file)
+            if st.st_mode & 0o111:
+                return True
+        except OSError:
+            pass
+        return False
 
     def configure_default(self) -> int:
         """Configure lkce with default values
@@ -604,11 +697,6 @@ exit 0
         return 0
     # def create_lkce_kdump
 
-    def remove_lkce_kdump(self) -> int:
-        """Remove lkce_kdump.sh as kdump_pre hook in /etc/kdump.conf"""
-        return self.update_kdump_conf("--remove")
-    # def remove_lkce_kdump()
-
     def backup_kdump_conf(self) -> int:
         """Back up the existing /etc/kdump.conf file
            to /etc/oled/lkce/kdump.conf.bak
@@ -665,9 +753,9 @@ exit 0
     # def restart_kdump_service_failsafe
 
     def update_kdump_conf(self, arg: str) -> int:
-        """Add/remove /etc/kdump.conf with kdump_pre hook"""
+        """Add or remove LKCE configuration from /etc/kdump.conf"""
         if not os.path.exists(self.kdump_conf):
-            print(f"error: can not find {self.kdump_conf}. "
+            print(f"error: {self.kdump_conf} does not exist.",
                   "Please retry after installing kexec-tools")
             return 1
 
@@ -676,65 +764,55 @@ exit 0
         if self.backup_kdump_conf():
             print(f"warning: Unable to backup {self.kdump_conf}")
 
-        with open(self.kdump_conf) as conf_fd:
-            conf_lines = conf_fd.read().splitlines()
-
-        kdump_pre_value = None
-        for line in conf_lines:
-            if line.startswith("kdump_pre "):
-                kdump_pre_value = line
-
         if arg == "--remove":
-            if kdump_pre_value != kdump_pre_line:
-                print(
-                    f"warning: LKCE kdump entry not set in {self.kdump_conf}")
-
-            # remove LKCE /etc/kdump.conf config
             try:
-                with open(self.kdump_conf, "w") as conf_fd:
-                    ign_lines = (kdump_pre_line)
+                with open(self.kdump_conf, "r+") as conf_fd:
+                    conf_lines = conf_fd.read().splitlines()
 
-                    for line in conf_lines:
-                        if line not in ign_lines:
-                            conf_fd.write(f"{line}\n")
+                    if kdump_pre_line not in conf_lines:
+                        print("LKCE is not currently enabled",
+                              f"in {self.kdump_conf}")
+                        return 2
+                    conf_lines.remove(kdump_pre_line)
+                    conf_fd.seek(0)
+                    conf_fd.write("\n".join(conf_lines))
+                    conf_fd.write("\n")
+                    conf_fd.truncate()
+                    conf_fd.close()
             except OSError as e:
-                print(f"Error updating /etc/kdump.conf: {e}")
+                print(f"error: Unable to update {self.kdump_conf}: {e}")
                 return 1
 
-            if self.restart_kdump_service_failsafe():
-                return 1
-
+            self.kdump_dirty = True
             return 0
 
         # arg == "--add"
+        kdump_pre_value = get_kdump_pre_line(self.kdump_conf)
         if kdump_pre_value == kdump_pre_line:
-            print(
-                "info: /etc/kdump.conf has already been modified to run the",
-                "LKCE kdump script.")
-        elif kdump_pre_value:
+            print("info: /etc/kdump.conf has already been modified to run",
+                  "the LKCE kdump script.")
+            return 2
+
+        if kdump_pre_value:
             # kdump_pre is enabled, but it is not our lkce_kdump script
-            print(f"lkce_kdump entry not set in {self.kdump_conf} "
-                  "(manual setting needed)\n"
-                  f"present entry in kdump.conf:\n{kdump_pre_value}\n"
-                  "Hint: edit the present kdump_pre script and make it run"
-                  f" {self.lkce_kdump_sh}")
+            print("The LKCE 'kdump_pre' entry is not set in",
+                  f"{self.kdump_conf} (manual intervention is necessary)\n"
+                  f"The current 'kdump_pre' entry in kdump.conf:\n"
+                  f"{kdump_pre_value}\n"
+                  f"Hint: edit the {kdump_pre_value} script, and make it run",
+                  f"{self.lkce_kdump_sh}")
             return 1
 
-        changes = False
-        # add lkce_kdump config, if necessary
         try:
+            # add the LKCE kdump_pre line to /etc/kdump.conf
             with open(self.kdump_conf, "a") as conf_fd:
-                if not kdump_pre_value:
-                    conf_fd.write(f"{kdump_pre_line}\n")
-                    changes = True
+                conf_fd.write(f"{kdump_pre_line}\n")
+                conf_fd.close()
         except OSError as e:
             print(f"Error updating /etc/kdump.conf: {e}")
             return 1
 
-        if changes:
-            if self.restart_kdump_service_failsafe():
-                return 1
-            self.backup_kdump_conf()
+        self.kdump_dirty = True
         return 0
     # def update_kdump_conf
 
@@ -876,7 +954,7 @@ exit 0
                 print("%18s : %s" % ("vmlinux path", self.vmlinux_path))
                 print("%18s : %s" % ("crash_cmds_file", self.crash_cmds_file))
                 print("%18s : %s" % ("lkce_outdir", self.lkce_outdir))
-                print("%18s : %s" % ("lkce_in_kexec", self.enable_kexec))
+                print("%18s : %s" % ("lkce_in_kexec", self.kexec_enabled()))
                 print("%18s : %s" % ("max_out_files", self.max_out_files))
             else:
                 entry = subarg.split("=", 1)
@@ -920,9 +998,11 @@ exit 0
             if self.create_lkce_kdump():
                 print(f"error: Unable to create kdump_pre script.",
                       "Not restarting kdump service. Please try again.")
-            else:
-                if not self.restart_kdump_service_failsafe():
-                    self.kdump_dirty = False
+                return
+            if not self.restart_kdump_service_failsafe():
+                self.kdump_dirty = False
+                if self.need_kdump_conf():
+                    self.backup_kdump_conf()
     # def configure
 
     def config_vmcore(self, value: str) -> int:
@@ -979,7 +1059,7 @@ exit 0
     # def config_lkce_outdir
 
     def enable_lkce_kexec(self) -> int:
-        """Enable lkce to generate report on crashed kernel in kexec mode"""
+        """Enable LKCE vmcore reports in kexec mode"""
 
         # Generate kdump script in case configuration has changed since
         # the last enable
@@ -987,8 +1067,21 @@ exit 0
             print("error: Unable to setup LKCE in kexec mode.")
             return 1
 
-        if self.update_kdump_conf("--add"):
-            return 1
+        ret = 0
+        if self.need_kdump_conf():
+            ret = self.update_kdump_conf("--add")
+        else:
+            ret = self.kdump_pre_d_link()
+
+        if ret != 0:
+            return ret
+
+        if self.kdump_dirty is True:
+            if self.restart_kdump_service_failsafe():
+                return 1
+            self.kdump_dirty = False
+            if self.need_kdump_conf():
+                self.backup_kdump_conf()
 
         update_key_values_file(
             self.lkce_config_file, {"enable_kexec": "yes"}, sep="=")
@@ -998,21 +1091,29 @@ exit 0
     # def enable_lkce_kexec
 
     def disable_lkce_kexec(self) -> int:
-        """Disable lkce to generate report on crashed kernel in kexec mode"""
+        """Disable LKCE vmcore reports in kexec mode"""
         if not os.path.exists(self.lkce_config_file):
             print(f"config file '{self.lkce_config_file}' not found")
             return 1
 
-        if self.update_kdump_conf("--remove"):
-            return 1
+        ret = 0
+        if self.need_kdump_conf():
+            ret = self.update_kdump_conf("--remove")
+        else:
+            ret = self.kdump_pre_d_unlink()
+
+        if ret != 0:
+            return ret
+
+        if self.kdump_dirty is True:
+            if self.restart_kdump_service_failsafe():
+                return 1
+            self.kdump_dirty = False
+            if self.need_kdump_conf():
+                self.backup_kdump_conf()
 
         update_key_values_file(
             self.lkce_config_file, {"enable_kexec": "no"}, sep="=")
-
-        try:
-            os.remove(self.lkce_kdump_sh)
-        except OSError:
-            pass
 
         print("disabled LKCE in kexec mode")
         return 0
@@ -1151,14 +1252,16 @@ def main() -> int:
 
     elif arg == "enable_kexec":
         if lkce.is_configured:
-            lkce.enable_lkce_kexec()
+            if lkce.enable_lkce_kexec() == 1:
+                print("error: Unable to enable LKCE in kexec mode")
         else:
             print("error: LKCE has not been configured.\n"
                   "Please run 'oled lkce configure --default' first.")
 
     elif arg == "disable_kexec":
         if lkce.is_configured:
-            lkce.disable_lkce_kexec()
+            if lkce.disable_lkce_kexec() == 1:
+                print("error: Unable to disable LKCE in kexec mode")
         else:
             print("error: LKCE has not been configured.\n"
                   "Please run 'oled lkce configure --default' first.")
