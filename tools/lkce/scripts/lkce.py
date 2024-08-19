@@ -32,7 +32,7 @@ import re
 import stat
 import subprocess  # nosec
 import sys
-from typing import Mapping, Optional, List
+from typing import Mapping, Optional, List, Sequence
 
 
 def update_key_values_file(
@@ -72,13 +72,13 @@ def read_args_from_file(filename: str) -> Optional[List[str]]:
     try:
         with open(filename, 'r') as f:
             args = [
-                    w.strip()
-                    for l in f
-                    for w in l.split()
-                    if not l.startswith('#')
+                w.strip()
+                for l in f
+                for w in l.split()
+                if not l.startswith('#')
             ]
             return args
-    except Exception as e:
+    except OSError as e:
         print(f"kdump_report: Unable to operate on file: {filename}: {e}")
         return None
 
@@ -94,6 +94,8 @@ class Lkce:
         self.lkce_config_file = self.lkce_home + "/lkce.conf"
         self.kdump_kernel_ver = platform.uname().release
         self.vmcore = "yes"
+        self.report_cmd = "corelens"
+        self.lkce_outdir = "/var/oled/lkce"
 
         self.set_defaults()
 
@@ -111,9 +113,13 @@ class Lkce:
     def set_defaults(self) -> None:
         """set default values"""
         self.enable_kexec = "no"
+        self.vmlinux_path = "/usr/lib/debug/lib/modules/" + \
+            self.kdump_kernel_ver + "/vmlinux"
+        self.crash_cmds_file = self.lkce_home + "/crash_cmds_file"
         self.corelens_args_file = self.lkce_home + "/corelens_args_file"
         self.corelens_default_args = ["-a"]
         self.vmcore = "yes"
+        self.report_cmd = "corelens"
         self.max_out_files = "50"
         self.lkce_outdir = "/var/oled/lkce"
     # def set_default
@@ -121,7 +127,8 @@ class Lkce:
     def configure_default(self) -> None:
         """Configure lkce with default values
 
-        Creates self.corelens_args_file and self.lkce_config_file
+        Creates self.corelens_args_file, self.crash_cmds_file,
+        and self.lkce_config_file
         """
         os.makedirs(self.lkce_home, exist_ok=True)
 
@@ -131,11 +138,40 @@ class Lkce:
 
         self.set_defaults()
 
+        # crash_cmds_file
+        filename = self.crash_cmds_file
+        content = """#
+# This is the input file for crash utility. You can edit this manually
+# to add your own list of crash commands one per line.
+#
+bt
+bt -a
+bt -FF
+dev
+kmem -s
+foreach bt
+log
+mod
+mount
+net
+ps -m
+ps -S
+runq
+quit
+"""
+        try:
+            file = open(filename, "w")
+            file.write(content)
+            file.close()
+        except OSError as e:
+            print(f"error: Unable to operate on file: {filename}: {e}")
+            return
+
         # corelens_args_file
         filename = self.corelens_args_file
         content = """#
 # This is the input file for corelens utility. You can edit this manually
-# Add your own list of corelens arguments.
+# to add your own list of corelens arguments.
 #
 -a
 #-M inflight-io
@@ -173,19 +209,28 @@ class Lkce:
             file = open(filename, "w")
             file.write(content)
             file.close()
-        except OSError:
-            print(f"Unable to operate on file: {filename}")
+        except OSError as e:
+            print(f"error: Unable to operate on file: {filename}: {e}")
             return
 
         # config file
         filename = self.lkce_config_file
         content = """##
-# This is configuration file for lkce
-# Use 'oled lkce configure' command to change values
+# This is the configuration file for lkce
+# Use the 'oled lkce configure' command to change values
 ##
+
+#report command to use for lkce
+report_cmd=""" + self.report_cmd + """
 
 #enable lkce in kexec kernel
 enable_kexec=""" + self.enable_kexec + """
+
+#debuginfo vmlinux path. Need to install debuginfo kernel to get it
+vmlinux_path=""" + self.vmlinux_path + """
+
+#path to file containing crash commands to execute
+crash_cmds_file=""" + self.crash_cmds_file + """
 
 #path to file containing corelens command line arguments
 corelens_args_file=""" + self.corelens_args_file + """
@@ -232,11 +277,20 @@ max_out_files=""" + self.max_out_files
             if "enable_kexec" in entry[0] and entry[1]:
                 self.enable_kexec = entry[1]
 
+            elif "report_cmd" in entry[0] and entry[1]:
+                self.report_cmd = entry[1]
+
             elif "corelens_args_file" in entry[0] and entry[1]:
                 self.corelens_args_file = entry[1]
 
+            elif "crash_cmds_file" in entry[0] and entry[1]:
+                self.crash_cmds_file = entry[1]
+
             elif "lkce_outdir" in entry[0] and entry[1]:
                 self.lkce_outdir = entry[1]
+
+            elif "vmlinux_path" in entry[0] and entry[1]:
+                self.vmlinux_path = entry[1]
 
             elif "vmcore" in entry[0] and entry[1]:
                 self.vmcore = entry[1]
@@ -386,57 +440,98 @@ exit 0
             entry = subarg.split("=", 1)
 
             if len(entry) < 2:
-                print("error: unknown report option %s" % subarg)
+                print(f"error: unknown report option: {subarg}")
                 continue
 
-            if entry[0] not in ("--vmcore",
-                                "--corelens_args_file", "--outfile"):
+            if entry[0] not in ("--vmcore", "--vmlinux", "--report_cmd",
+                                "--crash_cmds", "--corelens_args_file",
+                                "--outfile"):
 
-                print("error: unknown report option %s" % subarg)
+                print(f"error: unknown report option: {entry[0]}")
                 break
 
             d_subargs[entry[0].strip()] = entry[1].strip()
         # for
 
         vmcore = d_subargs.get("--vmcore", None)
-        corelens_args_file = d_subargs.get("--corelens_args_file", None)
         outfile = d_subargs.get("--outfile", None)
 
         if vmcore is None:
             print("error: vmcore not specified")
             return
 
-        cmd: List[str] = ["corelens", vmcore]
-        if corelens_args_file is None:
-            # use configured corelens arguments file
-            if not (os.path.exists(self.corelens_args_file) and
-                    os.path.isfile(self.corelens_args_file)):
-                print(f"corelens_args_file '{self.corelens_args_file}' "
-                      "not found")
-            else:
-                corelens_args_file = self.corelens_args_file
+        if self.report_cmd == "crash":
+            vmlinux = d_subargs.get("--vmlinux", None)
+            if vmlinux is None:
+                vmlinux = self.vmlinux_path
 
-        if corelens_args_file is None:
-            cmd.extend(self.corelens_default_args)
-        else:
-            # use specified corelens arguments file
-            corelens_args = read_args_from_file(corelens_args_file)
-            if corelens_args is None:
+            if not os.path.isfile(vmlinux):
+                print(f"error: vmlinux '{vmlinux}' not found")
+                return
+
+            crash_cmds = d_subargs.get("--crash_cmds", None)
+
+            if crash_cmds is None:
+                # use configured crash commands file
+                if not os.path.isfile(self.crash_cmds_file):
+                    print(
+                        f"crash_cmds_file '{self.crash_cmds_file}' not found")
+                    return
+                cmd: Sequence[str] = ("crash", vmcore, vmlinux, "-i",
+                                      self.crash_cmds_file)
+                cmd_input = None
+            else:
+                # use specified crash commands
+                cmd = ("crash", vmcore, vmlinux)
+                crash_cmds = crash_cmds + "," + "quit"
+                cmd_input = "\n".join(crash_cmds.split(",")).encode("utf-8")
+
+            print("lkce: executing '{}'".format(" ".join(cmd)))
+
+            if outfile:
+                with open(outfile, "w") as output_fd:
+                    subprocess.run(
+                        cmd, input=cmd_input, stdout=output_fd, check=True,
+                        shell=False)  # nosec
+            else:
+                subprocess.run(
+                    cmd, input=cmd_input, stdout=sys.stdout, check=True,
+                    shell=False)  # nosec
+        elif self.report_cmd == "corelens":
+            corelens_args_file = d_subargs.get("--corelens_args_file", None)
+
+            cmd: List[str] = ["corelens", vmcore]
+            if corelens_args_file is None:
+                # use configured corelens arguments file
+                if not os.path.isfile(self.corelens_args_file):
+                    print(f"corelens_args_file '{self.corelens_args_file}' "
+                          "not found")
+                else:
+                    corelens_args_file = self.corelens_args_file
+
+            if corelens_args_file is None:
                 cmd.extend(self.corelens_default_args)
             else:
-                cmd.extend(corelens_args)
+                # use specified corelens arguments file
+                corelens_args = read_args_from_file(corelens_args_file)
+                if corelens_args is None:
+                    cmd.extend(self.corelens_default_args)
+                else:
+                    cmd.extend(corelens_args)
 
-        print("lkce: executing '{}'".format(" ".join(cmd)))
+            print("lkce: executing '{}'".format(" ".join(cmd)))
 
-        if outfile:
-            with open(outfile, "w") as output_fd:
+            if outfile:
+                with open(outfile, "w") as output_fd:
+                    subprocess.run(
+                        cmd, stdout=output_fd, check=True,
+                        shell=False)  # nosec
+            else:
                 subprocess.run(
-                    cmd, stdout=output_fd, check=True,
+                    cmd, stdout=sys.stdout, check=True,
                     shell=False)  # nosec
         else:
-            subprocess.run(
-                cmd, stdout=sys.stdout, check=True,
-                shell=False)  # nosec
+            print(f"lkce: error: Unknown report command: {self.report_cmd}")
     # def report
 
     def configure(self, subargs: List[str]) -> None:
@@ -459,9 +554,12 @@ exit 0
                     print("config file not found")
                     return
 
+                print("%18s : %s" % ("report_cmd", self.report_cmd))
                 print("%18s : %s" %
                       ("corelens_args_file", self.corelens_args_file))
                 print("%18s : %s" % ("vmcore", self.vmcore))
+                print("%18s : %s" % ("vmlinux path", self.vmlinux_path))
+                print("%18s : %s" % ("crash_cmds_file", self.crash_cmds_file))
                 print("%18s : %s" % ("lkce_outdir", self.lkce_outdir))
                 print("%18s : %s" % ("lkce_in_kexec", self.enable_kexec))
                 print("%18s : %s" % ("max_out_files", self.max_out_files))
@@ -469,23 +567,33 @@ exit 0
                 entry = subarg.split("=", 1)
 
                 if len(entry) < 2:
-                    print("error: unknown configure option %s" % subarg)
+                    print(f"error: no value given for option {subarg}")
                     return
 
                 if entry[0] not in ("--corelens_args_file",
+                                    "--crash_cmds_file",
+                                    "--vmlinux", "--report_cmd",
                                     "--lkce_outdir", "--vmcore",
                                     "--max_out_files"):
-                    print("error: unknown configure option %s" % subarg)
+                    print(f"error: unknown configure option: {subarg}")
                     return
 
                 values_to_update[entry[0].strip("-")] = entry[1].strip()
         # for
 
-        vmcore = values_to_update.get("vmcore", None)
-        if values_to_update:
-            if vmcore and self.config_vmcore(vmcore):
-                return
+        report_cmd = values_to_update.get("report_cmd", None)
+        if report_cmd and self.config_report_cmd(report_cmd):
+            return
 
+        vmcore = values_to_update.get("vmcore", None)
+        if vmcore and self.config_vmcore(vmcore):
+            return
+
+        lkce_outdir = values_to_update.get("lkce_outdir", None)
+        if lkce_outdir and self.config_lkce_outdir(lkce_outdir):
+            return
+
+        if values_to_update:
             update_key_values_file(filename, values_to_update, sep="=")
     # def configure
 
@@ -500,7 +608,8 @@ exit 0
 
         filename = self.lkce_kdump_sh
         if not os.path.exists(filename):
-            print("error: Please enable lkce first, using 'oled lkce enable'")
+            print("error: Please enable lkce first using",
+                  "'oled lkce enable_kexec'")
             return 1
 
         self.vmcore = value
@@ -508,6 +617,40 @@ exit 0
         restart_kdump_service()
         return 0
     # def config_vmcore
+
+    def config_report_cmd(self, value: str) -> int:
+        """Configure the report command.
+
+        Called from configure()
+        """
+        value = value.lower()
+        if value != "corelens":
+            print(f"error: Invalid report command specified: '{value}'",
+                  "\nCurrently, only 'corelens' is supported.")
+            return 1
+        self.report_cmd = value
+        return 0
+    # def config_report_cmd
+
+    def config_lkce_outdir(self, value: str) -> int:
+        """Configure lkce_outdir value in lkce_config_file.
+
+        Called from configure()
+        """
+        filename = self.lkce_kdump_sh
+        if not os.path.exists(filename):
+            print("error: Please enable lkce first using",
+                  "'oled lkce enable_kexec'")
+            return 1
+
+        # Re-generate the pre-kexec hook script in case the location of the
+        # output directory is not on the root filesystem and it needs to be
+        # made available in kexec mode.
+        self.lkce_outdir = value
+        self.create_lkce_kdump()
+        restart_kdump_service()
+        return 0
+    # def config_lkce_outdir
 
     def enable_lkce_kexec(self) -> None:
         """Enable lkce to generate report on crashed kernel in kexec mode"""
@@ -545,37 +688,49 @@ exit 0
         """Show current configuration values"""
         self.configure(subargs=["--show"])
 
-        if subprocess.run(
-                ("rpm", "-q", "drgn-tools"), shell=False,  # nosec
-                check=False).returncode != 0:
-            print("NOTE: corelens is not installed")
+        if self.report_cmd == "crash":
+            pkg = "crash"
+        else:
+            pkg = "drgn-tools"
+
+        r = subprocess.run(("rpm", "-q", pkg), shell=False,  # nosec
+                           check=False)
+        if r.returncode != 0:
+            print(f"NOTE: The {pkg} package is not installed.")
     # def status
 
     def clean(self, subarg: List[str]) -> None:
-        """Clean up old corelens reports to save space"""
-        if "--all" in subarg:
-            val = input(f"lkce removes all the files in {self.lkce_outdir} "
-                        "dir. do you want to proceed(yes/no)? [no]:")
-            if "yes" in val:
-                for file in glob.glob(f"{self.lkce_outdir}/corelens*out"):
-                    try:
-                        os.remove(file)
-                    except OSError:
-                        pass
-            # if "yes"
-        else:
-            val = input("lkce deletes all but last three "
-                        f"{self.lkce_outdir}/corelens*out files. "
-                        "do you want to proceed(yes/no)? [no]:")
-            if "yes" in val:
-                corelens_files = glob.glob(f"{self.lkce_outdir}/corelens*out")
+        """Clean up old crash and corelens reports to save space"""
+        report_files = []
+        for p in ("crash*.out", "corelens*.out"):
+            report_files.extend(glob.glob(f"{self.lkce_outdir}/{p}"))
 
-                # remove all crash files but the 3 newest ones
-                for file in sorted(corelens_files, reverse=True)[3:]:
-                    try:
-                        os.remove(file)
-                    except OSError:
-                        pass
+        if "--all" in subarg:
+            val = input("lkce will delete all the"
+                        f"{self.lkce_outdir}/crash*.out and "
+                        f"{self.lkce_outdir}/corelens*.out files.\n"
+                        "Do you want to proceed? (yes/no) [no]: ")
+            if "yes" not in val:
+                return
+        else:
+            val = input("lkce will delete all but the last",
+                        f"{self.max_out_files} {self.lkce_outdir}/crash*.out",
+                        f"and {self.lkce_outdir}/corelens*.out files.\n"
+                        "Do you want to proceed? (yes/no) [no]: ")
+            if "yes" not in val:
+                return
+
+            # select all crash/corelens files but the N newest ones
+            # where N == self.max_out_files
+            report_files.sort(
+                key=lambda x: os.path.getctime(x), reverse=True)
+            report_files = report_files[int(self.max_out_files):]
+
+        for f in report_files:
+            try:
+                os.remove(f)
+            except OSError as e:
+                print(f"error: Unable to remove {f}: {e}")
     # def clean
 
     def listfiles(self) -> None:
@@ -583,23 +738,23 @@ exit 0
         dirname = self.lkce_outdir
         os.makedirs(dirname, exist_ok=True)
 
-        print("Followings are the corelens*out found in %s dir:" % dirname)
+        print(f"The following are the reports found in {dirname}:")
         for filename in os.listdir(dirname):
-            if re.search("corelens.*out", filename):
-                print("%s/%s" % (dirname, filename))
-        # for
+            if re.search("(crash|corelens).*out", filename):
+                print(f"{dirname}/{filename}")
     # def listfiles
 
 # class LKCE
 
 
-def restart_kdump_service() -> None:
+def restart_kdump_service() -> int:
     """Restart kdump service"""
     cmd = ("systemctl", "restart", "kdump")  # OL7 and above
 
     print("Restarting kdump service...")
-    subprocess.run(cmd, shell=False, check=True)  # nosec
+    r = subprocess.run(cmd, shell=False, check=True)  # nosec
     print("done!")
+    return r.returncode
 # def restart_kdump_service
 
 
@@ -610,6 +765,8 @@ options:
     report <report-options> -- Generate a report from vmcore
     report-options:
         --vmcore=/path/to/vmcore 		- path to vmcore
+        [--vmlinux=/path/to/vmlinux]            - path to vmlinux
+        [--crash_cmds=cmd1,cmd2,cmd3,..]        - crash commands to run
         [--corelens_args_file=/path/to/file]	- path to corelens arguments file
         [--outfile=/path/to/outfile] 		- write output to a file
 
@@ -617,6 +774,8 @@ options:
     configure [--show] 	-- show lkce configuration -- default
     configure [config-options]
     config-options:
+        [--vmlinux_path=/path/to/vmlinux]       - set vmlinux_path
+        [--crash_cmds_file=/path/to/file]       - set crash_cmds_file
         [--corelens_args_file=/path/to/file] 	- set corelens_args_file
         [--vmcore=yes/no]			- set vmcore generation in kdump kernel
         [--lkce_outdir=/path/to/directory] 	- set lkce output directory
@@ -626,8 +785,8 @@ options:
     disable_kexec   -- disable lkce in kdump kernel
     status          -- status of lkce
 
-    clean [--all]   -- clear corelens report files
-    list            -- list corelens report files
+    clean [--all]   -- clear crash/corelens report files
+    list            -- list crash/corelens report files
 """
     print(usage_)
     sys.exit(0)
@@ -694,7 +853,7 @@ if __name__ == '__main__':
     try:
         fcntl.flock(FH, fcntl.LOCK_EX | fcntl.LOCK_NB)
     except OSError:  # no lock
-        print("another instance of lkce is running.")
+        print("error: another instance of lkce is running.")
         sys.exit()
 
     try:
