@@ -34,6 +34,9 @@ install:
 	mkdir -p $(MANDIR)
 	install -m 755 $(CURDIR)/scripts/lkce.py $(BINDIR)/lkce
 	install -m 755 $(CURDIR)/scripts/kdump_report.py $(LKCE_KDUMPDIR)/kdump_report
+	install -m 644 $(CURDIR)/config/crash_cmds_file $(LKCEDIR)/crash_cmds_file
+	install -m 644 $(CURDIR)/config/corelens_args_file $(LKCEDIR)/corelens_args_file
+	install -m 644 $(CURDIR)/config/kdump_pre_sh_body $(LKCEDIR)/kdump_pre_sh_body
 	gzip -c $(CURDIR)/lkce.man > $(MANDIR)/oled-lkce.8.gz
 	chmod 644 $(MANDIR)/oled-lkce.8.gz
 	@echo "lkce successfully installed"
