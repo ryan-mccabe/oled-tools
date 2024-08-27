@@ -909,8 +909,8 @@ LKCE_OUTDIR="''' + self.lkce_outdir + '"\n' + dumpdir_env_set + "\n\n"
             if "yes" not in val:
                 return
         else:
-            val = input("lkce will delete all but the last",
-                        f"{self.max_out_files} {self.lkce_outdir}/crash*.out",
+            val = input("lkce will delete all but the last "
+                        f"{self.max_out_files} {self.lkce_outdir}/crash*.out "
                         f"and {self.lkce_outdir}/corelens*.out files.\n"
                         "Do you want to proceed? (yes/no) [no]: ")
             if "yes" not in val:
