@@ -214,7 +214,10 @@ class Lkce:
         """Returns True if we need to edit /etc/kdump.conf to
            enable/disable LKCE, otherwise returns False
         """
-        return self.has_kdump_d is not True
+        # Disabled for now, as scripts in pre.d will not short-circuit
+        # execution, which is needed for inhibiting the extraction of vmcore.
+        # return self.has_kdump_d is not True
+        return True
 
     def kdump_pre_d_link(self):
         """Enable LKCE in kdump mode by creating a symlink
@@ -566,8 +569,7 @@ LKCE_OUTDIR="''' + self.lkce_outdir + '"\n' + dumpdir_env_set + "\n\n"
                   f"{self.kdump_conf} (manual intervention is necessary)\n"
                   f"The current 'kdump_pre' entry in kdump.conf:\n"
                   f"{kdump_pre_value}\n"
-                  f"Hint: edit the {kdump_pre_value} script, and make it run",
-                  f"{self.lkce_kdump_sh}")
+                  "Please see the oled-lkce man page for more information.")
             return 1
 
         try:
