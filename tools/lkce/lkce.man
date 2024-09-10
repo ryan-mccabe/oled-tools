@@ -1,4 +1,4 @@
-.TH OLED LKCE 8 "Jul 2024" "Oracle Linux Enhanced Diagnostics"
+.TH OLED LKCE 8 "Aug 2024" "Oracle Linux Enhanced Diagnostics"
 
 .SH NAME
 oled lkce \- Linux Kernel Core Extractor
@@ -137,10 +137,13 @@ Crash the system manually (i.e. 'echo c > /proc/sysrq-trigger'). Once the machin
 
 .SH MISC
 .TP
-kexec kernel is a secondary kernel used to collect the memory image (vmcore) of the first kernel when the system crashes. The kexec-tools package is used to configure the kexec kernel.
+The kexec kernel is a secondary kernel used to collect the memory image (vmcore) of the first kernel when the system crashes. The kexec-tools package is used to configure the kexec kernel.
 
 .TP
-LKCE provides an environment inside the kexec kernel to run user scripts. One such user script is used by LKCE to generate the vmcore report when the system crashes. LKCE links with the kdump (of kexec-tools) service viaa  kdump_pre hook set in /etc/kdump.conf to run scripts inside the kexec kernel.
+LKCE provides an environment inside the kexec kernel to run user scripts. One such user script is used by LKCE to generate the vmcore report when the system crashes. LKCE links with the kdump (of kexec-tools) service via a kdump_pre hook set in /etc/kdump.conf to run scripts inside the kexec kernel.
+
+.TP
+When using DWARF debugging symbols, at least 768MB of available memory is required for the report command inside the kdump environment. This can be configured via the \fIcrashkernel\fR kernel command line parameter. To ensure there is enough available memory for the report command, please set \fBcrashkernel=1G\fR.
 
 .SH FILES
 .TP

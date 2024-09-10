@@ -34,6 +34,8 @@ import subprocess  # nosec
 import sys
 from typing import Optional, List
 
+MIN_SYSTEM_MEMORY_KB = 768 << 10
+
 
 def read_corelens_args(filename: str) -> Optional[List[str]]:
     """Read command line arguments file and return the args as a list"""
@@ -49,6 +51,21 @@ def read_corelens_args(filename: str) -> Optional[List[str]]:
     except OSError as e:
         print(f"kdump_report: Unable to operate on file: {filename}: {e}")
         return None
+
+
+def get_system_memory() -> int:
+    """Return the amount of total memory in KB"""
+    try:
+        with open("/proc/meminfo", "r") as f:
+            for l in f:
+                if l.startswith("MemTotal:"):
+                    w = l.split()
+                    if len(w) < 3:
+                        return -1
+                    return int(w[1])
+    except OSError as e:
+        print(f"Unable to read memory info from /proc/meminfo: {e}")
+    return -1
 
 
 class KdumpReport:
@@ -69,6 +86,7 @@ class KdumpReport:
             "/corelens_args_file"
         self.kdump_report_out = "/var/oled/lkce"
         self.timedout_action = "reboot -f"
+        self.system_memory_kb = get_system_memory()
 
         # default values
         self.vmlinux_path = "/usr/lib/debug/lib/modules/" + \
@@ -130,7 +148,7 @@ class KdumpReport:
         return 0
     # def read_config
 
-    def get_vmlinux(self) -> int:
+    def get_vmlinux(self, verbose: bool = True) -> int:
         """Check for vmlinux in config path and then in default location.
 
         Report error if not found
@@ -144,27 +162,37 @@ class KdumpReport:
         elif os.path.isfile(vmlinux_2):
             self.vmlinux = vmlinux_2
         else:
-            print("kdump_report: vmlinux not found in following locations:")
-            print(f"kdump_report: {vmlinux_1}")
-            print(f"kdump_report: {vmlinux_2}")
-            sys.exit(1)
-
-        print(f"kdump_report: vmlinux found at {self.vmlinux}")
+            if verbose:
+                print("kdump_report: vmlinux not found in following",
+                      "locations:")
+                print(f"kdump_report: {vmlinux_1}")
+                print(f"kdump_report: {vmlinux_2}")
+            return 1
+        if verbose:
+            print(f"kdump_report: vmlinux found at {self.vmlinux}")
         return 0
     # def get_vmlinux
 
     def run_crash(self) -> int:
         """Run the crash utility against vmcore"""
         crash_path = shutil.which("crash")
-
         if not crash_path:
             print("kdump_report: 'crash' executable not found")
             return 1
 
-        self.get_vmlinux()
+        if self.get_vmlinux():
+            sys.exit(1)
         if not os.path.isfile(self.crash_cmds_file):
             print(f"kdump_report: {self.crash_cmds_file} not found")
             return 1
+
+        if self.system_memory_kb > 0:
+            if self.system_memory_kb < MIN_SYSTEM_MEMORY_KB:
+                print("kdump_report: Not running crash",
+                      "because there is insufficient available memory.\n"
+                      "Refer to the oled-lkce manual page for",
+                      "more information.")
+                return 0
 
         os.makedirs(self.kdump_report_out, exist_ok=True)
 
@@ -185,10 +213,18 @@ class KdumpReport:
     def run_corelens(self) -> int:
         """Run the corelens utility against vmcore"""
         corelens_path = shutil.which("corelens")
-
         if not corelens_path:
             print("kdump_report: 'corelens' executable not found")
             return 1
+
+        using_dwarf = self.get_vmlinux(verbose=False) == 0
+        if using_dwarf and self.system_memory_kb > 0:
+            if self.system_memory_kb < MIN_SYSTEM_MEMORY_KB:
+                print("kdump_report: Not running corelens",
+                      "because there is insufficient available memory.\n"
+                      "Refer to the oled-lkce manual page for",
+                      "more information.")
+                return 0
 
         os.makedirs(self.kdump_report_out, exist_ok=True)
 
