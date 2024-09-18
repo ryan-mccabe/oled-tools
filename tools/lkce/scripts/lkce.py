@@ -566,10 +566,12 @@ LKCE_OUTDIR="''' + self.lkce_outdir + '"\n' + dumpdir_env_set + "\n\n"
         if kdump_pre_value:
             # kdump_pre is enabled, but it is not our lkce_kdump script
             print("The LKCE 'kdump_pre' entry is not set in",
-                  f"{self.kdump_conf} (manual intervention is necessary)\n"
-                  f"The current 'kdump_pre' entry in kdump.conf:\n"
+                  f"{self.kdump_conf}.\n"
+                  f"The current 'kdump_pre' entry in kdump.conf is:\n"
                   f"{kdump_pre_value}\n"
-                  "Please see the oled-lkce man page for more information.")
+                  "Manual intervention is necessary.\n"
+                  "Please see the oled-lkce manual page for",
+                  "more information.")
             return 1
 
         try:
