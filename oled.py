@@ -27,8 +27,9 @@ import os
 from typing import Sequence
 
 # Oracle Linux Enhanced Diagnostic Tools
-MAJOR = "0"
-MINOR = "7"
+MAJOR = "1"
+MINOR = "0"
+MICRO = "1"
 
 BINDIR = "/usr/libexec/oled-tools"
 
@@ -56,9 +57,8 @@ Valid commands:
 
     parser.add_argument(
         "-v", "--version", action="version",
-        version=(
-            f"Oracle Linux Enhanced Diagnostics (oled) v{MAJOR}.{MINOR} "
-            "(developer preview release)"))
+        version=("Oracle Linux Enhanced Diagnostics (oled) "
+                 f"v{MAJOR}.{MINOR}.{MICRO}"))
     parser.add_argument(
         "command", metavar="COMMAND", choices=OLED_CMDS,
         help=argparse.SUPPRESS)

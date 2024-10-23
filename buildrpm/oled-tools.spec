@@ -1,6 +1,6 @@
 Name: oled-tools
-Version: 0.8
-Release: 1.test%{?dist}
+Version: 1.0.1
+Release: 1-test%{?dist}
 Summary: Diagnostic tools for more efficient and faster debugging on Oracle Linux
 # kcore-utils requirements
 %ifarch x86_64
@@ -9,6 +9,8 @@ BuildRequires: bzip2-devel
 BuildRequires: elfutils-devel
 %endif
 Requires: python3
+Requires: drgn
+Requires: drgn-tools
 BuildRequires: systemd
 BuildRequires: python3-devel
 Group: Development/Tools
@@ -91,8 +93,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_libexecdir}/oled-tools/
 
 %changelog
-* Tue Sep 24 2024 Ryan McCabe <ryan.m.mccabe@oracle.com> - 0.8.0-1
-* Update to v0.8
+* Tue Sep 24 2024 Ryan McCabe <ryan.m.mccabe@oracle.com> - 1.0.1-1
+* Update to v1.0.1
+- Update LKCE to work on OL7 or later.
+- Add the 'scripts' oled sub-command.
 
 * Thu Nov 9 2023 Jose Lombera <jose.lombera@oracle.com> - 0.7-1
 - Update to v0.7.
