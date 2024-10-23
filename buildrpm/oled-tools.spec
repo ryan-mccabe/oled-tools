@@ -1,6 +1,6 @@
 Name: oled-tools
 Version: 1.0.1
-Release: 1-test%{?dist}
+Release: 1test1%{?dist}
 Summary: Diagnostic tools for more efficient and faster debugging on Oracle Linux
 # kcore-utils requirements
 %ifarch x86_64
@@ -47,8 +47,15 @@ if [ $1 -ge 1 ] ; then
 		sed --in-place '/kdump_pre \/etc\/oled\/kdump_pre.sh/d' /etc/kdump.conf 2> dev/null ||:
 		sed --in-place '/extra_bins \/bin\/timeout/d' /etc/kdump.conf 2> /dev/null || :
 	fi
+
 	if [ ! `grep -q '^extra_bins /bin/timeout$' /etc/kdump.conf 2> /dev/null` ]; then #present
 		sed --in-place '/extra_bins \/bin\/timeout/d' /etc/kdump.conf 2> /dev/null || :
+	fi
+
+	if [ ! `grep -q '^kdump_pre /etc/oled/lkce/kdump_pre.sh$' /etc/kdump.conf 2> /dev/null` ]; then
+		# force regeneration of the lkce kdump script
+		oled lkce disable_kexec > /dev/null || :
+		oled lkce enable_kexec > /dev/null || :
 	fi
 fi
 
@@ -58,7 +65,7 @@ fi
 %preun
 if [ $1 -lt 1 ] ; then
 # package uninstall, not upgrade
-	oled lkce disable > /dev/null || :
+	oled lkce disable_kexec > /dev/null || :
 fi
 
 %postun
@@ -66,6 +73,21 @@ fi
 %clean
 rm -rf $RPM_BUILD_ROOT
 
+%pretrans -p <lua>
+-- Per https://docs.fedoraproject.org/en-US/packaging-guidelines/Directory_Replacement/
+path = "/usr/libexec/oled-tools/scripts"
+st = posix.stat(path)
+if st and st.type == "directory" then
+  status = os.rename(path, path .. ".rpmmoved")
+  if not status then
+    suffix = 0
+    while not status do
+      suffix = suffix + 1
+      status = os.rename(path .. ".rpmmoved", path .. ".rpmmoved." .. suffix)
+    end
+    os.rename(path, path .. ".rpmmoved")
+  end
+end
 
 %files
 %{_unitdir}/oled-tools-scripts.service
@@ -88,6 +110,7 @@ rm -rf $RPM_BUILD_ROOT
 # track auto generated files so that they are removed during uninstall
 %ghost /etc/oled/lkce/crash_cmds_file
 %ghost /etc/oled/lkce/lkce.conf
+%ghost /usr/libexec/oled-tools/scripts.rpmmoved
 
 # all oled-tools subcommands and scripts
 %{_libexecdir}/oled-tools/
