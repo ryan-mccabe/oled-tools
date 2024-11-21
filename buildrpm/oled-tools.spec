@@ -1,6 +1,6 @@
 Name: oled-tools
 Version: 1.0.1
-Release: 1test1%{?dist}
+Release: 1%{?dist}
 Summary: Diagnostic tools for more efficient and faster debugging on Oracle Linux
 # kcore-utils requirements
 %ifarch x86_64
@@ -116,10 +116,27 @@ end
 %{_libexecdir}/oled-tools/
 
 %changelog
-* Tue Sep 24 2024 Ryan McCabe <ryan.m.mccabe@oracle.com> - 1.0.1-1
+* Tue Nov 19 2024 Ryan McCabe <ryan.m.mccabe@oracle.com> - 1.0.1-1
 * Update to v1.0.1
-- Update LKCE to work on OL7 or later.
-- Add the 'scripts' oled sub-command.
+- Update LKCE to work on OL7 or later (Ryan McCabe)
+- Improvements and cleanups for LKCE (Ryan McCabe, Jeffery Yoder)
+  [Orabug: 36669742]
+- Add the 'scripts' oled sub-command (Jose Lombera)
+- Update the sense of idle% in the syswatch sub-command (Ryan McCabe)
+  [Orabug: 36622809]
+- Add new dtrace scripts (Manjunath Patil, Shminderjit Singh)
+  [Orabug: 36653828]
+- Improvements to existing dtrace scripts
+  (Shminderjit Singh, Nagappan Ramasamy Palaniappan, Manjunath Patil)
+  [Orabugs: 36914572, 36914572, 36572024]
+- Add minimum and maximum compatible kernel versions for dtrace scripts
+  (Nagappan Ramasamy Palaniappan, Sharad Raykhere)
+- Improvements to the memstate sub-command (Aruna Ramakrishna, Jianfeng Wang)
+  [Orabugs: 36432022, 36432139, 36432089, 36569938, 36432017, 36432149]
+- Removed the filecache and dentrycache sub-commands (Jose Lombera)
+  [Orabug: 36274217]
+- Removed the -I and -s options from the kstack sub-command (Jose Lombera)
+  [Orabug: 36268453]
 
 * Thu Nov 9 2023 Jose Lombera <jose.lombera@oracle.com> - 0.7-1
 - Update to v0.7.
