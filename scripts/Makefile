@@ -70,6 +70,10 @@ install:
 	install -m 755 $(CURDIR)/net/mlx_vhcaid_example.txt $(DOCSDIR)
 	install -m 755 $(CURDIR)/net/mlxqpdump.sh $(SCRIPTSDIR)
 	install -m 755 $(CURDIR)/net/mlxqpdump_example.txt $(DOCSDIR)
+	install -m 755 $(CURDIR)/net/track_cm_packet.d $(SCRIPTSDIR)
+	install -m 755 $(CURDIR)/net/track_cm_packet_example.txt $(DOCSDIR)
+	install -m 755 $(CURDIR)/net/rds_cm_events.d $(SCRIPTSDIR)
+	install -m 755 $(CURDIR)/net/rds_cm_events_example.txt $(DOCSDIR)
 #io
 	install -m 755 $(CURDIR)/io/nvme_io_comp.d $(SCRIPTSDIR)
 	install -m 755 $(CURDIR)/io/nvme_io_comp_example.txt $(DOCSDIR)

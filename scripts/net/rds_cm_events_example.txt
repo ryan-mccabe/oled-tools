@@ -1,0 +1,17 @@
+Purpose: This script tracks CM packet completions.
+
+Arguments: None.
+
+Output format: each line lists
+<date> <time> <probe> <src ip> <dst ip> <qos> <CM event>
+
+Sample run:
+[root@localhost Nag]# rds-stress -r 192.168.100.117  -s 192.168.100.124 -Q 121 --reset
+
+[root@localhost Nag]# ./rds_cm_events.d
+DTrace 2.0.0 [Pre-Release with limited functionality]
+2024 Nov 20 07:45:15 3454391056605 rds_rdma_cm_event_handler_cmn: [<192.168.100.117,192.168.100.124,121>] ADDR_RESOLVED
+2024 Nov 20 07:45:15 3454391418620 rds_rdma_cm_event_handler_cmn: [<192.168.100.117,192.168.100.124,121>] ROUTE_RESOLVED
+2024 Nov 20 07:45:19 3457813709585 rds_conn_create: [<192.168.100.117,192.168.100.124,121>] CONNECT_REQUEST
+2024 Nov 20 07:45:19 3457821662727 rds_rdma_cm_event_handler_cmn: [<192.168.100.117,192.168.100.124,121>] ESTABLISHED
+

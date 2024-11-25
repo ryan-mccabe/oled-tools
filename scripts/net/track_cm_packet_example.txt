@@ -1,0 +1,23 @@
+Purpose: This script tracks CM packet completions.
+
+Arguments: None.
+
+Output format: each line lists
+<date> <time> <probe>:<ib-dev name>:<port num> <CM event> <WC status>
+
+Sample Run:
+[root@localhost Nag]# rds-stress -r 192.168.100.117  -s 192.168.100.124 -Q 121 --reset
+
+[root@localhost Nag]# ./track_cm_packet.d
+DTrace 2.0.0 [Pre-Release with limited functionality]
+>2024 Nov 20 07:19:34 1913336287159 cm_send_handler:mlx5_0:1 DREQ WR_FLUSH_ERR(5) DREQ_SENT
+2024 Nov 20 07:19:34 1913446031257 cm_recv_handler:mlx5_0:1 REJ SUCCESS(0)
+2024 Nov 20 07:19:34 1913449251805 cm_recv_handler:mlx5_0:1 DREP SUCCESS(0)
+2024 Nov 20 07:19:35 1914517241701 cm_recv_handler:mlx5_0:1 REQ SUCCESS(0)
+2024 Nov 20 07:19:35 1914517324761 cm_send_handler:mlx5_0:1 REJ SUCCESS(0) IDLE
+2024 Nov 20 07:19:37 1916051698814 cm_recv_handler:mlx5_0:1 REQ SUCCESS(0)
+2024 Nov 20 07:19:39 1917959227506 cm_recv_handler:mlx5_0:1 REP SUCCESS(0)
+2024 Nov 20 07:19:39 1917959303643 cm_send_handler:mlx5_0:1 REQ WR_FLUSH_ERR(5) REQ_SENT
+2024 Nov 20 07:19:39 1917964082871 cm_send_handler:mlx5_0:1 RTU SUCCESS(0) IDLE
+2024 Nov 20 07:19:43 1922515402227 cm_recv_handler:mlx5_0:1 REQ SUCCESS(0)
+2024 Nov 20 07:19:50 1929171371064 cm_recv_handler:mlx5_0:1 REQ SUCCESS(0)
