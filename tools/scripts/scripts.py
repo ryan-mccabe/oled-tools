@@ -119,26 +119,37 @@ def get_user_startup_cofig(config_path: str) -> Mapping[str, bool]:
 
 
 def version_tuple(version):
+    """
+    Converts a kernel version string into a tuple of integers.
+    """
     return tuple(int(x) for x in re.split(r'[.-]', version) if x.isnumeric())
 
 
 def is_kernel_version_compatible(current_kernel_version, min_version, max_version):
+    """
+    Checks if the current kernel version is compatible with the specified
+    minimum and maximum kernel versions.
+    """
     if not min_version and not max_version:
         return False
     current_version = '.'.join(current_kernel_version.split('.')[:-2])
     current_version_tuple = version_tuple(current_version)
     min_version_tuple = version_tuple(min_version) if min_version else None
     max_version_tuple = version_tuple(max_version) if max_version else None
-    
+
     if min_version_tuple and current_version_tuple < min_version_tuple:
         return False
     if max_version_tuple and current_version_tuple > max_version_tuple:
         return False
-    
+
     return True
 
 
 def get_compat_kernel_versions(file_path: str) -> tuple:
+    """
+    Retrieves the minimum and maximum compatible kernel versions
+    from the specified file.
+    """
     min_kernel_version = None
     max_kernel_version = None
     curr_ver = platform.uname().release.split('-')[0]
@@ -149,19 +160,22 @@ def get_compat_kernel_versions(file_path: str) -> tuple:
     try:
         with open(file_path, 'r') as file:
             for line in file:
-                stripped_line = line.strip()
-                if stripped_line.startswith('* min_kernel'):
-                    min_versions = line.split()[2]
+                line = line.strip()
+                min_match = re.match(r'\s*\*\s*min_kernel\s+(.*)', line)
+                max_match = re.match(r'\s*\*\s*max_kernel\s+(.*)', line)
+                if min_match:
+                    min_versions = re.sub(r'\s+', '', min_match.group(1).strip())
                     for version in min_versions.split(','):
                         if version.startswith(curr_ver):
                             min_kernel_version = version
-                elif stripped_line.startswith('* max_kernel'):
-                    max_versions = line.split()[2]
+                elif max_match:
+                    max_versions = re.sub(r'\s+', '', max_match.group(1).strip())
                     for version in max_versions.split(','):
                         if version.startswith(curr_ver):
                             max_kernel_version = version
-    except Exception as e:
-        print(f"Error reading file {file_path}: {e}")
+
+    except (FileNotFoundError, IOError, OSError) as exception:
+        print(f"Error reading file {file_path}: {exception}")
 
     return min_kernel_version, max_kernel_version
 
@@ -185,7 +199,6 @@ def list_scripts() -> None:
         startup_str = ""
         enabled_str = ""
 
-
         if name in startup_config:
             startup_str = "*"  # startup script
 
@@ -196,10 +209,13 @@ def list_scripts() -> None:
                 # not enabled by default; override if enabled by user
                 enabled_str = "" if not user_config.get(name, False) else "+"
 
-
         if name.endswith(".d"):
-            min_kernel_version, max_kernel_version = get_compat_kernel_versions(scripts[name])
-            if not is_kernel_version_compatible(current_kernel_version, min_kernel_version, max_kernel_version):
+            min_kernel_version, max_kernel_version = get_compat_kernel_versions(
+                scripts[name]
+            )
+            if not is_kernel_version_compatible(
+                current_kernel_version, min_kernel_version, max_kernel_version
+            ):
                 continue
 
         print(f"{name:<30}\t{startup_str:^8}\t{enabled_str:^7}")
@@ -217,10 +233,11 @@ def run_script(script_name: str, args: List[str]) -> None:
     if script_name.endswith(".d"):
         current_kernel_version = platform.uname().release
         min_kernel_version, max_kernel_version = get_compat_kernel_versions(script_path)
-        if not is_kernel_version_compatible(current_kernel_version, min_kernel_version, max_kernel_version):
+        if not is_kernel_version_compatible(
+            current_kernel_version, min_kernel_version, max_kernel_version
+        ):
             logging.error("Script '%s' not compatible for running kernel", script_name)
             sys.exit(1)
-
 
     logging.info("Running script '%s %s'...", script_path, " ".join(args))
 
