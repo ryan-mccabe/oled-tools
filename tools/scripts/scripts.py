@@ -195,7 +195,7 @@ def list_scripts() -> None:
         print(f"{'Script Name':<30}\tEligible\tEnabled")
         print(f"{'=' * 30}\t{'=' * 8}\t{'=' * 7}")
 
-    for name in scripts:
+    for name in sorted(scripts):
         startup_str = ""
         enabled_str = ""
 
