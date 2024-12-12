@@ -31,8 +31,34 @@
  */
 
 /*
- * min_kernel 5.4.17,5.15.0-200.103.1
+ * min_kernel 4.14.35-2047.518.4.3,5.4.17,5.15.0-200.103.1
  */
+
+#ifdef uek5
+#define container_of(__ptr, __type, __member) ((__type *)((unsigned long long)__ptr - (unsigned long long)offsetof(__type, __member)))
+
+fbt:*:*mlx5_core_create_cq*:entry
+/ self->mcq == NULL/
+{
+        self->mcq = (struct mlx5_core_cq *)arg1;
+}
+
+fbt:*:*mlx5_ib_create_cq*:return
+/ self->mcq /
+{
+        mib_cq = (struct mlx5_ib_cq*) container_of(self->mcq, struct mlx5_ib_cq, mcq);
+        self->ib_cq = (struct ib_cq *) &mib_cq->ibcq;
+        this->mcq = self->mcq;
+        this->cqn = this->mcq->cqn;
+        this->irqn = this->mcq->irqn;
+
+        printf("%s:%d:%s ib_cq=%p m_core_cq=%p cqn=%d irqn=%d\n", probefunc, pid, execname,
+                self->ib_cq, self->mcq, this->cqn, this->irqn);
+
+        self->mcq = NULL;
+}
+
+#else
 
 fbt:mlx5_ib:mlx5_ib_create_cq:entry
 {
@@ -51,6 +77,8 @@ fbt:mlx5_ib:mlx5_ib_create_cq:return
 	printf("%s:%d:%s ib_dev=%p ib_cq=%p m_core_cq=%p cqn=%d irqn=%d\n", probefunc, pid, execname,
 		this->ib_cq->device, this->ib_cq, this->m_core_cq, this->cqn, this->irqn);
 }
+
+#endif
 
 fbt:mlx5_ib:mlx5_ib_destroy_cq:entry
 /
