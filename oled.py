@@ -29,13 +29,14 @@ from typing import Sequence
 # Oracle Linux Enhanced Diagnostic Tools
 MAJOR = "1"
 MINOR = "0"
-MICRO = "1"
+MICRO = "2"
 
 BINDIR = "/usr/libexec/oled-tools"
 
 # Valid oled subcomands
 OLED_CMDS = (
-    "kstack", "lkce", "memstate", "syswatch", "scanfs", "vmcore_sz", "scripts")
+    "kstack", "lkce", "oomwatch", "memstate",
+    "syswatch", "scanfs", "vmcore_sz", "scripts")
 
 
 def parse_args(args: Sequence[str]) -> argparse.Namespace:
@@ -48,6 +49,7 @@ Valid commands:
      kstack      -- Gather kernel stack based on the process status or PID
      lkce        -- Linux Kernel Core Extractor
      memstate    -- Capture and analyze memory usage statistics
+     oomwatch    -- Kill processes exceeding memory thresholds
      scanfs      -- Scan KVM images for corruption, supports XFS and EXT4
      scripts     -- Run additional oled-tools scripts
      syswatch    -- Execute user-provided commands based on the CPU utilization

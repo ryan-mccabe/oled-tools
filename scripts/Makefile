@@ -18,8 +18,8 @@
 # or visit www.oracle.com if you need additional information or have any
 # questions.
 
-SCRIPTSDIR := $(BINDIR)/scripts.d
-DOCSDIR := $(BINDIR)/scripts.d/docs
+SCRIPTSDIR := $(OLEDBINDIR)/scripts.d
+DOCSDIR := $(OLEDBINDIR)/scripts.d/docs
 
 all:
 	@echo "all:$(CURDIR)"

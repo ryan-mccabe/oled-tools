@@ -1,5 +1,5 @@
 Name: oled-tools
-Version: 1.0.1
+Version: 1.0.2
 Release: 1%{?dist}
 Summary: Diagnostic tools for more efficient and faster debugging on Oracle Linux
 # kcore-utils requirements
@@ -9,22 +9,31 @@ BuildRequires: bzip2-devel
 BuildRequires: elfutils-devel
 %endif
 Requires: python3
+Requires: python3-psutil
 Requires: drgn
 Requires: drgn-tools
 BuildRequires: systemd
 BuildRequires: python3-devel
+BuildRequires: selinux-policy
+BuildRequires: selinux-policy-devel
+BuildRequires: selinux-policy-targeted
+Requires: selinux-policy
+Requires(post): selinux-policy-base
+Requires(post): selinux-policy-targeted
+Requires(post): policycoreutils
+Requires(post): libselinux-utils
 Group: Development/Tools
 License: GPLv2
 
 %global debug_package %{nil}
+%global selinuxtype targeted
 
 Source0: %{name}-%{version}.tar.gz
 
 %description
 oled-tools is a collection of command line tools, scripts, config files, etc.,
 that will aid in faster and better debugging of problems on Oracle Linux. It
-contains: lkce, memstate, kstack, filecache, dentrycache, syswatch, scanfs and
-vmcore_sz.
+contains: lkce, kstack, memstate, oomwatch, syswatch, scanfs, and vmcore_sz.
 
 %prep
 %setup -q
@@ -41,8 +50,14 @@ rm -rf $RPM_BUILD_ROOT
 make install DESTDIR=$RPM_BUILD_ROOT DIST=%{?dist} SPECFILE="1"
 
 %post
+restorecon -vF /var/lib/pcp/config/pmieconf/oled ||:
+restorecon -vF /var/lib/pcp/config/pmieconf/oled/oomwatch ||:
+semodule -X200 -s %{selinuxtype} -i /usr/share/selinux/packages/targeted/pcp-oomwatch.pp.bz2
+
+systemctl restart pmie || :
+
 if [ $1 -ge 1 ] ; then
-# package upgrade
+	# package upgrade
 	if [ ! `grep -q '^kdump_pre /etc/oled/kdump_pre.sh$' /etc/kdump.conf 2> /dev/null` ]; then #present
 		sed --in-place '/kdump_pre \/etc\/oled\/kdump_pre.sh/d' /etc/kdump.conf 2> dev/null ||:
 		sed --in-place '/extra_bins \/bin\/timeout/d' /etc/kdump.conf 2> /dev/null || :
@@ -57,6 +72,7 @@ if [ $1 -ge 1 ] ; then
 		oled lkce disable_kexec > /dev/null || :
 		oled lkce enable_kexec > /dev/null || :
 	fi
+	oled oomwatch --reload &>/dev/null || :
 fi
 
 # configure lkce
@@ -64,11 +80,16 @@ fi
 
 %preun
 if [ $1 -lt 1 ] ; then
-# package uninstall, not upgrade
+	# package uninstall, not upgrade
 	oled lkce disable_kexec > /dev/null || :
+	oled oomwatch -d &>/dev/null ||:
+	systemctl restart pmie &>/dev/null ||:
 fi
 
 %postun
+if [ $1 -eq 0 ]; then
+	semodule -n -X200 -r pcp-oomwatch &>/dev/null || :
+fi
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -95,6 +116,7 @@ end
 
 %license LICENSE.txt
 %doc README.md
+%config(noreplace) /etc/oled/oomwatch.json
 
 %{_sbindir}/oled
 %{_mandir}/man8/*
@@ -103,6 +125,12 @@ end
 
 # memstate_lib python module
 %{python3_sitelib}/memstate_lib/
+/var/lib/pcp/config/pmieconf/oled/
+
+# Files for oomwatch configuration
+/var/lib/pcp/config/pmieconf/oled/oomwatch
+/usr/share/selinux/packages/targeted/pcp-oomwatch.pp.bz2
+/etc/sudoers.d/99-pcp-oled-oomwatch
 
 # all oled-tools configuration
 /etc/oled/
@@ -116,6 +144,12 @@ end
 %{_libexecdir}/oled-tools/
 
 %changelog
+* Tue Jan 07 2025 Ryan McCabe <ryan.m.mccabe@oracle.com> - 1.0.2-1
+* Update to v1.0.2
+* Add the oled oomwatch command.
+  (Sharad Raykhere, Ryan McCabe, Jeffery Yoder, Sagar Sagar)
+  [Orabug: 37453543]
+
 * Tue Nov 19 2024 Ryan McCabe <ryan.m.mccabe@oracle.com> - 1.0.1-1
 * Update to v1.0.1
 - Update LKCE to work on OL7 or later (Ryan McCabe)

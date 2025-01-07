@@ -33,7 +33,7 @@ man: scripts.8
 
 install:
 	@echo "install:$(CURDIR)"
-	install --mode=755 $(CURDIR)/scripts.py $(BINDIR)/scripts
+	install --mode=755 $(CURDIR)/scripts.py $(OLEDBINDIR)/scripts
 	gzip -c $(CURDIR)/scripts.8 > $(MANDIR)/oled-scripts.8.gz
 	chmod 644 $(MANDIR)/oled-scripts.8.gz
 	install -D $(CURDIR)/oled-tools-scripts.service \
@@ -45,7 +45,7 @@ install:
 uninstall:
 	@echo "uninstall:$(CURDIR)"
 	rm -f $(MANDIR)/oled-scripts.8.gz
-	rm -f $(BINDIR)/scripts
+	rm -f $(OLEDBINDIR)/scripts
 	rm -f $(OLEDBIN)/scripts.d/startup-scripts.conf
 	@echo "SCRIPTS successfully uninstalled!"
 
