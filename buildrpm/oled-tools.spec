@@ -145,8 +145,8 @@ end
 
 %changelog
 * Tue Jan 07 2025 Ryan McCabe <ryan.m.mccabe@oracle.com> - 1.0.2-1
-* Update to v1.0.2
-* Add the oled oomwatch command.
+- Update to v1.0.2
+- Add the oled oomwatch command.
   (Sharad Raykhere, Ryan McCabe, Jeffery Yoder, Sagar Sagar)
   [Orabug: 37453543]
 
