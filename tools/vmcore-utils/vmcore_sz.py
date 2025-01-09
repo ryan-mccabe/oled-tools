@@ -67,6 +67,8 @@ def get_mem_usage() -> MemoryUsage:
 
     mem_usg = mem_op.stdout.decode().strip().splitlines()
     header = mem_usg.pop(0).split()
+    while "TYPE" not in header:
+        header = mem_usg.pop(0).split()
     typ, pages = header.index("TYPE"), header.index("PAGES")
     page_sz = total_pg = 0
     zero_pg = npvt_pg = pctc_pg = user_pg = free_pg = 0
