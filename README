@@ -1,0 +1,7 @@
+This branch is for files that are Oracle Internal.
+
+They will not be mirrored to github, or anywhere outside of internal Oracle
+systems. They must not be merged into main, unless a decision is made to open
+source them and remove the Oracle Internal designation.
+
+If you merge files here, please rebase onto main before doing so.
