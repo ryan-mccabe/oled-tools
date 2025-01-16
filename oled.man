@@ -54,6 +54,10 @@ optional arguments:
                         interval at which data should be collected (default:
                         30s)
 
+.SH SEE ALSO
+.TP
+additional-scripts(8), oled-kstack(8), oled-lkce(8), oled-memstate(8), oled-oomwatch(8), oled-scanfs(8), oled-scripts(8), oled-syswatch(8), oled-vmcore_sz(8)
+
 .SH REPORTING BUGS
 .TP
 Please contact Oracle Linux Support to report any bugs for OLED tools.
