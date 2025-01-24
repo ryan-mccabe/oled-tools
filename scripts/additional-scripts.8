@@ -4,7 +4,7 @@
 .nh
 .ad l
 .\" Begin generated content:
-.TH "additional-scripts" "8" "2024-06-06"
+.TH "additional-scripts" "8" "2025-01-24"
 .P
 .SH NAME
 .P
@@ -215,6 +215,28 @@ rds_rdma_xfer_rate.d - Shows the RDMA transfer rate [MB/s] for each RDS connecti
 .IP \(bu 4
 .\}
 rds_tx_funccount.d - Traces and displays the rate of calls for send_xmit, ib_xmit and send_cqe_handler per 10 sec.
+
+.RE
+.P
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.IP \(bu 4
+.\}
+rds_cm_events.d - This script tracks CM events at RDS layer
+
+.RE
+.P
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.IP \(bu 4
+.\}
+track_cm_packet.d - This script track CM packet completions
 
 .RE
 .P

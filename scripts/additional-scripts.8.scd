@@ -57,6 +57,10 @@ The additional diagnostic scripts provided in the oled-tools package extend the 
 
 - rds_tx_funccount.d - Traces and displays the rate of calls for send_xmit, ib_xmit and send_cqe_handler per 10 sec.
 
+- rds_cm_events.d - This script tracks CM events at RDS layer
+
+- track_cm_packet.d - This script track CM packet completions
+
 # IO
 
 - nvme_io_comp.d - Measures nvme IO latency in microseconds (us).
