@@ -54,8 +54,7 @@ Valid commands:
      scripts     -- Run additional oled-tools scripts
      syswatch    -- Execute user-provided commands based on the CPU utilization
      vmcore_sz   -- Estimating vmcore size before kernel dump
-""",
-        epilog="NOTE: Must run as root.")
+""")
 
     parser.add_argument(
         "-v", "--version", action="version",
@@ -75,11 +74,6 @@ def main(args: Sequence[str]) -> None:
     """Main function."""
 
     options = parse_args(args)
-
-    # only allow root to execute subcommands
-    if os.getuid() != 0:
-        print("Run as root only", file=sys.stderr)
-        sys.exit(1)
 
     cmd = options.command
 
