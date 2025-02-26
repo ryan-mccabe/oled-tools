@@ -6,7 +6,7 @@ rule    oled.oom_watch
         enumerate = hosts
         predicate =
 "some_host (
-    (100 * mem.util.free / mem.physmem) < $memfree_threshold$
+    (100 * mem.util.available / mem.physmem) < $memfree_threshold$
     && (100 * mem.util.swapFree / mem.util.swapTotal) < $swapfree_threshold$
 )"
         enabled = no
