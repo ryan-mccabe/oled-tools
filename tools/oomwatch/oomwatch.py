@@ -179,6 +179,14 @@ def kill_high_memuser(proc_names: Sequence[str]):
 
     logging.info(
         "Thresholds exceeded. Searching for processes to terminate...")
+    logging.info("Available physical memory: %.2fGB (%.2f%%)",
+                 psutil.virtual_memory().available / 2**30, 100 *
+                 (psutil.virtual_memory().available /
+                  psutil.virtual_memory().total))
+    logging.info("Free swap memory: %.2fGB (%.2f%%)",
+                 psutil.swap_memory().free / 2**30, 100 *
+                 (psutil.swap_memory().free /
+                  psutil.swap_memory().total))
 
     processes_to_kill = find_processes_to_kill(proc_names)
 
@@ -236,7 +244,7 @@ def setup_args() -> argparse.ArgumentParser:
 
     subparsers = parser.add_subparsers(dest="command")
     config_parser = subparsers.add_parser("configure",
-                               help="Configure oomwatch parameters")
+                                          help="Configure oomwatch parameters")
     config_parser.add_argument("--show", action="store_true",
                                help="Show the current configuration")
     config_parser.add_argument("--delta", type=str,
