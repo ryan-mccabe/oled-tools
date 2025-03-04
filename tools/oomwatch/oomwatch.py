@@ -39,7 +39,7 @@ DEBUG = False
 
 # Default values
 default_config_dict = {
-    "memfree_threshold": 0,
+    "memavail_threshold": 0,
     "swapfree_threshold": 0,
     "delta": "30 sec",
     "holdoff": 0,
@@ -49,7 +49,7 @@ default_config_dict = {
 
 def print_conf(conf_dict: Mapping):
     """Print the current active oled.oom_watch configuration"""
-    print(f"memfree_threshold : {conf_dict['memfree_threshold']}")
+    print(f"memavail_threshold : {conf_dict['memavail_threshold']}")
     print(f"swapfree_threshold: {conf_dict['swapfree_threshold']}")
     print(f"delta             : {conf_dict['delta']}")
     print(f"holdoff           : {conf_dict['holdoff']}")
@@ -251,8 +251,8 @@ def setup_args() -> argparse.ArgumentParser:
                                help="Set delta parameter (time str)")
     config_parser.add_argument("--holdoff", type=str,
                                help="Set holdoff parameter (time str)")
-    config_parser.add_argument("--memfree_threshold", type=float,
-                               help="Set memfree threshold parameter (float)")
+    config_parser.add_argument("--memavail_threshold", type=float,
+                               help="Set memavail threshold parameter (float)")
     config_parser.add_argument("--swapfree_threshold", type=float,
                                help="Set swapfree threshold parameter (float)")
     config_parser.add_argument(
@@ -330,9 +330,9 @@ def main(args: Sequence[str]) -> None:
         if options.show:
             print_conf(conf)
             return
-        if options.memfree_threshold is not None:
-            val = str(options.memfree_threshold)
-            conf["memfree_threshold"] = val
+        if options.memavail_threshold is not None:
+            val = str(options.memavail_threshold)
+            conf["memavail_threshold"] = val
             change = True
         if options.swapfree_threshold is not None:
             val = str(options.swapfree_threshold)

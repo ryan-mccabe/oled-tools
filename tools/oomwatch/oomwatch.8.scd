@@ -42,8 +42,8 @@ oled oomwatch  {-h --help | -v --version | configure | -e --enable
 		- --show - Display the current configuration.
 		- --delta - This sets the frequency, in seconds, at which the thresholds are checked.
 		- --holdoff - Specifies the "cool off" period in seconds.  The default of 0 should be a good setting for most use cases.
-		- --memfree_threshold - The threshold for memory free.  This is expressed as a percentage of free memory remaining.  Setting this to 100 or greater means that it is, effectively, always true.  Setting it to 0 is, effectively, always false.
-		- --swapfree_threshold - This will set the threshold for free swap.  Like memfree_threshold it is also a percentage.
+		- --memavail_threshold - The threshold for memory free.  This is expressed as a percentage of free memory remaining.  Setting this to 100 or greater means that it is, effectively, always true.  Setting it to 0 is, effectively, always false.
+		- --swapfree_threshold - This will set the threshold for free swap.  Like memavail_threshold it is also a percentage.
 		- --monitored_process - Use this to specify the list of process names that *oled-oomwatch* is allowed to kill.  Provide this as a quoted, comma-separated list. Only programs whose names are in this list will be killed when memory or swap thresholds are met or exceeded.
 
 
@@ -53,7 +53,7 @@ oled oomwatch  {-h --help | -v --version | configure | -e --enable
 The following commands can be used to configure *oled-oomwatch* to kill the top memory user out of the programs listed when there is less than 10% memory free *and* less than 25% swap free.  The tool will check every 5 seconds.
 
 ```
-oled oomwatch configure --delta=5 --memfree_threshold=10 --swapfree_threshold=25 --monitored_process="application1,application2"
+oled oomwatch configure --delta=5 --memavail_threshold=10 --swapfree_threshold=25 --monitored_process="application1,application2"
 
 oled oomwatch -e
 ```

@@ -6,16 +6,16 @@ rule    oled.oom_watch
         enumerate = hosts
         predicate =
 "some_host (
-    (100 * mem.util.available / mem.physmem) < $memfree_threshold$
+    (100 * mem.util.available / mem.physmem) < $memavail_threshold$
     && (100 * mem.util.swapFree / mem.util.swapTotal) < $swapfree_threshold$
 )"
         enabled = no
         version = 1
         help    = "Kill the process from defined list of monitored processes";
 
-double  memfree_threshold
+double  memavail_threshold
         default = 0
-        help    = "memfree threshold";
+        help    = "memavail threshold";
 
 double  swapfree_threshold
         default = 0
