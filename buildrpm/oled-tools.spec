@@ -1,6 +1,6 @@
 Name: oled-tools
 Version: 1.0.2
-Release: 1%{?dist}
+Release: 2%{?dist}
 Summary: Diagnostic tools for more efficient and faster debugging on Oracle Linux
 # kcore-utils requirements
 %ifarch x86_64
@@ -12,6 +12,7 @@ Requires: python3
 Requires: python3-psutil
 Requires: drgn
 Requires: drgn-tools
+Requires: pcp
 BuildRequires: systemd
 BuildRequires: python3-devel
 BuildRequires: selinux-policy
@@ -22,6 +23,8 @@ Requires(post): selinux-policy-base
 Requires(post): selinux-policy-targeted
 Requires(post): policycoreutils
 Requires(post): libselinux-utils
+Requires(post): pcp
+Requires(preun): pcp
 Group: Development/Tools
 License: GPLv2
 
@@ -71,6 +74,9 @@ if [ $1 -ge 1 ] ; then
 		# force regeneration of the lkce kdump script
 		oled lkce disable_kexec > /dev/null || :
 		oled lkce enable_kexec > /dev/null || :
+	fi
+	if [ ! `grep -q 'memfree' /etc/oled/oomwatch.json 2> /dev/null` ]; then #present
+		sed --in-place 's/memfree/memavail/g' /etc/oled/oomwatch.json 2> /dev/null || :
 	fi
 	oled oomwatch --reload &>/dev/null || :
 fi
@@ -144,6 +150,12 @@ end
 %{_libexecdir}/oled-tools/
 
 %changelog
+* Tue Feb 26 2025 Ryan McCabe <ryan.m.mccabe@oracle.com> - 1.0.2-2
+- oomwatch: Use available memory instead of free memory for thresholds
+  [Orabug: 37629602]
+- oomwatch: Print memory and swap usage when killing processes
+  [Orabug: 37639781]
+
 * Tue Jan 07 2025 Ryan McCabe <ryan.m.mccabe@oracle.com> - 1.0.2-1
 - Update to v1.0.2
 - Add the oled oomwatch command.
