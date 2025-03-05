@@ -17,6 +17,10 @@ double  memavail_threshold
         default = 0
         help    = "memavail threshold";
 
+double  memfree_threshold
+        default = 0
+        help    = "memfree threshold";
+
 double  swapfree_threshold
         default = 0
         help    = "swapfree threshold";
