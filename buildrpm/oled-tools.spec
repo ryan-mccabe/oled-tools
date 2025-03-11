@@ -150,7 +150,7 @@ end
 %{_libexecdir}/oled-tools/
 
 %changelog
-* Tue Feb 26 2025 Ryan McCabe <ryan.m.mccabe@oracle.com> - 1.0.2-2
+* Wed Feb 26 2025 Ryan McCabe <ryan.m.mccabe@oracle.com> - 1.0.2-2
 - oomwatch: Use available memory instead of free memory for thresholds
   [Orabug: 37629602]
 - oomwatch: Print memory and swap usage when killing processes
