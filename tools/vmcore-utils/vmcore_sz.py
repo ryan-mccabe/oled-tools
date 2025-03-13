@@ -57,6 +57,15 @@ def get_mem_usage() -> MemoryUsage:
     """
     Get memory data from makedumpfile --mem-usage command
     """
+    check = subprocess.run(["which", "makedumpfile"],  # nosec
+                           stdout=subprocess.DEVNULL,
+                           stderr=subprocess.DEVNULL)
+    if check.returncode:
+        print("\nCannot run the command makedumpfile.\n"
+              "Please check if the kexec-tools package is installed "
+              "and configured.\n")
+        exit(1)
+
     mem_op = subprocess.run(["makedumpfile",  # nosec
                              "--mem-usage", "/proc/kcore"],
                             stdout=subprocess.PIPE,
@@ -140,9 +149,16 @@ def get_default_dump_level() -> List[int]:
     """
     Get the default dump level from /etc/kdump.conf
     """
+    kdump_file = "/etc/kdump.conf"
     find_def = []
     default = []
-    output = subprocess.getoutput("grep core_collector /etc/kdump.conf "
+
+    if not os.path.isfile(kdump_file):
+        print("\nCannot get the default dump level.\n")
+        print("Please check if kdump is configured.")
+        exit_with_msg(f"The file {kdump_file} does not exist\n", 1)
+
+    output = subprocess.getoutput(f"grep core_collector {kdump_file} "
                                   "| grep makedumpfile"
                                   "| grep -v '#'").strip().split()
 
