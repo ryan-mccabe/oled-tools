@@ -167,27 +167,27 @@ def get_vmcore_size(mem: MemoryUsage, dump_level: int) -> int:
     dump_pg = mem.total_pg
 
     if ex_page & 0x1:
-        print(f"Exclude zero pages : {mem.zero_pg}")
+        print(f"{'Exclude zero pages':<30} : {mem.zero_pg:>10}")
         dump_pg -= mem.zero_pg
 
     if ex_page & 0x2:
-        print(f"Exclude non private cache : {mem.npvt_pg}")
+        print(f"{'Exclude non private cache':<30} : {mem.npvt_pg:>10}")
         dump_pg -= mem.npvt_pg
 
     if ex_page & 0x4:
-        print(f"Exclude private cache : {mem.pctc_pg}")
+        print(f"{'Exclude private cache':<30} : {mem.pctc_pg:>10}")
         dump_pg -= mem.pctc_pg
 
     if ex_page & 0x8:
-        print(f"Exclude user pages : {mem.user_pg}")
+        print(f"{'Exclude user pages':<30} : {mem.user_pg:>10}")
         dump_pg -= mem.user_pg
 
     if ex_page & 0x10:
-        print(f"Exclude free pages : {mem.free_pg}")
+        print(f"{'Exclude free pages':<30} : {mem.free_pg:>10}")
         dump_pg -= mem.free_pg
 
-    print(f"\nTotal Pages : {mem.total_pg}")
-    print(f"Pages to be dumped : {dump_pg}")
+    print(f"\n{'Total Pages':<30} : {mem.total_pg:>10}")
+    print(f"{'Pages to be dumped':<30} : {dump_pg:>10}")
     dump_size = dump_pg * mem.page_sz
 
     return dump_size
@@ -210,16 +210,17 @@ def main() -> None:
     mem = get_mem_usage()
 
     for level in dump_levels:
-        print("\n----------------------------------------------")
+        print("\n------------------------------------------------------------")
         if not 0 <= level <= 31:
             print(f"Invalid dump level {level}")
             continue
-        print(f"Dump level = {level}")
+        print(f"{'Dump level':<30} : {level:>10}")
         dump_size = get_vmcore_size(mem, level)
 
-        print("\n----------------------------------------------")
-        print(f"Expected vmcore size in bytes : {dump_size}")
-        print("----------------------------------------------\n")
+        print("\n------------------------------------------------------------")
+        print(f"{'Expected vmcore size ':<30} : {dump_size:>10} bytes "
+              f"({dump_size / (1024 * 1024):.2f} MiB)")
+        print("------------------------------------------------------------\n")
 
 
 if __name__ == '__main__':
