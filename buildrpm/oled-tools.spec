@@ -1,6 +1,6 @@
 Name: oled-tools
 Version: 1.0.2
-Release: 2%{?dist}
+Release: 3%{?dist}
 Summary: Diagnostic tools for more efficient and faster debugging on Oracle Linux
 # kcore-utils requirements
 %ifarch x86_64
@@ -150,6 +150,9 @@ end
 %{_libexecdir}/oled-tools/
 
 %changelog
+* Thu Mar 13 2025 Ryan McCabe <ryan.m.mccabe@oracle.com> - 1.0.2-3
+- Bump release version.
+
 * Wed Feb 26 2025 Ryan McCabe <ryan.m.mccabe@oracle.com> - 1.0.2-2
 - oomwatch: Use available memory instead of free memory for thresholds
   [Orabug: 37629602]
