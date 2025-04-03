@@ -1,0 +1,12 @@
+#
+# This file is used by the cron.py module and includes the files and folders
+# that contains cron scripts to compare.
+# to add a folder with cron scripts add the path with the suffix / 
+# to add a file with cron scripts don't add the suffix.
+#
+# Files
+etc/crontab
+etc/anacrontab
+# Folders
+etc/cron.d/
+var/spool/cron/

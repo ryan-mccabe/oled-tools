@@ -1,0 +1,20 @@
+#
+# This file is used by the sysctl.py module and contains a list of excluded 
+# entries.  You can use * and ? as wildcards to match system settings, and # at 
+# the beginning of the line for comments.  Blank lines and leading spaces are 
+# not allowed.
+#
+crypto.fips*
+fs.aio-nr
+fs.file-nr
+fs.inode-nr
+fs.inode-state
+kernel.hostname
+kernel.ns_last_pid
+kernel.osrelease
+kernel.pty.nr
+kernel.random.boot_id
+kernel.random.uuid
+kernel.sched_domain.*
+kernel.version
+net.core.netdev_rss_key

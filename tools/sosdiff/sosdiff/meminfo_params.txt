@@ -1,0 +1,11 @@
+#
+# This file is used by the meminfo.py module and contains the thresholds used 
+# to determine memory over usage, it can be specified in Kbs or in percentage
+# of the total memory
+# i.e.
+# 4000 kB or 25 %
+#
+Slab: 5 %
+PageTables: 5%
+Percpu: 5 %
+DirectMap1G: 20 %
