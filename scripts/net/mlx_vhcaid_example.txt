@@ -15,18 +15,17 @@ Sample output:
 
 1) uek7:
 
-[root@ol815 ~]# uname -r
-5.15.0-200.119.13.el8uek.x86_64
-
-[root@ol815 ~]# ./mlx_vhcaid.d -D uek7
+root@ol8-vm1:~# uname -a
+Linux ol8-vm1 5.15.0-209.161.3.el8uek.x86_64 #2 SMP Thu Jul 4 09:08:50 PDT 2024 x86_64 x86_64 x86_64 GNU/Linux
+root@ol8-vm1:~# ./mlx_vhcaid.d -D uek7
 DTrace 2.0.0 [Pre-Release with limited functionality]
-1) ip_addr=192.168.100.58 vhca_id=65535 rds_dev=ffff991585e62000 ib_dev=ffff991598c68000 name=mlx5_0 mdev=ffff9915998801e0 bdf=0000:00:0a.0
-2) ip_addr=192.168.100.60 vhca_id=65535 rds_dev=ffff9915835f0000 ib_dev=ffff991598c74000 name=mlx5_1 mdev=ffff991599fc01e0 bdf=0000:00:0b.0
+1) ip_addr=165.138.255.255 vhca_id=131 rds_dev=ffff8aa50292d000 ib_dev=ffff8aa57db64000 name=mlx5_0 mdev=ffff8aa5330c01e0 bdf=0000:00:08.0
 
 ===============================
-Number of devices: 2
+Number of devices: 1
 ===============================
 
+root@ol8-vm1:~#
 
 2) uek5:
 

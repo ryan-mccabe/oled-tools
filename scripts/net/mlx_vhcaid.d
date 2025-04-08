@@ -43,9 +43,11 @@
 #define __mlx5_dw_off(typ, fld) (__mlx5_bit_off(typ, fld) / 32)
 #define MLX5_GET(typ, p, fld) ((ntohl(*((__be32 *)(p) + __mlx5_dw_off(typ, fld))) >> __mlx5_dw_bit_off(typ, fld)) & __mlx5_mask(typ, fld))
 
+#define MLX5_CAP_GENERAL 0
+
 #ifdef uek7
 /* Macro for UEK7 kernel */
-#define MLX5_CAP_GEN(mdev, cap) MLX5_GET(cmd_hca_cap, mdev->caps.hca, cap)
+#define MLX5_CAP_GEN(mdev, cap) MLX5_GET(cmd_hca_cap, mdev->caps.hca[MLX5_CAP_GENERAL]->cur, cap)
 #else
 /* Macro for UEK5 (4.14.35) and UEK6(5.4.17) kernels */
 #define MLX5_CAP_GEN(mdev, cap) MLX5_GET(cmd_hca_cap, mdev->caps.hca_cur, cap)
