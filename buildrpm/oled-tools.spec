@@ -1,6 +1,6 @@
 Name: oled-tools
-Version: 1.0.2
-Release: 3%{?dist}
+Version: 1.0.3
+Release: 1%{?dist}
 Summary: Diagnostic tools for more efficient and faster debugging on Oracle Linux
 # kcore-utils requirements
 %ifarch x86_64
@@ -36,7 +36,8 @@ Source0: %{name}-%{version}.tar.gz
 %description
 oled-tools is a collection of command line tools, scripts, config files, etc.,
 that will aid in faster and better debugging of problems on Oracle Linux. It
-contains: lkce, kstack, memstate, oomwatch, syswatch, scanfs, and vmcore_sz.
+contains: lkce, kstack, memstate, oomwatch, syswatch, scanfs, vmcore_sz and
+olprof.
 
 %prep
 %setup -q
@@ -150,6 +151,12 @@ end
 %{_libexecdir}/oled-tools/
 
 %changelog
+* Tue Mar 25 2025 Partha Sarapathy <partha.satapathy@oracle.com> - 1.0.3-1
+- Update to v1.0.3
+- Add the oled olprof command.
+  (Partha Sarathi Satapathy)
+  [Orabug: 37618519]
+
 * Thu Mar 13 2025 Ryan McCabe <ryan.m.mccabe@oracle.com> - 1.0.2-3
 - Bump release version.
 
