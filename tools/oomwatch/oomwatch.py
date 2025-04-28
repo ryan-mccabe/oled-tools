@@ -35,6 +35,7 @@ import psutil
 VERSION = "1.0.0"
 CONFIG_FILE = "/etc/oled/oomwatch.json"
 PMIE_CONF_FILE = "/var/lib/pcp/config/pmie/config.default"
+VERIFY_SCR = "/etc/oled/oomwatch/verify_kill.sh"
 DEBUG = False
 
 # Default values
@@ -194,21 +195,53 @@ def kill_high_memuser(proc_names: Sequence[str]):
         p = max(processes_to_kill, key=lambda p: p.memory_info().rss)
         target_name = p.name()
         target_pid = p.pid
+        target_rss = p.memory_info().rss
+        verify_result = None
 
-        logging.info("Killing process %s (PID: %d) using %.2f MB",
-                     target_name, target_pid,
-                     p.memory_info().rss / (1024 ** 2))
+        logging.info(
+            "Verifying if it is safe to kill process %s "
+            "(PID: %d) with RSS of %d",
+            target_name, target_pid, target_rss)
 
+        ret = -1
         try:
-            subprocess.run(["/usr/bin/kill", "-9", str(p.pid)], check=True)
-            logging.info("Process %s (PID: %d) killed using 'kill -9'.",
-                         target_name, target_pid)
-            execution_time = \
-                (datetime.datetime.now() - start_time).total_seconds()
-            logging.info("Execution Time: %.2f seconds", execution_time)
-        except subprocess.CalledProcessError as e:
-            logging.error("Unexpected error killing PID %d: %s",
-                          target_pid, str(e))
+            verify_result = subprocess.run(
+                [VERIFY_SCR, str(target_pid), target_name, str(target_rss)],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+            ret = verify_result.returncode
+            if ret == 0:
+                logging.info(
+                    "Verification passed. Killing process %s "
+                    "(PID: %d) using 'kill -9'.",
+                    target_name, target_pid
+                )
+                try:
+                    subprocess.run(["/usr/bin/kill", "-9", str(target_pid)],
+                                   check=True)
+                    logging.info("Process %s (PID: %d) killed.",
+                                 target_name, target_pid)
+                except subprocess.CalledProcessError as e:
+                    logging.error("Unexpected error killing PID %d: %s",
+                                  target_pid, str(e))
+            else:
+                logging.warning("Verification failed (exit code %d). "
+                                "Process %s (PID: %d) not killed.",
+                                ret, target_name, target_pid)
+                if verify_result:
+                    logging.warning("verify_kill.sh stdout: %s",
+                                    verify_result.stdout.decode().strip())
+                    logging.warning("verify_kill.sh stderr: %s",
+                                    verify_result.stderr.decode().strip())
+        except Exception as e:
+            logging.error("Unexpected error calling %s: %s",
+                          VERIFY_SCR, str(e))
+
+            logging.error("No procesesses killed.")
+
+        execution_time = (datetime.datetime.now() - start_time).total_seconds()
+        logging.info("Execution Time: %.2f seconds", execution_time)
     else:
         logging.info("No monitored processes are running.")
 

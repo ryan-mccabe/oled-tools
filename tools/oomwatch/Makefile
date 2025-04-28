@@ -54,6 +54,7 @@ install:
 	install -D $(CURDIR)/config/oomwatch.template --mode=644 $(DESTDIR)/var/lib/pcp/config/pmieconf/oled/oomwatch
 	install -D $(CURDIR)/config/oomwatch.json --mode=640 $(DESTDIR)/etc/oled/oomwatch.json
 	install -D $(CURDIR)/config/99-pcp-oled-oomwatch --mode=440 $(DESTDIR)/etc/sudoers.d/99-pcp-oled-oomwatch
+	install -D $(CURDIR)/config/verify_kill.sh --mode=700 $(DESTDIR)/etc/oled/oomwatch/verify_kill.sh
 	#restorecon -vF /var/lib/pcp/config/pmieconf/oled/
 	#restorecon -vF /var/lib/pcp/config/pmieconf/oled/oomwatch
 
