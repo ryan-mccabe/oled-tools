@@ -30,7 +30,13 @@ import json
 import logging
 from typing import Sequence, Mapping, Union
 import subprocess
-import psutil
+
+try:
+    import psutil
+except ImportError:
+    print("Error: The python3-psutil package is not installed. "
+          "Cannot proceed.")
+    sys.exit(1)
 
 VERSION = "1.0.0"
 CONFIG_FILE = "/etc/oled/oomwatch.json"
@@ -322,6 +328,25 @@ def write_oomwatch_conf(conf_path: str, conf_dict) -> bool:
     return True
 
 
+def check_pcp_status() -> bool:
+    """Check whether PCP is installed"""
+    ret = -1
+    try:
+        ret = subprocess.run(["rpm", "-q", "pcp"],
+                             stdout=subprocess.DEVNULL,
+                             stderr=subprocess.DEVNULL,
+                             check=False)
+        ret = ret.returncode
+    except Exception as e:
+        logging.error("Error checking PCP status: %s", str(e))
+        ret = -1
+
+    if ret != 0:
+        return False
+
+    return True
+
+
 def main(args: Sequence[str]) -> None:
     """Main function"""
     setup_logging()
@@ -336,6 +361,10 @@ def main(args: Sequence[str]) -> None:
 
     if os.geteuid() != 0:
         logging.error("This script must be run as root.")
+        sys.exit(1)
+
+    if not check_pcp_status():
+        logging.error("PCP is not installed. Cannot proceed.")
         sys.exit(1)
 
     conf = load_oomwatch_conf(CONFIG_FILE)
