@@ -61,6 +61,7 @@ The additional diagnostic scripts provided in the oled-tools package extend the 
 
 - track_cm_packet.d - This script track CM packet completions
 
+- rds_ping.d - This script detects and prints the latencies for all rds PING and PONG operations
 # IO
 
 - nvme_io_comp.d - Measures nvme IO latency in microseconds (us).
