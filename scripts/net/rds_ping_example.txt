@@ -1,0 +1,102 @@
+Purpose: This script detects and prints the latencies for all PING
+and PONG operations, this can be used for detecting latencies
+between kernel call stack used for ping and pong. Can be used for
+detecting kernel latencies problems on these functions.
+
+Arguments:
+	MIN_LAT:
+		Provide "-D MIN_LAT=1000" if we need to track packet with latency 1000 usec or more
+			"-D MIN_LAT=0" if we need to track all packets
+	DEBUG:
+		Provide "-D DEBUG" as additional argument for additional debug logs
+	None:
+		If MIN_LAT is not provided, the defualt value of MIN_LAT will be 500000 usec
+(Refer sample output for example).
+
+Additionally provide uek5 as argument if running kernel is UEK5 - "./rds_ping.d -D uek5"
+If running kernel is UEK8 run it as "./rds_ping.d -D uek8"
+
+Output format: each line lists
+	<Time>		- Actual timestamp
+	<Connection>	- A joint string with <saddr,daddr,Qos>
+	<Req>		- Ping or Pong
+	<SrcPort>	- Source Port
+	<sendq_wt>	- sendq_wt = rds_ib_xmit - rds_sendmsg [or rds_send_pong for pong]
+	<comp_wt>	- comp_wt = rds_message_put - rds_ib_xmit
+	<recvq_wt>	- recvq_wt = rds_ib_inc_copy_to_user [or rds_send_pong for pong] - rds_recv_incoming
+	<total>		- total = [rds_ib_inc_copy_to_user - rds_sendmsg for ping] or [rds_message_put - rds_recv_incoming for pong]
+
+
+Sample output with DEBUG and MIN_LAT flag:
+# ./rds-ping.d -DDEBUG -DMIN_LAT=0
+DEBUG Enabled
+Note: Displaying only packets with lat >= MIN_LAT (0 USEC)
+[Time                ] Connection                             Req  SrcPort     sendq_wt      comp_wt     recvq_wt        total
+[2025 May  6 22:25:06.14942670888879] DEBUG[rds_sendmsg] <192.168.100.117,192.168.100.43,0> ping sport=62836 dport=0 rs=ffff8bacd5dca680
+[2025 May  6 22:25:06.14942670929625] DEBUG[rds_ib_xmit] <192.168.100.117,192.168.100.43,0> ping sport=62836 dport=0 conn=ffff8bacefc4da40 inc=ffff8bad25a16a28 cpath=ffff8bace24a5000 rds_hdr=ffff8bad25a16a50
+[2025 May  6 22:25:06.14942671247763] DEBUG[rds_recv_incoming] <192.168.100.117,192.168.100.43,0> ping sport=62836 dport=0 inc=ffff8bacea187818 rds_hdr=ffff8bacea187840
+[2025 May  6 22:25:06.14942671434599] DEBUG[rds_ib_inc_copy_to_user] <192.168.100.117,192.168.100.43,0> Ping sport=62836 dport=0 conn=ffff8bacefc4da40 inc=ffff8bacea187818 rds_hdr=ffff8bacea187840 cpath=0 comm=rds-ping sendmsg_ts=14942670888879 xmit_ts=14942670929625 sendcomp_ts=0 recv_inc_ts=14942671247763 copy_to_user_ts=14942671434599
+[2025 May  6 22:25:06] <192.168.100.117,192.168.100.43,0>    Ping   62836           40           -1          186          545
+[2025 May  6 22:25:06.14942671675759] DEBUG[rds_message_put] <192.168.100.117,192.168.100.43,0> ping sport=62836 dport=0 conn=ffff8bacefc4da40 rm=ffff8bad25a16a00 inc=ffff8bad25a16a28 rds_hdr=ffff8bad25a16a50 cpath=ffff8bace24a5000
+
+Other side
+DEBUG Enabled
+Note: Displaying only packets with lat >= MIN_LAT (0 USEC)
+[Time                ] Connection                             Req  SrcPort     sendq_wt      comp_wt     recvq_wt        total
+Time                ] Connection                             Req  SrcPort     sendq_wt      comp_wt     recvq_wt        total
+[2025 May 12 18:59:54.493303317761269] DEBUG[rds_recv_incoming] <192.168.100.117,192.168.100.43,0> pong sport=62836 dport=0 rds_hdr=ffff988d27330d40
+[2025 May 12 18:59:54.493303317791557] DEBUG[rds_send_pong] <192.168.100.117,192.168.100.43,0> pong sport=62836 dport=0 conn=ffff988d1ff36230 cp=ffff988d27efa000
+[2025 May 12 18:59:54.493303317908074] DEBUG[rds_ib_xmit] <192.168.100.117,192.168.100.43,0> pong sport=62836 dport=0 conn=ffff988d1ff36230 cp=ffff988d27efa000 inc=ffff988d6b426e28 rds_hdr=ffff988d6b426e50
+[2025 May 12 18:59:54.493303317950526] DEBUG[rds_message_put] <192.168.100.117,192.168.100.43,0> Pong sport=62836 dport=0 conn=ffff988d1ff36230 cp=ffff988d27efa000 inc=ffff988d6b426e28 rm=ffff988d6b426e00 rds_hdr=ffff988d6b426e50 comm=kworker/0:8 pong_send_ts=493303317791557 pong_xmit_ts=493303317908074 pong_sendcomp_ts=493303317950526 pong_recv_inc_ts=493303317761269
+[2025 May 12 18:59:54] <192.168.100.117,192.168.100.43,0>    Pong   62836          116           42           30          189
+
+
+Sample output (without DEBUG flag and without mentioning MIN_LAT Value, by default the MIN_LAT value is taken as 500000 USEC)
+#./rds_ping.d
+Note: Displaying only packets with lat >= MIN_LAT (500000 USEC)
+[Time                ] Connection                             Req  SrcPort     sendq_wt      comp_wt     recvq_wt        total
+[2025 May  5 06:26:56] <192.168.100.39,192.168.100.124,0>    Ping   63137      4823013      1658106           49      6481807
+[2025 May  5 06:26:56] <192.168.100.39,192.168.100.124,0>    Ping   32694      3822892      1658120          121      5481765
+[2025 May  5 06:26:56] <192.168.100.39,192.168.100.124,0>    Ping    9503      2821739      1658118          147      4480638
+[2025 May  5 06:26:56] <192.168.100.39,192.168.100.124,0>    Ping   15538      1820617      1658116          170      3479536
+[2025 May  5 06:26:56] <192.168.100.39,192.168.100.124,0>    Ping   57903       819415      1658114          187      2478350
+[2025 May  5 06:26:56] <192.168.100.39,192.168.100.124,0>    Ping   12973           30      1476262          203      1477128
+
+Sample output with DEBUG flag: Shown below.
+#./rds_ping.d -D DEBUG
+[root@localhost dtrace]# ./rds-ping.d -DDEBUG
+DEBUG Enabled
+Note: Displaying only packets with lat >= MIN_LAT (500000 USEC)
+[Time                ] Connection                             Req  SrcPort     sendq_wt      comp_wt     recvq_wt        total
+[2025 May  6 22:20:16.14652475405142] DEBUG[rds_sendmsg] <192.168.100.117,192.168.100.43,0> ping sport=7013 dport=0 rs=ffff8bace141ac00
+[2025 May  6 22:20:17.14653509361365] DEBUG[rds_sendmsg] <192.168.100.117,192.168.100.43,0> ping sport=32233 dport=0 rs=ffff8bace141c200
+[2025 May  6 22:20:18.14654564394111] DEBUG[rds_sendmsg] <192.168.100.117,192.168.100.43,0> ping sport=8219 dport=0 rs=ffff8bace141e300
+
+Other side
+DEBUG Enabled
+Note: Displaying only packets with lat >= MIN_LAT (500000 USEC)
+[Time                ] Connection                             Req  SrcPort     sendq_wt      comp_wt     recvq_wt        total
+[2025 May 12 18:55:22.493030902385791] DEBUG[rds_sendmsg] <192.168.100.43,192.168.100.117,0> ping sport=5060 dport=0 rs=ffff988d1ff54d00
+[2025 May 12 18:55:23.493031910475117] DEBUG[rds_sendmsg] <192.168.100.43,192.168.100.117,0> ping sport=30142 dport=0 rs=ffff988d1ff54780
+[2025 May 12 18:55:24.493032913377017] DEBUG[rds_sendmsg] <192.168.100.43,192.168.100.117,0> ping sport=30456 dport=0 rs=ffff988d1ff52100
+
+
+Sample output with MIN_LAT flag set through ARGS:
+# ./rds-ping.d -DMIN_LAT=0
+Note: Displaying only packets with lat >= MIN_LAT (0 USEC)
+[Time                ] Connection                             Req  SrcPort     sendq_wt      comp_wt     recvq_wt        total
+[2025 May  2 16:12:01] <192.168.100.117,192.168.100.180,0>    Ping   57353          224           55          207          769
+[2025 May  2 16:12:02] <192.168.100.117,192.168.100.180,0>    Ping   33426          111          117          140          516
+[2025 May  2 16:12:03] <192.168.100.117,192.168.100.180,0>    Ping   25577          232          132          158          575
+[2025 May  2 16:12:04] <192.168.100.117,192.168.100.180,0>    Ping   55819           88          101           75          358
+
+Other side:
+# ./rds-ping.d -DMIN_LAT=0
+Note: Displaying only packets with lat >= MIN_LAT (0 USEC)
+[Time                ] Connection                             Req  SrcPort     sendq_wt      comp_wt     recvq_wt        total
+[2025 May  2 16:12:01] <192.168.100.117,192.168.100.180,0>    Pong   57353           78           35           52          165
+[2025 May  2 16:12:02] <192.168.100.117,192.168.100.180,0>    Pong   33426           75           27           19          122
+[2025 May  2 16:12:03] <192.168.100.117,192.168.100.180,0>    Pong   25577           31           15            5           53
+[2025 May  2 16:12:04] <192.168.100.117,192.168.100.180,0>    Pong   55819           48           14            6           70
+
+
