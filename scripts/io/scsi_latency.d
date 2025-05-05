@@ -32,7 +32,7 @@
  */
 
 /*
- * min_kernel 4.14.35-2047.539.2,5.4.17-2136.315.5.8,5.15.0-100.52.2
+ * min_kernel 4.14.35-2047.539.2,5.4.17-2136.315.5.8,5.15.0-100.52.2,6.12.0-0.0.1
  */
 
 #pragma D option dynvarsize=100m
@@ -63,10 +63,14 @@ BEGIN
 	scsistarttime[this->cmnd] = timestamp;
 }
 
-#ifdef uek5
-fbt::scsi_done:entry,
-#endif
+#if defined(uek5)
+fbt::scsi_mq_done:entry,
+fbt::scsi_done:entry
+#elif defined(uek6)
 fbt::scsi_mq_done:entry
+#else
+fbt::scsi_done:entry
+#endif
 / scsistarttime[(this->scsi_cmnd = (struct scsi_cmnd *) arg0)] /
 {
 	this->opcode = this->scsi_cmnd->cmnd[0];
