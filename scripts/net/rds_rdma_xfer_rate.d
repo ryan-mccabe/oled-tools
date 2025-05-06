@@ -32,7 +32,7 @@
  */
 
 /*
- * min_kernel 4.14.35-2047.511.5.5.3,5.15.0-200.103.1
+ * min_kernel 4.14.35-2047.511.5.5.3,5.15.0-200.103.1,6.12.0-0.0.1
  */
 
 #define container_of(__ptr, __type, __member) ((__type *)((unsigned long long)__ptr - (unsigned long long)offsetof(__type, __member)))
