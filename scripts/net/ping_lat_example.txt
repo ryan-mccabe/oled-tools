@@ -1,75 +1,134 @@
-ping 192.168.18.9 -I ib0 -c 5
-PING 192.168.18.9 (192.168.18.9) from 192.168.18.5 ib0: 56(84) bytes of data.
-64 bytes from 192.168.18.9: icmp_seq=1 ttl=64 time=0.636 ms
-64 bytes from 192.168.18.9: icmp_seq=2 ttl=64 time=0.366 ms
-64 bytes from 192.168.18.9: icmp_seq=3 ttl=64 time=0.167 ms
-64 bytes from 192.168.18.9: icmp_seq=4 ttl=64 time=0.135 ms
-64 bytes from 192.168.18.9: icmp_seq=5 ttl=64 time=0.120 ms
+Purpose: This script detects and prints the latencies for PING,
+this can be used for detecting latencies between kernel call stack used
+for ping. Can be used for detecting kernel latencies problems on these functions.
 
---- 192.168.18.9 ping statistics ---
-5 packets transmitted, 5 received, 0% packet loss, time 4084ms
-rtt min/avg/max/mdev = 0.120/0.284/0.636/0.197 ms
-[root@rds-test1 ~]#
+command, arguments:
+./ping_lat.d (for UEK5,UEK6)
+./ping_lat.d -D uek7  (for UEK7)
+./ping_lat.d -D uek8 (for UEK8)
 
-[root@rds-test1 dtrace]# dtrace -Cqs ping_lat.d
-icmp id: 14434, icmp sequence: 256, src ip: 192.168.18.5, dst ip: 192.168.18.9
+Example execution (for UEK5 and UEK6)
+*************************************
 
-routine                         delta(ns)
 
-ip_send_skb
-dev_hard_start_xmit              190382
-ipoib_start_xmit                  44855
-ipoib_cm_send                     84644
-icmp_rcv                         322743
+# ping 192.168.100.124 -c 5
+PING 192.168.100.124 (192.168.100.124) 56(84) bytes of data.
+64 bytes from 192.168.100.124: icmp_seq=1 ttl=64 time=0.578 ms
+64 bytes from 192.168.100.124: icmp_seq=2 ttl=64 time=0.289 ms
+64 bytes from 192.168.100.124: icmp_seq=3 ttl=64 time=0.435 ms
+64 bytes from 192.168.100.124: icmp_seq=4 ttl=64 time=0.255 ms
+64 bytes from 192.168.100.124: icmp_seq=5 ttl=64 time=0.272 ms
 
-request-reply latency:           642624
-------------------------------------------------------------------
-icmp id: 14434, icmp sequence: 512, src ip: 192.168.18.5, dst ip: 192.168.18.9
+--- 192.168.100.124 ping statistics ---
+5 packets transmitted, 5 received, 0% packet loss, time 4104ms
+rtt min/avg/max/mdev = 0.255/0.365/0.578/0.126 ms
 
-routine                         delta(ns)
+# ./ping_lat.d
+icmp id: 2261, icmp sequence: 1, src ip: 192.168.100.29, dst ip: 192.168.100.124
 
-ip_send_skb
-dev_hard_start_xmit               96159
-ipoib_start_xmit                  44214
-ipoib_cm_send                     44720
-icmp_rcv                         173769
-
-request-reply latency:           358862
-------------------------------------------------------------------
-icmp id: 14434, icmp sequence: 768, src ip: 192.168.18.5, dst ip: 192.168.18.9
-
-routine                         delta(ns)
+routine                               delta(ns)
 
 ip_send_skb
-dev_hard_start_xmit               18217
-ipoib_start_xmit                   8269
-ipoib_cm_send                      8729
-icmp_rcv                         129234
-
-request-reply latency:           164449
+dev_hard_start_xmit                 188194
+ipoib_start_xmit                      0
+request-reply latency:                 427415
 ------------------------------------------------------------------
-icmp id: 14434, icmp sequence: 1024, src ip: 192.168.18.5, dst ip: 192.168.18.9
+icmp id: 2261, icmp sequence: 2, src ip: 192.168.100.29, dst ip: 192.168.100.124
 
-routine                         delta(ns)
+routine                               delta(ns)
 
 ip_send_skb
-dev_hard_start_xmit               12989
-ipoib_start_xmit                   5900
-ipoib_cm_send                      4801
-icmp_rcv                         110251
-
-request-reply latency:           133941
+dev_hard_start_xmit                  88811
+ipoib_start_xmit                      0
+request-reply latency:                 310320
 ------------------------------------------------------------------
-icmp id: 14434, icmp sequence: 1280, src ip: 192.168.18.5, dst ip: 192.168.18.9
+icmp id: 2261, icmp sequence: 3, src ip: 192.168.100.29, dst ip: 192.168.100.124
 
-routine                         delta(ns)
+routine                               delta(ns)
 
 ip_send_skb
-dev_hard_start_xmit               11200
-ipoib_start_xmit                   4504
-ipoib_cm_send                      4559
-icmp_rcv                         100701
+dev_hard_start_xmit                 160563
+ipoib_start_xmit                      0
+request-reply latency:                 423800
+------------------------------------------------------------------
+icmp id: 2261, icmp sequence: 4, src ip: 192.168.100.29, dst ip: 192.168.100.124
 
-request-reply latency:           120964
+routine                               delta(ns)
+
+ip_send_skb
+dev_hard_start_xmit                  57993
+ipoib_start_xmit                      0
+request-reply latency:                 262202
+------------------------------------------------------------------
+icmp id: 2261, icmp sequence: 5, src ip: 192.168.100.29, dst ip: 192.168.100.124
+
+routine                               delta(ns)
+
+ip_send_skb
+dev_hard_start_xmit                  47014
+ipoib_start_xmit                      0
+request-reply latency:                 277647
 ------------------------------------------------------------------
 
+Example execution (UEK7)
+************************
+
+# ping 192.168.100.33 -c 5
+PING 192.168.100.33 (192.168.100.33) 56(84) bytes of data.
+64 bytes from 192.168.100.33: icmp_seq=1 ttl=64 time=0.332 ms
+64 bytes from 192.168.100.33: icmp_seq=2 ttl=64 time=0.262 ms
+64 bytes from 192.168.100.33: icmp_seq=3 ttl=64 time=0.208 ms
+64 bytes from 192.168.100.33: icmp_seq=4 ttl=64 time=0.259 ms
+64 bytes from 192.168.100.33: icmp_seq=5 ttl=64 time=0.190 ms
+
+--- 192.168.100.33 ping statistics ---
+5 packets transmitted, 5 received, 0% packet loss, time 4082ms
+rtt min/avg/max/mdev = 0.190/0.250/0.332/0.050 ms
+
+
+# ./new_ping_lat.d -D uek7
+icmp id: 7557, icmp sequence: 1, src ip: 192.168.100.117, dst ip: 192.168.100.33
+
+routine                               delta(ns)
+
+__ip_local_out
+dev_hard_start_xmit                  59613
+ipoib_start_xmit                     0
+request-reply latency:               332301
+------------------------------------------------------------------
+icmp id: 7557, icmp sequence: 2, src ip: 192.168.100.117, dst ip: 192.168.100.33
+
+routine                               delta(ns)
+
+__ip_local_out
+dev_hard_start_xmit                  37544
+ipoib_start_xmit                     0
+request-reply latency:               243466
+------------------------------------------------------------------
+icmp id: 7557, icmp sequence: 3, src ip: 192.168.100.117, dst ip: 192.168.100.33
+
+routine                               delta(ns)
+
+__ip_local_out
+dev_hard_start_xmit                  21368
+ipoib_start_xmit                     0
+request-reply latency:               204920
+------------------------------------------------------------------
+icmp id: 7557, icmp sequence: 4, src ip: 192.168.100.117, dst ip: 192.168.100.33
+
+routine                               delta(ns)
+
+__ip_local_out
+dev_hard_start_xmit                  37319
+ipoib_start_xmit                     0
+request-reply latency:               239336
+------------------------------------------------------------------
+icmp id: 7557, icmp sequence: 5, src ip: 192.168.100.117, dst ip: 192.168.100.33
+
+routine                               delta(ns)
+
+__ip_local_out
+dev_hard_start_xmit                  17601
+ipoib_start_xmit                     0
+request-reply latency:               189256
+------------------------------------------------------------------
