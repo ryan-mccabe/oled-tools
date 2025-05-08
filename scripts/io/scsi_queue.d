@@ -30,7 +30,7 @@
  */
 
 /*
- * min_kernel 4.14.35-2047.539.2,5.4.17-2136.315.5.8,5.15.0-200.103.1
+ * min_kernel 4.14.35-2047.539.2,5.4.17-2136.315.5.8,5.15.0-200.103.1,6.12.0-0.0.1
  */
 
 #pragma D option dynvarsize=100m
@@ -53,11 +53,11 @@ fbt::__scsi_queue_insert:entry
 	this->cmd = (struct scsi_cmnd *) arg0;
 	this->scsi_device = (struct scsi_device *)this->cmd->device;
 	this->device = (struct device) this->scsi_device->sdev_gendev;
-#ifdef uek7
-	this->rq = (struct request *)((unsigned long long)this->cmd - sizeof(struct request));
-	this->sd = stringof(this->rq->rq_disk->disk_name);
-#else
+#if defined(uek5) || defined(uek6)
         this->sd = stringof(this->cmd->request->rq_disk->disk_name);
+#else
+        this->rq = (struct request *)((unsigned long long)this->cmd - sizeof(struct request));
+        this->sd = stringof(this->rq->q->disk->disk_name);
 #endif
 	this->dev_name = stringof(this->device.kobj.name);
 
