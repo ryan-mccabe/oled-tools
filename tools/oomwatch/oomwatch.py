@@ -363,7 +363,7 @@ def main(args: Sequence[str]) -> None:
         logging.error("This script must be run as root.")
         sys.exit(1)
 
-    if not check_pcp_status():
+    if not options.kill and not check_pcp_status():
         logging.error("PCP is not installed. Cannot proceed.")
         sys.exit(1)
 
