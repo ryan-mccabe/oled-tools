@@ -46,7 +46,9 @@ oled oomwatch  {-h --help | -v --version | configure | -e --enable
 		- --swapfree_threshold - This will set the threshold for free swap.  Like memavail_threshold it is also a percentage.
 		- --monitored_process - Use this to specify the list of process names that *oled-oomwatch* is allowed to kill.  Provide this as a quoted, comma-separated list. Only programs whose names are in this list will be killed when memory or swap thresholds are met or exceeded.
 
+# ADDITIONAL CHECKS
 
+*oled oomwatch* also provides a way for you to include your own checks when deciding whether or not to kill a process.  There is a bash script included in the RPM, /etc/oled/oomwatch/verify_kill.sh, that can be updated to do any additional checks you wish.  If the script exits with a return code of 0, the kill is executed.  If the script exits with a return code of 1, then the kill is not attempted and the stderr and stdout from the script will be appended to the pmie.log file (See FILES for the location).
 
 # EXAMPLE
 
@@ -60,7 +62,7 @@ oled oomwatch -e
 
 # FILES
 
-_/var/oled/pcp/pmie/HOSTNAME/pmie.log_
+_/var/log/pcp/pmie/HOSTNAME/pmie.log_
 	Diagnostic information will be written to this file from PMIE
 
 # SEE ALSO

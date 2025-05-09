@@ -4,7 +4,7 @@
 .nh
 .ad l
 .\" Begin generated content:
-.TH "oled-oomwatch" "8" "2025-03-04"
+.TH "oled-oomwatch" "8" "2025-05-09"
 .P
 .SH NAME
 .P
@@ -125,10 +125,12 @@ The configure command has several sub-options discussed below.
 
 .RE
 .P
-.P
-.P
 .RE
 .RE
+.SH ADDITIONAL CHECKS
+.P
+\fBoled oomwatch\fR also provides a way for you to include your own checks when deciding whether or not to kill a process.  There is a bash script included in the RPM, /etc/oled/oomwatch/verify_kill.sh, that can be updated to do any additional checks you wish.  If the script exits with a return code of 0, the kill is executed.  If the script exits with a return code of 1, then the kill is not attempted and the stderr and stdout from the script will be appended to the pmie.log file (See FILES for the location).
+.P
 .SH EXAMPLE
 .P
 The following commands can be used to configure \fBoled-oomwatch\fR to kill the top memory user out of the programs listed when there is less than 10% memory free \fBand\fR less than 25% swap free.  The tool will check every 5 seconds.
@@ -143,7 +145,7 @@ oled oomwatch -e
 .P
 .SH FILES
 .P
-\fI/var/oled/pcp/pmie/HOSTNAME/pmie.log\fR
+\fI/var/log/pcp/pmie/HOSTNAME/pmie.log\fR
 .RS 4
 Diagnostic information will be written to this file from PMIE
 .P
