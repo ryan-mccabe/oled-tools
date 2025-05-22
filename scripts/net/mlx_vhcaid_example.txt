@@ -1,19 +1,35 @@
 Purpose: Print 'vhca id' of the mellanox devices (CX5) from a VM
 
-Note: The Mellanox macro/data structure is modified starting from UEK7.
-Hence in UEK7, you need to pass the argument '-D uek7'.
+Note: The Mellanox macro/data structure is modified from UEK7 and UEK8.
+Hence in UEK7 and UEK8, you need to pass the argument '-D uek7' and ' -D UEK8'
+respectively.
 For UEK5 and UEK6, no argument is required
 
 command, arguments:
-1) ./mlx_vhcaid.d -D uek7  (for UEK7)
-2) ./mlx_vhcaid.d (for UEK5,UEK6)
+1) ./mlx_vhcaid.d -D uek8  (for UEK8)
+2) ./mlx_vhcaid.d -D uek7  (for UEK7)
+3) ./mlx_vhcaid.d (for UEK5,UEK6)
 
 
 Output format: s.no) ip_addr=<ip> vhca_id=<id> rds_dev=<rds_ib_device> ib_dev=<ib_device> name=<dev_name> mdev=<mlx5_core_dev> bdf=<pci_id>
 
 Sample output:
 
-1) uek7:
+1) uek8
+
+[root@localhost ]# uname -a
+Linux localhost.localdomain 6.12.0-0.0.1.el9uek.x86_64 #1 SMP PREEMPT_DYNAMIC Thu Dec  5 13:14:35 PST 2024 x86_64 x86_64 x86_64 GNU/Linux
+[root@localhost net]# ./mlx_vhcaid.d -D uek8
+1) ip_addr=38.152.255.255 vhca_id=14 rds_dev=ffff9826c9394000 ib_dev=ffff9826c1f56000 name=mlx5_0 mdev=ffff9826f39741a0 bdf=0000:00:09.0
+2) ip_addr=38.152.255.255 vhca_id=15 rds_dev=ffff9826c9395000 ib_dev=ffff9826f28e4000 name=mlx5_1 mdev=ffff9826f29001a0 bdf=0000:00:10.0
+
+===============================
+Number of devices: 2
+===============================
+
+[root@localhost net]#
+
+2) uek7:
 
 root@ol8-vm1:~# uname -a
 Linux ol8-vm1 5.15.0-209.161.3.el8uek.x86_64 #2 SMP Thu Jul 4 09:08:50 PDT 2024 x86_64 x86_64 x86_64 GNU/Linux
