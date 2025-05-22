@@ -1,10 +1,18 @@
 Purpose: This script is used to trace and display the send/recv bytes per connection
 
-Arguments: None
+Arguments: 
+
+1) In UEK5/6/7 None
+2) In UEK8
+need "-D uek8" as macro optional value in command line.
+Refer example below for UEK8
 
 Output format: [<src-ip>,<dst-ip>,<tos> <send/recv>] <Data transfer rate in MB/s>
 
 Sample output: Shown below
+
+Example for UEK5/6/7:
+********************
 
 # ./rds_bcopy_metric.d | grep "192.168.0.8,192.168.0.6"
 [<192.168.0.8,192.168.0.6,0> send] 16
@@ -21,3 +29,15 @@ Sample output: Shown below
 [<192.168.0.8,192.168.0.6,0> recv] 16
 [<192.168.0.8,192.168.0.6,0> send] 16
 [<192.168.0.8,192.168.0.6,0> recv] 16
+
+Example for UEK8:
+****************
+
+[root@localhost net]# ./rds_bcopy_metric.d -D uek8
+2025 May 22 06:49:28 [<connection> op]       MB/s
+[<192.168.100.39,192.168.100.124,0> send] 8
+[<192.168.100.39,192.168.100.124,0> recv] 8
+[<192.168.100.39,192.168.100.124,0> send] 21
+[<192.168.100.39,192.168.100.124,0> recv] 22
+[<192.168.100.39,192.168.100.124,0> send] 21
+[<192.168.100.39,192.168.100.124,0> recv] 22
