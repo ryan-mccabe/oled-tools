@@ -1,6 +1,6 @@
 Name: oled-tools
 Version: 1.0.3
-Release: 1%{?dist}
+Release: 1test3%{?dist}
 Summary: Diagnostic tools for more efficient and faster debugging on Oracle Linux
 # kcore-utils requirements
 %ifarch x86_64
@@ -9,10 +9,6 @@ BuildRequires: bzip2-devel
 BuildRequires: elfutils-devel
 %endif
 Requires: python3
-Requires: python3-psutil
-Requires: drgn
-Requires: drgn-tools
-Requires: pcp
 BuildRequires: systemd
 BuildRequires: python3-devel
 BuildRequires: selinux-policy
@@ -23,8 +19,6 @@ Requires(post): selinux-policy-base
 Requires(post): selinux-policy-targeted
 Requires(post): policycoreutils
 Requires(post): libselinux-utils
-Requires(post): pcp
-Requires(preun): pcp
 Group: Development/Tools
 License: GPLv2
 
@@ -36,7 +30,7 @@ Source0: %{name}-%{version}.tar.gz
 %description
 oled-tools is a collection of command line tools, scripts, config files, etc.,
 that will aid in faster and better debugging of problems on Oracle Linux. It
-contains: lkce, kstack, memstate, oomwatch, syswatch, scanfs, vmcore_sz and
+contains: lkce, kstack, memstate, oomwatch, syswatch, scanfs, vmcore_sz, and
 olprof.
 
 %prep
@@ -58,7 +52,7 @@ restorecon -vF /var/lib/pcp/config/pmieconf/oled ||:
 restorecon -vF /var/lib/pcp/config/pmieconf/oled/oomwatch ||:
 semodule -X200 -s %{selinuxtype} -i /usr/share/selinux/packages/targeted/pcp-oomwatch.pp.bz2
 
-systemctl restart pmie || :
+systemctl restart pmie &>/dev/null || :
 
 if [ $1 -ge 1 ] ; then
 	# package upgrade
@@ -124,6 +118,7 @@ end
 %license LICENSE.txt
 %doc README.md
 %config(noreplace) /etc/oled/oomwatch.json
+%config(noreplace) /etc/oled/oomwatch/verify_kill.sh
 
 %{_sbindir}/oled
 %{_mandir}/man8/*
@@ -151,11 +146,32 @@ end
 %{_libexecdir}/oled-tools/
 
 %changelog
-* Tue Mar 25 2025 Partha Sarapathy <partha.satapathy@oracle.com> - 1.0.3-1
+* Thu May 22 2025 Ryan McCabe <ryan.m.mccabe@oracle.com> - 1.0.3-1
 - Update to v1.0.3
 - Add the oled olprof command.
   (Partha Sarathi Satapathy)
   [Orabug: 37618519]
+- oomwatch: Add a script to verify kills.
+  (Ryan McCabe)
+  [Orabug: 37723296]
+- oomwatch: Handle missing dependencies gracefully.
+  (Ryan McCabe)
+- vmcore_utils: Error out gracefully if kexec-tools is missing,
+  improve output, fix for 6.3 kernels.
+  (Srikanth C S)
+  [Orabug: 36039350, 36039350, 37327741]
+- scripts: update the mlx_vhcaid dtrace script for UEK7.
+  (Nagappan Ramasamy Palaniappan)
+  [Orabug: 37695526]
+- scripts: Add minimum kernel version for UEK8 in network scripts
+  (Nagappan Ramasamy Palaniappan)
+  [Orabug: 37912971]
+- memstate: Include percpu in kernel memory in summary
+  (Aruna Ramakrishna)
+  [Orabug: 37717127]
+- scripts: Update scsi_latency.d and scsi_queue.d
+  [Orabug: 37980902, 37981041]
+  (Shminderjit Singh)
 
 * Thu Mar 13 2025 Ryan McCabe <ryan.m.mccabe@oracle.com> - 1.0.2-3
 - Bump release version.
