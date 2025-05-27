@@ -233,6 +233,32 @@ fbt:ib_cm:*cm_recv_handler*:entry
 		WC_STATUS[this->wc->status], this->wc->status);
 }
 
+#if defined(uek7) || defined(uek8)
+
+fbt:ib_cm:cm_req_handler:entry,
+fbt:ib_cm:cm_mra_handler:entry,
+fbt:ib_cm:cm_rej_handler:entry,
+fbt:ib_cm:cm_rep_handler:entry,
+fbt:ib_cm:cm_dreq_handler:entry,
+fbt:ib_cm:cm_sidr_req_handler:entry,
+fbt:ib_cm:cm_lap_handler:entry
+{
+        this->cm_work = (struct cm_work *)arg0;
+        this->cm_port = (struct cm_port *)this->cm_work->port;
+        this->cm_dev = (struct cm_device *)this->cm_port->cm_dev;
+        this->ib_device = (struct ib_device *)this->cm_dev->ib_device;
+        this->port_num = this->cm_port->port_num;
+
+        this->cm_event = (struct ib_cm_event *)&this->cm_work->cm_event;
+
+        printf("%Y %lu %s:%s:%d %s\n",
+                walltimestamp, timestamp, probefunc,
+                this->ib_device->name, this->port_num,
+                CM_EVENT[this->cm_event->event]);
+}
+
+#else
+
 fbt:ib_cm:*cm_work_handler*:entry
 {
 	this->_work = (struct work_struct *)arg0;
@@ -249,3 +275,5 @@ fbt:ib_cm:*cm_work_handler*:entry
 		this->ib_device->name, this->port_num,
 		CM_EVENT[this->cm_event->event]);
 }
+
+#endif
