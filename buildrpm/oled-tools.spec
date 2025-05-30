@@ -172,6 +172,12 @@ end
 - scripts: Update scsi_latency.d and scsi_queue.d
   [Orabug: 37980902, 37981041]
   (Shminderjit Singh)
+- scripts: Update ping_lat.d for UEK7
+  [Orabug: 37919212]
+  (Nagappan Ramasamy Palaniappan)
+- scripts: Update rds_bcopy_metric.d and mlx_vhcaid.d for UEK8
+  [Orabug: 37993866]
+  (Nagappan Ramasamy Palaniappan)
 
 * Thu Mar 13 2025 Ryan McCabe <ryan.m.mccabe@oracle.com> - 1.0.2-3
 - Bump release version.
