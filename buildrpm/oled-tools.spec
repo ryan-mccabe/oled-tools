@@ -146,7 +146,7 @@ end
 %{_libexecdir}/oled-tools/
 
 %changelog
-* Thu May 22 2025 Ryan McCabe <ryan.m.mccabe@oracle.com> - 1.0.3-1
+* Mon Jun 02 2025 Ryan McCabe <ryan.m.mccabe@oracle.com> - 1.0.3-1
 - Update to v1.0.3
 - Add the oled olprof command.
   (Partha Sarathi Satapathy)
@@ -178,6 +178,12 @@ end
 - scripts: Update rds_bcopy_metric.d and mlx_vhcaid.d for UEK8
   [Orabug: 37993866]
   (Nagappan Ramasamy Palaniappan)
+- scripts: Update scsi_latency_example.txt with correct arguments
+  [Orabug: 37327564]
+  (Rajan Shanmugavelu)
+- scripts: Add rds_ping.d to detect and print rds-ping latencies.
+  [Orabug: 37889666]
+  (Nagappan Ramasamy Palaniappan, Juan Garcia)
 
 * Thu Mar 13 2025 Ryan McCabe <ryan.m.mccabe@oracle.com> - 1.0.2-3
 - Bump release version.
