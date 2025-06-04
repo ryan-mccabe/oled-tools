@@ -146,7 +146,7 @@ end
 %{_libexecdir}/oled-tools/
 
 %changelog
-* Mon Jun 02 2025 Ryan McCabe <ryan.m.mccabe@oracle.com> - 1.0.3-1
+* Tue Jun 03 2025 Ryan McCabe <ryan.m.mccabe@oracle.com> - 1.0.3-1
 - Update to v1.0.3
 - Add the oled olprof command.
   (Partha Sarathi Satapathy)
@@ -184,6 +184,12 @@ end
 - scripts: Add rds_ping.d to detect and print rds-ping latencies.
   [Orabug: 37889666]
   (Nagappan Ramasamy Palaniappan, Juan Garcia)
+- Add a "SEE ALSO" section to the oled man page.
+  [Orabug: 37486389]
+  (Jeffery Yoder)
+- scripts: Update track_cm_packet.d for newer UEK7 and UEK8 kernels
+  [Orabug: 37999669]
+  (Nagappan Ramasamy Palaniappan)
 
 * Thu Mar 13 2025 Ryan McCabe <ryan.m.mccabe@oracle.com> - 1.0.2-3
 - Bump release version.
