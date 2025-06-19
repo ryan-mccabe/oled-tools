@@ -25,7 +25,7 @@ corresponding man pages for more details.
   threshold
 - scanfs: Scan KVM images for corruption, supports XFS and EXT4
 - vmcore-utils: Estimating vmcore size before kernel dump
-- olprof: trace and profile a workload
+- profile: trace and profile a workload
 
 ## Installation
 

@@ -1,34 +1,34 @@
 .TH OLED OLPROF 8 "mar 2025" "Oracle Linux Enhanced Diagnostics"
 
 .SH NAME
-oled olprof - Evaluate performance of a work load.
+oled profile - Evaluate performance of a work load.
 
 .SH SYNOPSIS
-oled  olprof [-h] -l WORKLOAD LIST [-p PID] [-d]
+oled  profile [-h] -l WORKLOAD LIST [-p PID] [-d]
 
 .SH DESCRIPTION
-olprof genartes profiling scripts dynamically for a list of functions
+profile genartes profiling scripts dynamically for a list of functions
 representing a workload and excutes the profiling script.
 The profiled data contains outputs of  entry and return traces of each
 function listed in workload list. If a function is not traceable,
-olprof will skip it and continue to trace other functions.
+profile will skip it and continue to trace other functions.
 
-The oled olprof command mandates use of the `-l` option, which ponits
+The oled profile command mandates use of the `-l` option, which ponits
 to workload function list. The default workloads available are:
 
 kern_cpuhp
 libvirt_cpuhp
 qemu_cpuhp
 
-The command oled olprof with a pid as an argument, will trace the specified
+The command oled profile with a pid as an argument will trace the specified
 process, otherwise will trace the kernel.
 
-The command oled olprof with -d option, excutes in debug mode.
+The command oled profile with -d option excutes in debug mode.
 
-Note : olprof may need ulimit "max locked memory" set properly.
+Note : profile may need ulimit "max locked memory" set properly.
 
 .SH EXAMPLE
-#oled olprof -l kern_cpuhp
+#oled profile -l kern_cpuhp
 .PP
 Creating dtrace for kernel, workload : kern_cpuhp
 .PP
@@ -53,15 +53,51 @@ Running dtrace for kernel, workload : kern_cpuhp
 .SH OPTIONS
 .TP
 -h, --help
-	Displays a help message for olprof command.
+	Displays a help message for profile command.
 
 .TP
 -l --workloads WORKLOAD
 	Creates and excute a profiler based on the workload's functions list.
 
 .TP
+-f WORKLOADFILE, --workloadfile WORKLOADFILE
+    Creates abd executes a profiler based on user provided workload file.
+
+.TP
 -p --pid PID
 	Profiles the specified pid otherwise profiles the kernel.
+
+.TP
+-d, --debug
+    Enables debug logging.
+
+.TP
+-v, --version
+    Display olprof version.
+
+.TP
+-L, --list
+    Display available workloads.
+
+.TP
+-R, --runs
+    Display currently running traces.
+
+.TP
+-T TERMINATE, --terminate TERMINATE
+    Terminates the sepcified profiling.
+
+.TP
+-e, --expand
+    Dispaly functions associated with a workload. Must be used with option -l.
+
+.TP
+-o OUTFILE, --output OUTFILE
+    The output will be redirected to the file specified by OUTFILE.
+
+.TP
+-P, --print
+    Display output on console.
 
 .SH REPORTING BUGS
 .TP
