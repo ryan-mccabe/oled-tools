@@ -146,7 +146,7 @@ end
 %{_libexecdir}/oled-tools/
 
 %changelog
-* Fri Jun 13 2025 Ryan McCabe <ryan.m.mccabe@oracle.com> - 1.0.3-1
+* Thu Jun 18 2025 Ryan McCabe <ryan.m.mccabe@oracle.com> - 1.0.3-1
 - Update to v1.0.3
 - Add the oled olprof command.
   (Partha Sarathi Satapathy)
