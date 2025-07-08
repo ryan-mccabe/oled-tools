@@ -34,9 +34,13 @@ import subprocess
 import signal
 import sys
 import typing
+import platform
+import re
 
 KERN_DTFILE_NAME = "dt_trace_kern.d"
 DTPATH = "/tmp/dtscripts/"
+MAJOR = 0
+MINOR = 0
 
 kern_workload_list = [
     'kern_cpuhp'
@@ -418,6 +422,20 @@ KERN_DT_PRINT_RET = """
 """
 
 
+KERN_DT_PRINT_ENT_GT_UEK8 = """
+    printf(\"\\n[%Y] [Time: %d] [pid: %d] [comm: %s] [cpu: %d] %s Entry.\",
+        walltimestamp, timestamp, pid, execname, curthread->thread_info.cpu,
+        probefunc);
+"""
+
+
+KERN_DT_PRINT_RET_GT_UEK8 = """
+    printf(\"\\n[%Y] [Time: %d] [pid: %d] [comm: %s] [cpu: %d] %s Return.\",
+        walltimestamp, timestamp, pid, execname, curthread->thread_info.cpu,
+        probefunc);
+"""
+
+
 PROC_DT_PRINT_ENT = """
     printf("\\n[%Y] %s Entry.", walltimestamp, probefunc);
 """
@@ -449,7 +467,10 @@ def mk_kern_trace_entry(dtfile, this_fn: str) -> None:
     dt_kern_lib = dt_kern_pid.replace("__LIB__", "")
     dt_kern = dt_kern_lib.replace("__FUNC__", this_fn)
     dtfile.write(dt_kern)
-    dtfile.write(KERN_DT_PRINT_ENT)
+    if check_kern_version_gt(8):
+        dtfile.write(KERN_DT_PRINT_ENT_GT_UEK8)
+    else:
+        dtfile.write(KERN_DT_PRINT_ENT)
     dtfile.write(DT_TXT_END)
 
 
@@ -462,8 +483,22 @@ def mk_kern_trace_exit(dtfile, this_fn: str) -> None:
     dt_kern_lib = dt_kern_pid.replace("__LIB__", "")
     dt_kern = dt_kern_lib.replace("__FUNC__", this_fn)
     dtfile.write(dt_kern)
-    dtfile.write(KERN_DT_PRINT_RET)
+    if check_kern_version_gt(8):
+        dtfile.write(KERN_DT_PRINT_RET_GT_UEK8)
+    else:
+        dtfile.write(KERN_DT_PRINT_RET)
     dtfile.write(DT_TXT_END)
+
+
+def check_kern_version_gt(uek: int) -> bool:
+    """
+    Check if the kernel is equal to or higher than the uek version provided.
+    """
+    uek_to_kern = {5: [4, 14], 6: [5,4], 7:[5,15], 8:[6,12]}
+
+    if MAJOR >= uek_to_kern[uek][0] and MINOR >= uek_to_kern[uek][1]:
+        return True
+    return False
 
 
 def kern_create_dt(fnlist: list) -> str:
@@ -737,6 +772,8 @@ def main() -> None:
     The command oled olprof with -d option, excutes in debug mode.
     """
 
+    global MAJOR, MINOR
+
     if os.geteuid() != 0:
         msg = "You need to have root privileges to run this script."
         exit_with_msg(msg)
@@ -745,6 +782,13 @@ def main() -> None:
     args = parse_args()
 
     signal.signal(signal.SIGINT, signal_handler)
+
+    kernel = platform.uname().release
+    match = re.match(r"(\d+)\.(\d+)", kernel)
+    if not match:
+        raise ValueError(f"Could not parse kernel version: {kernel}")
+    MAJOR = int(match.group(1))
+    MINOR = int(match.group(2))
 
     if args.debug:
         dbg("Debug mode enabled")
