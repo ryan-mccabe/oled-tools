@@ -1,6 +1,6 @@
 Name: oled-tools
 Version: 1.0.3
-Release: 1%{?dist}
+Release: 2{?dist}
 Summary: Diagnostic tools for more efficient and faster debugging on Oracle Linux
 # kcore-utils requirements
 %ifarch x86_64
@@ -146,6 +146,11 @@ end
 %{_libexecdir}/oled-tools/
 
 %changelog
+* Thu Jul 10 2025 Ryan McCabe <ryan.m.mccabe@oracle.com> - 1.0.3-2
+- Fix olprof failure on UEK8 kernels.
+  (Srikanth C S)
+  [Orabug 38163701]
+
 * Thu Jun 18 2025 Ryan McCabe <ryan.m.mccabe@oracle.com> - 1.0.3-1
 - Update to v1.0.3
 - Add the oled olprof command.
