@@ -1,6 +1,6 @@
 Name: oled-tools
-Version: 1.0.3
-Release: 2%{?dist}
+Version: 1.1.0
+Release: 1test1%{?dist}
 Summary: Diagnostic tools for more efficient and faster debugging on Oracle Linux
 # kcore-utils requirements
 %ifarch x86_64
@@ -86,13 +86,13 @@ if [ $1 -lt 1 ] ; then
 	oled lkce disable_kexec > /dev/null || :
 	oled oomwatch -d &>/dev/null ||:
 	systemctl restart pmie &>/dev/null ||:
-  systemctl stop rpm_db_snooper.service &>/dev/null ||:
+	systemctl stop rpm_db_snooper.service &>/dev/null ||:
 fi
 
 %postun
 if [ $1 -eq 0 ]; then
 	semodule -n -X200 -r pcp-oomwatch &>/dev/null || :
-  systemctl daemon-reload &>/dev/null ||:
+	systemctl daemon-reload &>/dev/null ||:
 fi
 
 %clean
@@ -150,6 +150,10 @@ end
 %{_libexecdir}/oled-tools/
 
 %changelog
+* Fri Aug 01 2025 Ryan McCabe <ryan.m.mccabe@oracle.com> - 1.1.0-1
+- Add rpm_db_snooper tool [Orabug: 37780610]
+  (Sagar Sagar)
+ 
 * Thu Jul 10 2025 Ryan McCabe <ryan.m.mccabe@oracle.com> - 1.0.3-2
 - Fix olprof failure on UEK8 kernels.
   (Srikanth C S)
