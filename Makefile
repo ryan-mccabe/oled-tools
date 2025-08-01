@@ -30,7 +30,8 @@ subdirs := scripts \
 	tools/scripts \
 	tools/syswatch \
 	tools/vmcore-utils\
-	tools/olprof
+	tools/olprof	\
+	tools/rpm_db_snooper
 
 rev_subdirs := $(shell echo -n "$(subdirs) " | tac -s ' ')
 OLEDDIR := $(DESTDIR)/etc/oled
