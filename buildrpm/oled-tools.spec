@@ -74,6 +74,7 @@ if [ $1 -ge 1 ] ; then
 		sed --in-place 's/memfree/memavail/g' /etc/oled/oomwatch.json 2> /dev/null || :
 	fi
 	oled oomwatch --reload &>/dev/null || :
+  systemctl daemon-reload &>/dev/null ||:
 fi
 
 # configure lkce
@@ -85,11 +86,13 @@ if [ $1 -lt 1 ] ; then
 	oled lkce disable_kexec > /dev/null || :
 	oled oomwatch -d &>/dev/null ||:
 	systemctl restart pmie &>/dev/null ||:
+  systemctl stop rpm_db_snooper.service &>/dev/null ||:
 fi
 
 %postun
 if [ $1 -eq 0 ]; then
 	semodule -n -X200 -r pcp-oomwatch &>/dev/null || :
+  systemctl daemon-reload &>/dev/null ||:
 fi
 
 %clean
@@ -113,6 +116,7 @@ end
 
 %files
 %{_unitdir}/oled-tools-scripts.service
+%{_unitdir}/rpm_db_snooper.service
 %defattr(-,root,root,-)
 
 %license LICENSE.txt
