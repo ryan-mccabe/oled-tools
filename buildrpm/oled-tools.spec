@@ -18,6 +18,7 @@ BuildRequires: python3-devel
 BuildRequires: selinux-policy
 BuildRequires: selinux-policy-devel
 BuildRequires: selinux-policy-targeted
+BuildRequires: python3-setuptools
 Requires: selinux-policy
 Requires(post): selinux-policy-base
 Requires(post): selinux-policy-targeted
@@ -41,16 +42,20 @@ contains: lkce, kstack, memstate, oomwatch, syswatch, scanfs, and vmcore_sz.
 %prep
 %setup -q
 
+%build
 # only required for kcore-utils
 %ifarch x86_64
-%build
 make %{?_smp_mflags}
 %endif
-
+cd tools/sosdiff
+%py3_build
 
 %install
 rm -rf $RPM_BUILD_ROOT
 make install DESTDIR=$RPM_BUILD_ROOT DIST=%{?dist} SPECFILE="1"
+cd tools/sosdiff
+%py3_install
+mv %{buildroot}/%{_bindir}/sosdiff %{buildroot}/usr/libexec/oled-tools/
 
 %post
 restorecon -vF /var/lib/pcp/config/pmieconf/oled ||:
@@ -131,6 +136,8 @@ end
 
 # memstate_lib python module
 %{python3_sitelib}/memstate_lib/
+%{python3_sitelib}/sosdiff/
+%{python3_sitelib}/sosdiff-*.egg-info/
 /var/lib/pcp/config/pmieconf/oled/
 
 # Files for oomwatch configuration
