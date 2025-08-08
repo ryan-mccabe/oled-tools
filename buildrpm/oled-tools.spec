@@ -117,6 +117,7 @@ end
 %files
 %{_unitdir}/oled-tools-scripts.service
 %{_unitdir}/rpm_db_snooper.service
+%{_unitdir}/signal_snooper.service
 %defattr(-,root,root,-)
 
 %license LICENSE.txt
@@ -151,6 +152,9 @@ end
 
 %changelog
 * Fri Aug 01 2025 Ryan McCabe <ryan.m.mccabe@oracle.com> - 1.1.0-1
+- Added kill_signal_watcher service [Orabug: 38300383]
+
+* Fri Aug 01 2025 Ryan McCabe <ryan.m.mccabe@oracle.com> - 1.1.0-1
 - Add rpm_db_snooper tool [Orabug: 37780610]
   (Sagar Sagar)
  
@@ -159,7 +163,7 @@ end
   (Srikanth C S)
   [Orabug 38163701]
 
-* Thu Jun 18 2025 Ryan McCabe <ryan.m.mccabe@oracle.com> - 1.0.3-1
+* Wed Jun 18 2025 Ryan McCabe <ryan.m.mccabe@oracle.com> - 1.0.3-1
 - Update to v1.0.3
 - Add the oled olprof command.
   (Partha Sarathi Satapathy)
