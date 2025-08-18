@@ -76,6 +76,8 @@ install:
 	install -m 755 $(CURDIR)/net/rds_cm_events_example.txt $(DOCSDIR)
 	install -m 755 $(CURDIR)/net/rds_ping.d $(SCRIPTSDIR)
 	install -m 755 $(CURDIR)/net/rds_ping_example.txt $(DOCSDIR)
+	install -m 755 $(CURDIR)/net/rds_cong_track.d $(SCRIPTSDIR)
+	install -m 755 $(CURDIR)/net/rds_cong_track_example.txt $(DOCSDIR)
 #io
 	install -m 755 $(CURDIR)/io/nvme_io_comp.d $(SCRIPTSDIR)
 	install -m 755 $(CURDIR)/io/nvme_io_comp_example.txt $(DOCSDIR)
