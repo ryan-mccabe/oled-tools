@@ -1,0 +1,18 @@
+[Unit]
+Description=Dtrace program to monitor kill signal
+After=network.target
+
+[Service]
+# Uncomment to Enable debug logging in the kill_trace.sh program
+# Environment=KILL_WATCHER_DEBUG=-v
+
+ExecStart=/usr/libexec/oled-tools/scripts.d/kill_trace.sh -s 9 $KILL_WATCHER_DEBUG
+
+
+User=root
+Group=root
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
