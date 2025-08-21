@@ -766,7 +766,6 @@ def kern_create_dt(fnlist: list, wl_name: str) -> str:
     if fnlist:
         dtfile_name = TIME+"_"+wl_name+".d"
         dtfile_path = DTPATH+dtfile_name
-        print(dtfile_path)
 
         try:
             with open(dtfile_path, "a", encoding="utf-8") as dtfile:
@@ -926,7 +925,7 @@ def proc_create_dt(pid: int, fnlist: list, function_list: str) -> str:
     if fnlist:
         proc_dtfile_name = TIME+"_profile_"+function_list+"_"+str(pid)+".d"
         dtfile_path = DTPATH+proc_dtfile_name
-        print("Tracing script :", dtfile_path)
+        dbg("Tracing script :", dtfile_path)
 
         try:
             with open(dtfile_path, "a", encoding="utf-8") as dtfile:
@@ -1197,18 +1196,16 @@ def run_dt(dtfile_name: str) -> None:
     cmdline = get_cmdiline()
 
     uek_version = platform.uname().release
+    time = DATE.strftime('%A, %B %d, %Y %H:%M:%S')
 
     try:
         with open(log_path, 'a', encoding='utf-8') as logfile:
             logfile.truncate(0)
-            logfile.write(uek_version)
-            logfile.write("\n")
-            logfile.write(f"Command: {cmdline}")
-            logfile.write("\n")
-            logfile.write(f"Version: {VERSION}")
-            logfile.write("\n")
-            logfile.write(f"Time: {TIME}")
-            logfile.write("\nTrace Logs: \n")
+            logfile.write(f"Kernel version: {uek_version}\n")
+            logfile.write(f"Command: {cmdline}\n")
+            logfile.write(f"Version: {VERSION}\n")
+            logfile.write(f"oled profile start time: {time}\n")
+            logfile.write(f"dtrace file: {dtfile_path}\n")
 
             logfile.close()
     except Exception:
@@ -1220,13 +1217,14 @@ def run_dt(dtfile_name: str) -> None:
         param = dtfile_path + " -o " + log_path
 
     dbg(param)
-    print(f"\nOutput logs are being continuously redirected to {log_path}\n"
+    print("\nStarted tracing, output logs are being continuously "
+          f"redirected to {log_path}\n"
           "Please monitor the file for real-time updates. "
           "Press Ctrl + C to stop the tool")
 
     pid = str(os.getpid())
     pid_entry = f"PID: {pid}, Time {TIME}, Command: {cmdline}"
-    print(pid_entry)
+    dbg(pid_entry)
 
     param_list = param.split(" ")
 
@@ -1249,8 +1247,14 @@ def run_dt(dtfile_name: str) -> None:
                 runfile.write(msg)
                 fcntl.flock(runfile, fcntl.LOCK_UN)
                 runfile.close()
+        try:
+            with open(log_path, 'a', encoding='utf-8') as logfile:
+                logfile.write(f"Waiting on dtrace pid: {DTPID}\n")
+                logfile.write("Trace Logs: \n")
+                logfile.close()
+        except Exception:
+            print("File open error : ", log_path)
 
-        print("Waiting on dtrace pid: ", DTPID)
         dt_subproc_ret = dt_subproc.wait()
         msg = f"PID: {dt_subproc.pid}, Time {TIME}, " \
               f"Command: {cmdline} Exit with code {dt_subproc_ret}"
@@ -1311,7 +1315,7 @@ def trace_proc(function_list: str, tpid: int) -> str:
     msg = "Creating dtrace for pid : " + str(tpid)
     msg = msg + " and workload : "+function_list
 
-    print(msg)
+    dbg(msg)
     mk_dtrace_list(tpid)
 
     wlname = get_workload(function_list)
@@ -1322,7 +1326,7 @@ def trace_proc(function_list: str, tpid: int) -> str:
     dtfile_name = proc_create_dt(tpid, wlname, function_list)
     msg = "Running dtrace for pid : "+str(tpid)
     msg = msg+" and workload : "+function_list
-    print(msg)
+    dbg(msg)
 
     run_dt(dtfile_name)
     return dtfile_name
@@ -1338,7 +1342,7 @@ def trace_kern(function_list: str) -> str:
         exit_with_msg(msg, 2)
 
     msg = "Creating dtrace for kernel, workload : "+function_list
-    print(msg)
+    dbg(msg)
     mk_dtrace_list()
 
     wlname = get_workload(function_list)
@@ -1348,7 +1352,7 @@ def trace_kern(function_list: str) -> str:
 
     dtfile_name = kern_create_dt(wlname, function_list)
     msg = "Running dtrace for kernel, workload : "+function_list
-    print(msg)
+    dbg(msg)
 
     run_dt(dtfile_name)
     return dtfile_name
@@ -1448,8 +1452,6 @@ def main() -> None:
                 expand_workload(function_list)
                 exit_with_msg("", 0)
 
-            msg = "Tracing workload: "+function_list
-            print(msg)
         else:
             msg = "Workload "+function_list+" does not exist."
             print(msg)
@@ -1476,8 +1478,8 @@ def main() -> None:
         else:
             mk_user_workload(args.workloadfile, 0)
 
-    time = DATE.strftime('%A, %B %d, %Y %H:%M:%S')
-    print(f"\noled profile start time : {time}")
+    msg = "Starting workload: "+function_list
+    print(msg)
     trace_dt(function_list, args.pid)
 
     if args.debug and dtfile_path:
