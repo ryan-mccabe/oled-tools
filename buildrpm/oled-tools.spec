@@ -151,12 +151,15 @@ end
 %{_libexecdir}/oled-tools/
 
 %changelog
-* Fri Aug 01 2025 Ryan McCabe <ryan.m.mccabe@oracle.com> - 1.1.0-1
-- Added kill_signal_watcher service [Orabug: 38300383]
-
-* Fri Aug 01 2025 Ryan McCabe <ryan.m.mccabe@oracle.com> - 1.1.0-1
+* Thu Aug 21 2025 Ryan McCabe <ryan.m.mccabe@oracle.com> - 1.1.0-1
 - Add rpm_db_snooper tool [Orabug: 37780610]
   (Sagar Sagar)
+- Add kill_signal_watcher service [Orabug: 38300383]
+  (Sagar Sagar)
+- Add sosdiff [Orabug: 37816934]
+  (John Sobecki)
+- Add RDS socket congestion tracking script [Orabug: 38028931]
+  (Aru Kolappan)
  
 * Thu Jul 10 2025 Ryan McCabe <ryan.m.mccabe@oracle.com> - 1.0.3-2
 - Fix olprof failure on UEK8 kernels.
