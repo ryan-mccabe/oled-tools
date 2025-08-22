@@ -501,11 +501,12 @@ def generate_param_list(param_list: List) -> str:
 
 
 def mk_kern_trace_entry(dtfile: TextIO, this_fn: str,
-                        timeout: int, param_list: List) -> None:
+                        timeout: int, param_list: List,
+                        provider: str) -> None:
     """
     Write kernel trace entry.
     """
-    dt_kern_pid = DT_TXT_ENT.replace("pid__PID__", "fbt")
+    dt_kern_pid = DT_TXT_ENT.replace("pid__PID__", provider)
     dt_kern_lib = dt_kern_pid.replace("__LIB__", "")
     dt_kern = dt_kern_lib.replace("__FUNC__", this_fn)
     dtfile.write(dt_kern)
@@ -558,11 +559,12 @@ def generate_ret_print(ret: List) -> str:
     return printf_statement
 
 
-def mk_kern_trace_exit(dtfile: TextIO, this_fn: str, timeout, ret) -> None:
+def mk_kern_trace_exit(dtfile: TextIO, this_fn: str,
+                       timeout, ret, provider) -> None:
     """
     Write kernel trace exit.
     """
-    dt_kern_pid = DT_TXT_RET.replace("pid__PID__", "fbt")
+    dt_kern_pid = DT_TXT_RET.replace("pid__PID__", provider)
     dt_kern_lib = dt_kern_pid.replace("__LIB__", "")
     dt_kern = dt_kern_lib.replace("__FUNC__", this_fn)
     dtfile.write(dt_kern)
@@ -671,10 +673,13 @@ def mk_kern_dt_fn(dtfile: TextIO, fnlist: list, dtl_out) -> None:
         dbg(f"Function = {func_name}, Return = {ret}, "
             f"Parameters = {param_list}")
 
+        provider = ""
+        p_idx = dtl_out[0].split().index("PROVIDER")
         for dtl in dtl_out:
             fnentry = " "+func_name+" "
             if fnentry in dtl and " entry" in dtl:
                 trace_entry = True
+                provider = dtl.split()[p_idx]
                 dbg(dtl)
 
             if fnentry in dtl and " return" in dtl:
@@ -685,11 +690,14 @@ def mk_kern_dt_fn(dtfile: TextIO, fnlist: list, dtl_out) -> None:
             dbg(f"Invalid function name: {func_name}, skipping it")
             continue
 
+        if provider == "rawfbt":
+            provider = "fbt"
         if trace_entry:
-            mk_kern_trace_entry(dtfile, func_name, timeout, param_list)
+            mk_kern_trace_entry(dtfile, func_name, timeout,
+                                param_list, provider)
 
         if trace_return:
-            mk_kern_trace_exit(dtfile, func_name, timeout, ret)
+            mk_kern_trace_exit(dtfile, func_name, timeout, ret, provider)
 
 
 def parse_function_name(input_str: str) -> Optional[str]:
