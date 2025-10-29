@@ -1,0 +1,160 @@
+.TH OLED NEIGHBRWATCH 8 "Aug 2025" "Oracle Linux Enhanced Diagnostics"
+
+.SH NAME
+oled neighbrwatch - Read and process ip-neighbor entries
+
+.SH SYNOPSIS
+oled neighbrwatch [-h] [-i INFILES [INFILES ...]] [-t] [-a ADDR] [-m MAC]
+                  [-c COUNT] [-T [INTERVAL]] [-C [MAX_SAMPLE]]
+                  [-o OUTFILE]
+
+
+.SH DESCRIPTION
+
+neighbrwatch tool will show all mac addresses mapped to each IP address. It can read and process neighbor entries either dynamically fetched from the current server or stored in a log collected from RDSinfo exawatcher script. The tool can show discrepancies in mac assignment (could help in duplicate IP issue) if an IP address shows MAC association more than others.  It accepts -T (interval [def: 2sec]) and -C (max-sample [def:5]) and reads neighbor entries every -T seconds for -C times.
+At the end, it displays list of IP address and its linked MAC addresses.
+
+The output can be filtered based on IP_address (-a IP) or mac address (-m mac). If input file is given, tool will only process from the file. To read neighbor entries dynamically, then do not give input file.
+
+When file is given, the option -t will show entry count in each samples in the file. If input file is given, tool will only process from the file. To read neighbor entries dynamically, then do not give input file.
+
+If no argument is given, the tool reads dynamic data based on default values of interval and max-samples
+  
+
+.SH OPTIONS
+.TP
+  -h, --help
+	Displays a help message for neighbrwatch command.
+
+.TP
+  -i INFILES [INFILES ...], --infiles INFILES [INFILES ...]
+        Files from RDSinfo exawatcher logs. To process already captured data.
+
+.TP
+  -t
+        Count entries per sample in files. Use with -i option.
+
+.TP
+  -a ADDR, --addr ADDR
+        Display MACs matching given IP address
+
+.TP
+  -m MAC, --mac MAC
+        Display IP addresses matching given MAC
+
+.TP
+  -c COUNT, --count COUNT
+        Display entries matching >= 'count' MACs for an IP address
+
+.TP
+  -T [INTERVAL], --interval [INTERVAL]
+        Collect data every T seconds [default=2]
+
+.TP
+  -C [MAX_SAMPLE], --max_sample [MAX_SAMPLE]
+        Collect C samples [default=5]
+
+.TP
+  -o OUTFILE, --outfile OUTFILE
+        Write output to a file
+
+.SH EXAMPLES
+# oled neighbrwatch
+.br
+Reading neighbor table: interval=2 count=5
+.br
+------------------------------------------------------------
+           IP_addr             cnt                  mac
+.br
+------------------------------------------------------------
+  1) 10.211.8.1                  1   [ 00:00:0c:9f:f0:1f ]
+  2) 10.211.8.19                 1   [ a4:4c:11:6c:c8:3f ]
+  3) 10.211.8.2                  1   [ 58:ac:78:e3:66:7f ]
+  4) 10.211.8.3                  1   [ 58:ac:78:e3:59:ff ]
+  5) 10.211.8.40                 1   [ 56:6f:f5:fe:00:a9 ]
+  6) 10.211.9.162                1   [ 00:10:e0:e7:43:52 ]
+.br
+------------------------------------------------------------
+
+# oled neighbrwatch -i /tmp/RDSInfo-exawatcher*.dat
+.br
+Reading neighbor from files
+.br
+------------------------------------------------------------
+           IP_addr             cnt                  mac
+.br
+------------------------------------------------------------
+
+  1) 192.168.76.10               1   [ 52:54:00:a4:ae:aa ]
+  2) 192.168.76.50               2   [ 52:54:00:a4:ae:cc, 52:54:00:a4:ae:0b ]
+  3) 192.168.76.55               1   [ 52:54:00:a4:ae:11 ]
+  4) 192.168.76.cc               1   [ 52:54:00:a4:ae:cc ]
+.br
+------------------------------------------------------------
+
+# oled neighbrwatch -i /tmp/ntable*.dat -t
+.br
+Reading neighbor from files
+.br
+------------------------------------------------------------
+
+  1) file: /tmp/ntable1.dat
+
+zzz <07/28/2025 13:53:14> subcount: 0
+.br
+Number of entries = 37
+
+zzz <07/28/2025 13:54:14> subcount: 1
+.br
+Number of entries = 32
+
+zzz <07/28/2025 13:55:15> subcount: 2
+.br
+Number of entries = 32
+
+zzz <07/28/2025 13:56:16> subcount: 3
+.br
+Number of entries = 32
+
+
+  2) file: /tmp/ntable2.dat
+
+zzz <07/29/2025 10:53:14> subcount: 0
+.br
+Number of entries = 10
+
+zzz <07/29/2025 10:54:14> subcount: 1
+.br
+Number of entries = 32
+
+zzz <07/29/2025 10:55:15> subcount: 2
+.br
+Number of entries = 32
+
+zzz <07/29/2025 10:56:16> subcount: 3
+.br
+Number of entries = 32
+
+
+# oled neighbrwatch -i /tmp/RDSInfo-exawatcher*.dat -c 2
+.br
+Reading neighbor entry from files
+.br
+------------------------------------------------------------
+.br
+           IP_addr             cnt                  mac
+.br
+------------------------------------------------------------
+.br
+  1) 192.168.76.50               2   [ 52:54:00:a4:ae:cc, 52:54:00:a4:ae:0b ]
+.br
+------------------------------------------------------------
+
+
+.SH REPORTING BUGS
+.TP
+	Please contact Oracle Linux Support to report any bugs for OLED tools.
+
+.SH AUTHOR
+.TP
+        Arumugam Kolappan <aru.kolappan@oracle.com>
