@@ -26,6 +26,7 @@ corresponding man pages for more details.
 - scanfs: Scan KVM images for corruption, supports XFS and EXT4
 - vmcore-utils: Estimating vmcore size before kernel dump
 - profile: trace and profile a workload
+- neighbrwatch: Read and process ip-neighbor entries
 
 ## Installation
 

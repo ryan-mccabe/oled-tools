@@ -32,7 +32,8 @@ subdirs := scripts \
 	tools/vmcore-utils\
 	tools/profile	\
 	tools/rpm_db_snooper \
-	tools/signal_snooper
+	tools/signal_snooper \
+	tools/neighbrwatch
 
 rev_subdirs := $(shell echo -n "$(subdirs) " | tac -s ' ')
 OLEDDIR := $(DESTDIR)/etc/oled
