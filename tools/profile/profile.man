@@ -1,0 +1,108 @@
+.TH OLED OLPROF 8 "Mar 2025" "Oracle Linux Enhanced Diagnostics"
+
+.SH NAME
+oled profile - Evaluate performance of a work load.
+
+.SH SYNOPSIS
+oled  profile [-h] -l WORKLOAD LIST [-p PID] [-d]
+
+.SH DESCRIPTION
+profile genartes profiling scripts dynamically for a list of functions
+representing a workload and excutes the profiling script.
+The profiled data contains outputs of  entry and return traces of each
+function listed in workload list. If a function is not traceable,
+profile will skip it and continue to trace other functions.
+
+The oled profile command mandates use of the `-l` option, which ponits
+to workload function list. The default workloads available are:
+
+kern_cpuhp
+libvirt_cpuhp
+qemu_cpuhp
+
+The command oled profile with a pid as an argument will trace the specified
+process, otherwise will trace the kernel.
+
+The command oled profile with -d option excutes in debug mode.
+
+Note : profile may need ulimit "max locked memory" set properly.
+
+.SH EXAMPLE
+#oled profile -l kern_cpuhp
+.PP
+Creating dtrace for kernel, workload : kern_cpuhp
+.PP
+Running dtrace for kernel, workload : kern_cpuhp
+.PP
+.br
+[2025 Feb 20 12:45:33] [Time: 2701592147917239] [pid: 2074905] [comm: bash] [cpu: 1] cpu_down Entry.
+.br
+[2025 Feb 20 12:45:33] [Time: 2701592147941655] [pid: 2074905] [comm: bash] [cpu: 1] _cpu_down Entry.
+.br
+[2025 Feb 20 12:45:33] [Time: 2701592151024068] [pid: 2074905] [comm: bash] [cpu: 1] cpuhp_kick_ap_work Entry.
+.br
+[2025 Feb 20 12:45:33] [Time: 2701592151037904] [pid: 2074905] [comm: bash] [cpu: 1] cpuhp_kick_ap Entry.
+.br
+[2025 Feb 20 12:45:33] [Time: 2701592151047061] [pid: 2074905] [comm: bash] [cpu: 1] __cpuhp_kick_ap Entry.
+.br
+[2025 Feb 20 12:45:33] [Time: 2701592151060747] [pid: 15] [comm: cpuhp/1] [cpu: 1] cpuhp_should_run Entry.
+.br
+[2025 Feb 20 12:45:33] [Time: 2701592151067821] [pid: 15] [comm: cpuhp/1] [cpu: 1] cpuhp_should_run Return.
+.bt
+
+.SH OPTIONS
+.TP
+-h, --help
+Displays a help message for profile command.
+
+.TP
+-l --workloads WORKLOAD
+Create and excute a profiler based on the workload's functions list.
+
+.TP
+-f WORKLOADFILE, --workloadfile WORKLOADFILE
+Create and execut a profiler based on user provided workload file.
+
+.TP
+-p --pid PID
+Profiles the specified pid; otherwise, profiles the kernel.
+
+.TP
+-d, --debug
+Enables debug logging.
+
+.TP
+-v, --version
+Display olprof version.
+
+.TP
+-L, --list
+Display available workloads.
+
+.TP
+-R, --runs
+Display currently running traces.
+
+.TP
+-T PID, --terminate PID
+Terminates the sepcified profiling.
+
+.TP
+-e, --expand
+Dispaly functions associated with a workload. Must be used with option -l.
+
+.TP
+-o OUTFILE, --output OUTFILE
+The output will be redirected to the file specified by OUTFILE.
+
+.TP
+-P, --print
+Display output on console.
+
+.SH REPORTING BUGS
+.TP
+Please contact Oracle Linux Support to report any bugs for OLED tools.
+
+.SH AUTHOR
+.TP
+Partha Sarathi Satapathy <partha.satapathy@oracle.com>

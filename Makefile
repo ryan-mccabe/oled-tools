@@ -30,7 +30,7 @@ subdirs := scripts \
 	tools/scripts \
 	tools/syswatch \
 	tools/vmcore-utils\
-	tools/olprof	\
+	tools/profile	\
 	tools/rpm_db_snooper \
 	tools/signal_snooper
 

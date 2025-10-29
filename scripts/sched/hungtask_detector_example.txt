@@ -1,0 +1,36 @@
+Purpose: This script reports task stuck in D state, for longer than a specified
+	 threshold.
+	 It uses scheduler trace event sched_switch and core scheduler function
+	 finish_task_switch(), to record tasks entering D state and tasks getting
+	 on CPUs respectively. If any task is found to be in D state for longer
+	 than specified threshold in micro secs (default 100), then it reports
+	 that task, along with call stack via which that task entered D state.
+
+Argument: D state duration threshold in micro secs.
+
+Requires: For UEK6 kernel any dtrace version is usable.
+	  For UEK7 or later kernels (or kernels compiled with newer compilers which
+	  may add .isra.X or other suffixes at end of function name), dtrace version
+	  2.0.2 or later is needed.
+
+Output format:
+	<dtrace walltimestamp>  pid: <val> comm: <val> was blocked for <val> us in D state.
+	      <kernel call stack leading to D state>
+
+
+Sample output:
+	2025 Aug 16 06:04:11 pid: 1716 comm: auditd was blocked for 855 us in D state. 
+
+              vmlinux`finish_task_switch.isra.0+0x1
+              vmlinux`__schedule+0x22c
+              vmlinux`schedule+0x5f
+              vmlinux`io_schedule+0x42
+              vmlinux`wait_on_page_bit_common+0x11b
+              vmlinux`wait_on_page_writeback+0x22
+              vmlinux`__filemap_fdatawait_range+0x93
+              vmlinux`file_write_and_wait_range+0x7a
+              xfs`xfs_file_fsync+0x5a
+              vmlinux`__x64_sys_fsync+0x33
+              vmlinux`do_syscall_64+0x35
+              vmlinux`entry_SYSCALL_64+0xa6
+
