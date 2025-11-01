@@ -1,5 +1,5 @@
 Name: oled-tools
-Version: 1.1.1
+Version: 1.1.0
 Release: 1test1%{?dist}
 Summary: Diagnostic tools for more efficient and faster debugging on Oracle Linux
 # kcore-utils requirements
@@ -11,6 +11,7 @@ BuildRequires: elfutils-devel
 Requires: python3
 BuildRequires: systemd
 BuildRequires: python3-devel
+BuildRequires: python3-setuptools
 BuildRequires: selinux-policy
 BuildRequires: selinux-policy-devel
 BuildRequires: selinux-policy-targeted
@@ -44,8 +45,8 @@ make %{?_smp_mflags}
 
 
 %install
-rm -rf $RPM_BUILD_ROOT
-make install DESTDIR=$RPM_BUILD_ROOT DIST=%{?dist} SPECFILE="1"
+rm -rf %{buildroot}
+make install DESTDIR=%{buildroot} DIST=%{?dist} SPECFILE="1"
 
 %post
 restorecon -vF /var/lib/pcp/config/pmieconf/oled ||:
@@ -96,7 +97,7 @@ if [ $1 -eq 0 ]; then
 fi
 
 %clean
-rm -rf $RPM_BUILD_ROOT
+rm -rf %{buildroot}
 
 %pretrans -p <lua>
 -- Per https://docs.fedoraproject.org/en-US/packaging-guidelines/Directory_Replacement/
@@ -114,7 +115,7 @@ if st and st.type == "directory" then
   end
 end
 
-%files
+%files -f tools/sosdiff/INSTALLED_FILES
 %{_unitdir}/oled-tools-scripts.service
 %{_unitdir}/rpm_db_snooper.service
 %{_unitdir}/signal_snooper.service
@@ -132,6 +133,7 @@ end
 
 # memstate_lib python module
 %{python3_sitelib}/memstate_lib/
+%{python3_sitelib}/sosdiff/
 /var/lib/pcp/config/pmieconf/oled/
 
 # Files for oomwatch configuration
@@ -151,13 +153,7 @@ end
 %{_libexecdir}/oled-tools/
 
 %changelog
-* Wed Oct 29 2025 Arumugam Kolappan <aru.kolappan@oracle.com> - 1.1.1-1
-- Update to v1.1.1
-- Add the neighbrwatch command.
-  (Arumugam Kolappan)
-  [Orabug: 38332817]
-
-* Thu Aug 21 2025 Ryan McCabe <ryan.m.mccabe@oracle.com> - 1.1.0-1
+* Fri Oct 31 2025 Ryan McCabe <ryan.m.mccabe@oracle.com> - 1.1.0-1
 - Add rpm_db_snooper tool [Orabug: 37780610]
   (Sagar Sagar)
 - Add kill_signal_watcher service [Orabug: 38300383]
@@ -166,6 +162,9 @@ end
   (John Sobecki)
 - Add RDS socket congestion tracking script [Orabug: 38028931]
   (Aru Kolappan)
+- Add the neighbrwatch command.
+  (Arumugam Kolappan)
+  [Orabug: 38332817]
  
 * Thu Jul 10 2025 Ryan McCabe <ryan.m.mccabe@oracle.com> - 1.0.3-2
 - Fix olprof failure on UEK8 kernels.

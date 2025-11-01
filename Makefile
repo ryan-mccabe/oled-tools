@@ -28,6 +28,7 @@ subdirs := scripts \
 	tools/memstate \
 	tools/scanfs \
 	tools/scripts \
+	tools/sosdiff \
 	tools/syswatch \
 	tools/vmcore-utils\
 	tools/profile	\
@@ -43,6 +44,7 @@ OLEDBIN := $(DESTDIR)/usr/libexec/oled-tools
 
 export OLEDDIR
 export MANDIR
+export DESTDIR
 
 all:
 	echo $(subdirs)
