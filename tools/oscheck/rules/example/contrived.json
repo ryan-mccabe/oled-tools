@@ -1,0 +1,217 @@
+{
+  "files": {
+    "/etc/shadow": {
+      "and": [
+        {
+          "or": [
+            { "uid": { "eq": 0 } },
+            {
+              "and": [
+                { "user": { "eq": "root" } },
+                {
+                  "not": {
+                    "gid": { "ne": 0 }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "not": {
+            "mode": { "bitwise_and": 4 }
+          }
+        },
+        {
+          "or": [
+            {
+              "and": [
+                { "selinux_context": { "eq": "system_u:object_r:shadow_t:s0" } },
+                { "group": { "eq": "root" } }
+              ]
+            },
+            {
+              "and": [
+                { "uid": { "eq": 0 } },
+                { "gid": { "eq": 0 } }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+
+    "/etc/passwd": {
+      "and": [
+        { "uid": { "eq": 0 } },
+        { "gid": { "eq": 0 } },
+        { "mode": { "bitwise_and": 4 } },
+        { "selinux_context": { "eq": "system_u:object_r:etc_t:s0" } },
+        { "size": { "gt": 0 } }
+      ]
+    },
+
+    "/etc/crontab": {
+      "and": [
+        { "size": { "gt": 0 } },
+        {
+          "or": [
+            { "selinux_context": { "eq": "system_u:object_r:etc_t:s0" } },
+            { "selinux_context": { "eq": "system_u:object_r:system_cron_spool_t:s0" } }
+          ]
+        },
+        {
+          "or": [
+            { "uid": { "eq": 0 } },
+            { "user": { "eq": "root" } }
+          ]
+        }
+      ]
+    },
+
+    "/etc/ssh/sshd_config": {
+      "not": {
+        "file_contents": {
+          "regex": "^\\s*PermitRootLogin\\s+yes\\s*$"
+        }
+      },
+      "selinux_context": { "eq": "system_u:object_r:etc_t:s0" }
+    },
+
+    "/etc/resolv.conf": {
+      "and": [
+        { "size": { "gt": 0 } },
+        {
+          "file_contents": {
+            "regex": "nameserver\\s+"
+          }
+        },
+        {
+          "selinux_context": {
+            "eq": "system_u:object_r:net_conf_t:s0"
+          }
+        }
+      ]
+    },
+
+    "/usr/bin/sudo": {
+      "and": [
+        { "uid": { "eq": 0 } },
+        { "gid": { "eq": 0 } },
+        {
+          "not": {
+            "mode": { "bitwise_and": 2 }
+          }
+        },
+        {
+          "selinux_context": {
+            "eq": "system_u:object_r:bin_t:s0"
+          }
+        }
+      ]
+    },
+
+    "/etc/hosts": {
+      "and": [
+        { "uid": { "eq": 0 } },
+        { "selinux_context": { "eq": "system_u:object_r:etc_t:s0" } },
+        {
+          "file_contents": {
+            "regex": "^\\s*127\\.0\\.0\\.1\\s+localhost"
+          }
+        }
+      ]
+    },
+
+    "/etc/sysctl.conf": {
+      "and": [
+        { "uid": { "eq": 0 } },
+        { "mode": { "bitwise_and": 4 } },
+        { "selinux_context": { "eq": "system_u:object_r:etc_t:s0" } },
+        { "size": { "gt": 0 } }
+      ]
+    },
+
+    "/etc/login.defs": {
+      "and": [
+        { "selinux_context": { "eq": "system_u:object_r:etc_t:s0" } },
+        { "size": { "gt": 0 } },
+        {
+          "file_contents": {
+            "regex": "^\\s*PASS_MAX_DAYS\\s+\\d+"
+          }
+        }
+      ]
+    },
+
+    "/etc/motd": {
+      "or": [
+        { "exists": false },
+        {
+          "and": [
+            { "uid": { "eq": 0 } },
+            { "selinux_context": { "eq": "system_u:object_r:etc_t:s0" } }
+          ]
+        }
+      ]
+    }
+  },
+
+  "sysctl": {
+    "kernel.randomize_va_space": {
+      "eq": 2
+    },
+
+    "vm.swappiness": {
+      "and": [
+        { "ge": 10 },
+        { "le": 60 }
+      ]
+    },
+
+    "net.ipv4.conf.all.rp_filter": {
+      "or": [
+        { "eq": 1 },
+        { "eq": 2 }
+      ]
+    },
+
+    "net.ipv4.conf.default.accept_redirects": {
+      "or": [
+        { "eq": 0 },
+        { "eq": 1 }
+      ]
+    },
+
+    "net.core.somaxconn": {
+      "and": [
+        { "ge": 128 },
+        { "le": 4096 }
+      ]
+    },
+
+    "net.ipv4.conf.*.arp_ignore": {
+      "eq": 0
+    },
+
+    "kernel.sysrq": {
+      "or": [
+        { "eq": 0 },
+        { "eq": 16 }
+      ]
+    },
+
+    "fs.suid_dumpable": {
+      "eq": 0
+    },
+
+    "kernel.kptr_restrict": {
+      "eq": 1
+    },
+
+    "net.ipv4.icmp_echo_ignore_broadcasts": {
+      "eq": 1
+    }
+  }
+}
+

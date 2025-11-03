@@ -1,0 +1,28 @@
+{
+  "mounts": {
+    "/": {
+      "and": [
+        { "source": { "eq": "mounts" } },
+        { "fstype": { "eq": "xfs" } }
+      ]
+    },
+    "/home": {
+      "and": [
+        { "source": { "eq": "fstab" } },
+        { "options": { "contains": "noexec" } },
+        { "passno": { "eq": 2 } }
+      ]
+    },
+    "/run": {
+        "exists": 1
+    },
+    "/tmp": {
+      "options": { "contains": "nosuid" }
+    },
+    "/mnt/data": {
+      "not": {
+        "options": { "contains": "exec" }
+      }
+    }
+  }
+}

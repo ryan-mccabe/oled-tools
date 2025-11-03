@@ -25,6 +25,7 @@ subdirs := scripts \
 	tools/kstack \
 	tools/lkce \
 	tools/oomwatch \
+	tools/oscheck \
 	tools/memstate \
 	tools/scanfs \
 	tools/scripts \

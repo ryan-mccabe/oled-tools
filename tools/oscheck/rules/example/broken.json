@@ -1,0 +1,43 @@
+{
+
+  "sysctl": {
+    "vm.swappiness": { "and": [{ "ge": []}, { "le": {}}] },
+    "vm.vfs_cache_pressure": { "gt": "big" },
+    "nonexistent.key": { "eq": "1" },
+    "nonexistent.*.pattern": { "eq": 1 },
+    "vm.nr_hugepages": { "eq": { "expr": "!0" }},
+    "vm.overcommit_kbytes": { "eq": { "expr": "($value * 2) / 0" }},
+    "vm.overcommit_ratio": { "eq": { "expr": "{'test':50}['test']" }},
+    "vm.overcommit_memory": { "eq": { "expr": "($value * 2) ( $value" } }
+  },
+
+  "files": {
+    "/etc/passwd": {
+      "not": {
+        "xile_contents": {
+          "regex": "^\\s*PermitRootLogin\\s+yes\\s*$"
+        }
+      }
+    },
+    "/etc/group": {
+      "not": {
+	"git": { "eq": 1000 }
+      }
+   },
+   "/etc/resolv.conf": {
+      "file_contents": { "identical": { "type": "file", "value": "/i/dont/exist/resolv.conf" } }
+    },
+   "/etc/hosts": {
+      "file_contents": { "identical": { "type": "null", "value": "nonsensevalue" } }
+    },
+   "/etc/shells": {
+      "file_contents": { "identical": { "type": "base64", "value": "notvalidbase64" } }
+    },
+    "/etc/shadow": {
+      "size": { "gt": "banana" }
+    },
+    "/etc/nonexistent*": {
+      "exists": 1
+    }
+  }
+}

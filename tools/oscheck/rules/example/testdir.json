@@ -1,0 +1,8 @@
+{
+  "files": {
+    "/etc": {
+      "exists": 0,
+      "selinux_context": "system_u:object_r:etc_t:s0"
+    }
+  }
+}

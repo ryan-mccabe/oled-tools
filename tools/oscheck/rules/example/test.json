@@ -1,0 +1,80 @@
+{
+  "sysctl": {
+    "kernel.randomize_va_space": 2,
+    "net.ipv4.conf.*.arp_ignore": { "eq": 0 },
+    "vm.swappiness": { "and": [{ "ge": 10 }, { "le": 50 }] },
+    "net.ipv4.conf.default.accept_redirects": { "or": [0, 1] },
+    "net.core.netdev_rss_key": {
+      "identical": { "type": "file", "value": "/tmp/rss_key" }
+    },
+    "kernel.hardlockup_panic":  {
+	"eq": { "expr": "($value * 1 * 1 * 1 * 1 + 0) / 1" }
+    },
+    "kernel.unknown_nmi_panic": 1,
+    "vm.nr_hugepages": {
+	"le": { "expr": "$MemTotal / 2 / $Hugepagesize" }
+    }
+  },
+
+  "files": {
+    "/etc/crontab": {
+      "selinux_context": { "eq": "system_u:object_r:system_cron_spool_t:s0" },
+      "size": { "gt": 0 }
+    },
+    "/etc/shadow": {
+      "not": { "mode": { "bitwise_and": 4 } },
+      "selinux_context": { "eq": "system_u:object_r:shadow_t:s0" }
+    },
+    "/etc/ssh/sshd_config": {
+      "not": {
+        "file_contents": {
+          "regex": "^\\s*PermitRootLogin\\s+yes\\s*$"
+        }
+      },
+      "selinux_context": "system_u:object_r:etc_t:s0"
+    },
+    "/etc/passwd": {
+      "file_contents": {
+      	"identical": { "type": "sha256", "value": "fad2d5230196c5ee7924815bc9abfcf341c3c991d3429a3f0c6aab99ebeaff87" }
+      }
+    },
+    "/tmp/known_file": {
+      "file_contents": { "identical": { "type": "string", "value": "KNOWN STRING" } }
+    },
+    "/etc/resolv.conf": {
+      "file_contents": { "identical": { "type": "file", "value": "/path/known_good/etc/resolv.conf" } }
+    },
+    "/tmp/rss_key2": {
+      "file_contents": { "identical": { "type": "base64", "value": "YTY6YWQ6MjY6OTQ6NDM6YzA6YmM6MTE6ZTg6ZWM6YzU6NmY6M2Y6MmE6ZjA6ZDE6YTE6Mzg6MDA6ZWM6Mjg6Njc6NzE6MjA6OGQ6YmE6Mzc6Mzk6YTc6MmI6MWE6ZGQ6MjI6ZDQ6ZWM6MTI6MGI6NDQ6ZmQ6MTc6N2Y6ZDQ6YWM6MWI6Yzc6ZWY6N2M6MjQ6NGQ6YTM6ZjA6ODgK" }}
+    },
+    "/var/log/messages": {
+      "user": { "eq": "root" },
+      "group": { "eq": "root" },
+      "not": { "mode": { "bitwise_and": 4 } },
+      "size": { "gt": 0 }
+    },
+    "/var/log/secure": {
+      "exists": true,
+      "mode": { "ne": 644 }
+    },
+    "/var/spool/mail/root": {
+      "exists": false
+    },
+    "/var/spool/mail/user": {
+      "exists": false,
+      "size": { "gt": 0 }
+    },
+    "/etc/group": {
+	"uid": 0
+    },
+    "/etc/sysctl.conf": {
+      "file_contents": { "contains": "kernel.unknown_nmi_panic = 1" }
+    },
+    "/var/lib/systemd/random-seed": {
+      "xattr": { "contains": "user.random-seed-creditable" }
+    },
+    "/tmp/testfile": {
+      "chattr_flags": { "or": [{ "contains": "i" }, { "contains": "A" }] }
+    }
+  }
+}

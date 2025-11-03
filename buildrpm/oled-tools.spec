@@ -1,6 +1,6 @@
 Name: oled-tools
 Version: 1.1.0
-Release: 1test1%{?dist}
+Release: 1test2%{?dist}
 Summary: Diagnostic tools for more efficient and faster debugging on Oracle Linux
 # kcore-utils requirements
 %ifarch x86_64
@@ -47,6 +47,7 @@ make %{?_smp_mflags}
 %install
 rm -rf %{buildroot}
 make install DESTDIR=%{buildroot} DIST=%{?dist} SPECFILE="1"
+cat tools/sosdiff/INSTALLED_FILES tools/oscheck/INSTALLED_FILES > INSTALLED_FILES
 
 %post
 restorecon -vF /var/lib/pcp/config/pmieconf/oled ||:
@@ -115,7 +116,7 @@ if st and st.type == "directory" then
   end
 end
 
-%files -f tools/sosdiff/INSTALLED_FILES
+%files -f INSTALLED_FILES
 %{_unitdir}/oled-tools-scripts.service
 %{_unitdir}/rpm_db_snooper.service
 %{_unitdir}/signal_snooper.service
@@ -134,6 +135,7 @@ end
 # memstate_lib python module
 %{python3_sitelib}/memstate_lib/
 %{python3_sitelib}/sosdiff/
+%{python3_sitelib}/oscheck/
 /var/lib/pcp/config/pmieconf/oled/
 
 # Files for oomwatch configuration
@@ -165,6 +167,8 @@ end
 - Add the neighbrwatch command.
   (Arumugam Kolappan)
   [Orabug: 38332817]
+- Add the os health checker (oscheck) command.
+  (Ryan McCabe)
  
 * Thu Jul 10 2025 Ryan McCabe <ryan.m.mccabe@oracle.com> - 1.0.3-2
 - Fix olprof failure on UEK8 kernels.

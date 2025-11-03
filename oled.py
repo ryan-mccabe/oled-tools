@@ -35,7 +35,7 @@ BINDIR = "/usr/libexec/oled-tools"
 
 # Valid oled subcomands
 OLED_CMDS = (
-    "kstack", "lkce", "oomwatch", "memstate", "sosdiff",
+    "kstack", "lkce", "oomwatch", "memstate", "sosdiff", "oscheck",
     "syswatch", "scanfs", "vmcore_sz", "profile", "scripts",
     "neighbrwatch")
 
@@ -51,6 +51,7 @@ Valid commands:
      lkce        -- Linux Kernel Core Extractor
      memstate    -- Capture and analyze memory usage statistics
      oomwatch    -- Kill processes exceeding memory thresholds
+     oscheck     -- Check OS configuration
      scanfs      -- Scan KVM images for corruption, supports XFS and EXT4
      scripts     -- Run additional oled-tools scripts
      sosdiff     -- Compare two sos reports
