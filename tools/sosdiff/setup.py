@@ -30,7 +30,7 @@ setup(
     description="sosreport comparison tool",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://linux-git.oraclecorp.com/jsobecki/sosdiff",
+    url="https://www.github.com/oracle/oled-tools",
     author="John Sobecki",
     author_email="john.sobecki@oracle.com",
     license="GPLv2",

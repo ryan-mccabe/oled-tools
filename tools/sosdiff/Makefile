@@ -21,6 +21,11 @@
 all:
 	@echo "all:$(CURDIR)"
 
+sosdiff.8: sosdiff.8.scd
+	scdoc < $< > $@
+
+man: sosdiff.8
+
 clean:
 	@echo "clean:$(CURDIR)"
 
@@ -28,6 +33,7 @@ install:
 	@echo "install:$(CURDIR)"
 	python3 setup.py build
 	python3 setup.py install --prefix=/usr --install-scripts=/usr/libexec/oled-tools --root=$(DESTDIR) --single-version-externally-managed --record INSTALLED_FILES
+	gzip -c $(CURDIR)/sosdiff.8 > $(MANDIR)/oled-sosdiff.8.gz
 
 uninstall:
 	@echo "uninstall:$(CURDIR)"

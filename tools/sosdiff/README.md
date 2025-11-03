@@ -6,14 +6,6 @@ Or maybe just to validate two systems are actually setup in a very similar fashi
 
 The goal after extensive internal testing will be to merge this into the mainline sos RPM code. 
 
-## Installation
-
-At this time, git clone the repo to test out sosdiff. 
-
-```bash
-$ git clone https://linux-git.oraclecorp.com/jsobecki/sosdiff
-```
-
 ## Usage
 
 Run it with `python -m sosdiff`:
