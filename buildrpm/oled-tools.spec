@@ -9,6 +9,7 @@ BuildRequires: bzip2-devel
 BuildRequires: elfutils-devel
 %endif
 Requires: python3
+Requires: drgn
 BuildRequires: systemd
 BuildRequires: python3-devel
 BuildRequires: python3-setuptools
@@ -31,8 +32,8 @@ Source0: %{name}-%{version}.tar.gz
 %description
 oled-tools is a collection of command line tools, scripts, config files, etc.,
 that will aid in faster and better debugging of problems on Oracle Linux. It
-contains: lkce, kstack, memstate, oomwatch, syswatch, scanfs, vmcore_sz, and
-olprof and neighbrwatch.
+contains: lkce, kstack, memstate, oomwatch, syswatch, scanfs, vmcore_sz,
+olprof, neighbrwatch and swapinfo.
 
 %prep
 %setup -q

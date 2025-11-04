@@ -37,7 +37,7 @@ BINDIR = "/usr/libexec/oled-tools"
 OLED_CMDS = (
     "kstack", "lkce", "oomwatch", "memstate", "sosdiff",
     "syswatch", "scanfs", "vmcore_sz", "profile", "scripts",
-    "neighbrwatch")
+    "neighbrwatch", "swapinfo")
 
 
 def parse_args(args: Sequence[str]) -> argparse.Namespace:
@@ -58,6 +58,7 @@ Valid commands:
      vmcore_sz   -- Estimating vmcore size before kernel dump
      profile     -- Trace and profile a workload
      neighbrwatch -- Read and process ip-neighbor entries
+     swapinfo    -- Dump swap information on the system
 """)
 
     parser.add_argument(
