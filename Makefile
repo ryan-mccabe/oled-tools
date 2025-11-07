@@ -32,7 +32,7 @@ subdirs := scripts \
 	tools/sosdiff \
 	tools/syswatch \
 	tools/vmcore-utils\
-	tools/profile	\
+	tools/trace	\
 	tools/rpm_db_snooper \
 	tools/signal_snooper \
 	tools/neighbrwatch
