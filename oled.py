@@ -36,7 +36,7 @@ BINDIR = "/usr/libexec/oled-tools"
 # Valid oled subcomands
 OLED_CMDS = (
     "kstack", "lkce", "oomwatch", "memstate", "sosdiff", "oscheck",
-    "syswatch", "scanfs", "vmcore_sz", "profile", "scripts",
+    "syswatch", "scanfs", "vmcore_sz", "trace", "scripts",
     "neighbrwatch")
 
 
@@ -57,7 +57,7 @@ Valid commands:
      sosdiff     -- Compare two sos reports
      syswatch    -- Execute user-provided commands based on the CPU utilization
      vmcore_sz   -- Estimating vmcore size before kernel dump
-     profile     -- Trace and profile a workload
+     trace       -- Trace a workload
      neighbrwatch -- Read and process ip-neighbor entries
 """)
 

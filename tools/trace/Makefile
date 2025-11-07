@@ -29,19 +29,24 @@ clean:
 install:
 	@echo "install:$(CURDIR)"
 	mkdir -p $(WORKLOADDIR)
-	install -m 755 $(CURDIR)/profile.py $(OLEDBINDIR)/profile
+	install -m 755 $(CURDIR)/trace.py $(OLEDBINDIR)/trace
 	install -m 755 $(CURDIR)/kern_cpuhp.fnlist $(WORKLOADDIR)/kern_cpuhp.fnlist
 	install -m 755 $(CURDIR)/libvirt_cpuhp.fnlist $(WORKLOADDIR)/libvirt_cpuhp.fnlist
 	install -m 755 $(CURDIR)/qemu_cpuhp.fnlist $(WORKLOADDIR)/qemu_cpuhp.fnlist
 	install -m 755 $(CURDIR)/proc_workload.list $(WORKLOADDIR)/proc_workload.list
 	install -m 755 $(CURDIR)/kern_workload.list $(WORKLOADDIR)/kern_workload.list
-	gzip -c $(CURDIR)/profile.man > $(MANDIR)/oled-profile.8.gz
-	chmod 644 $(MANDIR)/oled-profile.8.gz
-	@echo "profile successfully installed!"
+	gzip -c $(CURDIR)/trace.man > $(MANDIR)/oled-trace.8.gz
+	chmod 644 $(MANDIR)/oled-trace.8.gz
+	@echo "trace successfully installed!"
 
 uninstall:
 	@echo "uninstall:$(CURDIR)"
-	rm -f $(OLEDBINDIR)/profile
+	rm -f $(OLEDBINDIR)/trace
+	rm -f $(WORKLOADDIR)/kern_cpuhp.fnlist
+	rm -f $(WORKLOADDIR)/libvirt_cpuhp.fnlist
+	rm -f $(WORKLOADDIR)/qemu_cpuhp.fnlist
+	rm -f $(WORKLOADDIR)/proc_workload.list
+	rm -f $(WORKLOADDIR)/kern_workload.list
 	rm -f $(WORKLOADDIR)
-	rm -f $(MANDIR)/oled-profile.8.gz
-	@echo "profile successfully uninstalled!"
+	rm -f $(MANDIR)/oled-trace.8.gz
+	@echo "trace successfully uninstalled!"

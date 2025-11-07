@@ -23,7 +23,7 @@
 # Author: Partha Satapathy partha.satapathy@oracle.com
 
 """
-Module providing a function to profile workload.
+Module providing a function to trace workload.
 """
 
 
@@ -39,39 +39,39 @@ from typing import List, Optional, Tuple, Any, TextIO
 from datetime import datetime
 
 # version
-VERSION = "oled_profile_0_1.2"
+VERSION = "oled_trace_0_1.2"
 
-# profile_0_1.0
+# trace_0_1.0
 #
-# Add base code for profile kernel and application profiler
+# Add base code for trace kernel and application profiler
 # Add workload  kern_cpuhp
 # Add workload libvirt_cpuhp
 # Add workalod qemu_cpuhp
 # Add -d as debug mode
 #
 
-# profile_0_1.1
+# trace_0_1.1
 #
 # Version details and Add -v for version
 # Add -L --list to list available workloads
 # Add -e --expand with  -l to list functions in the workload
 # Add -f --file to provide a file as a function list
 # Add -o --output file for logging
-# Add -v --version display profile version number
-# Add -R, --runs Display currently running traces
-# Add -T --terminate to Terminates the specified profiling
+# Add -v --display trace version number
+# Add -R --runs Display currently running traces
+# Add -T --terminate to Terminates the specified tracer
 # Add timeout to function list and stop tracing on timeout
-# Add default loging to /var/oled/profile
+# Add default loging to /var/oled/trace
 # Add a README with example
 #
 
 # pylint: disable=broad-exception-caught
 
 KERN_DTFILE_NAME = "dt_trace_kern.d"
-DTPATH = "/var/oled/profile/dtscripts/"
-DTLOGPATH = "/var/oled/profile/dtlog/"
-OLPROF_PATH = "/var/oled/profile/"
-OLPROF_RUNS = "/var/oled/profile/profile.run"
+DTPATH = "/var/oled/trace/dtscripts/"
+DTLOGPATH = "/var/oled/trace/dtlog/"
+OLPROF_PATH = "/var/oled/trace/"
+OLPROF_RUNS = "/var/oled/trace/trace.run"
 INSTPATH = "/usr/libexec/oled-tools/workloads/"
 KERN_WORKLOAD_LIST = "/usr/libexec/oled-tools/workloads/kern_workload.list"
 PROC_WORKLOAD_LIST = "/usr/libexec/oled-tools/workloads/proc_workload.list"
@@ -83,7 +83,7 @@ MINOR = 0
 DATE = datetime.now()
 TIME = DATE.strftime("%Y-%m-%d_%H-%M-%S")
 
-DBGFILE = OLPROF_PATH+TIME+"_profile.dbg"
+DBGFILE = OLPROF_PATH+TIME+"_trace.dbg"
 
 kern_workload_list: List[str] = []
 proc_workload_list: List[str] = []
@@ -169,8 +169,8 @@ def parse_args() -> argparse.Namespace:
     Parse the CLI arguments
     """
     parser = argparse.ArgumentParser(
-        prog='profile',
-        description='Trace and profile workload events.')
+        prog='trace',
+        description='Trace a workload events.')
 
     # -l and -f are mutually exclusive
     group1 = parser.add_mutually_exclusive_group(required=False)
@@ -199,7 +199,7 @@ def parse_args() -> argparse.Namespace:
         "-v",
         "--version",
         action='store_true',
-        help="Display oled profile version number")
+        help="Display oled trace version number")
 
     parser.add_argument(
         "-L",
@@ -217,7 +217,7 @@ def parse_args() -> argparse.Namespace:
         "-T",
         "--terminate",
         metavar="PID",
-        help="Terminates the specified profiling.")
+        help="Terminates the specified tracer.")
 
     parser.add_argument(
         "-e",
@@ -242,7 +242,7 @@ def parse_args() -> argparse.Namespace:
     args = parser.parse_args()
 
     if not len(sys.argv) - 1:
-        print("Workload need to be specified for profile")
+        print("Workload need to be specified for trace")
         parser.print_help()
         exit_with_msg("", 2)
 
@@ -926,7 +926,7 @@ def proc_create_dt(pid: int, fnlist: list, function_list: str) -> str:
     dbg(msg)
 
     if fnlist:
-        proc_dtfile_name = TIME+"_profile_"+function_list+"_"+str(pid)+".d"
+        proc_dtfile_name = TIME+"_trace_"+function_list+"_"+str(pid)+".d"
         dtfile_path = DTPATH+proc_dtfile_name
         dbg(f"Tracing script :{dtfile_path}")
 
@@ -1055,7 +1055,7 @@ def get_cmdiline() -> str:
         else:
             cmdline += f"{arg}  "
 
-    return "oled profile " + cmdline
+    return "oled trace " + cmdline
 
 
 def check_pid(pid: int):
@@ -1126,7 +1126,7 @@ def dump_runlist() -> None:
             lines = runfile.readlines()
             lcount = len(lines)
             if lcount:
-                msg = "Running profile trace are: "
+                msg = "Running tracers are: "
                 print(msg)
                 for line in lines:
                     print(line)
@@ -1135,7 +1135,7 @@ def dump_runlist() -> None:
             runfile.close()
 
     except Exception:
-        msg = "Error runnig profile traces."
+        msg = "Error running tracers."
         print(msg)
         dbg(msg)
         return
@@ -1154,13 +1154,13 @@ def runlist() -> None:
     """
 
     if not os.path.exists(OLPROF_RUNS):
-        msg = "No active  profile runs"
+        msg = "No active  tracers"
         print(msg)
         dbg(msg)
         return
 
     if os.path.getsize(OLPROF_RUNS) == 0:
-        msg = "No active  profile runs"
+        msg = "No active tracers"
         print(msg)
         dbg(msg)
         return
@@ -1168,13 +1168,13 @@ def runlist() -> None:
     runlist_sanity()
 
     if not os.path.exists(OLPROF_RUNS):
-        msg = "No active  profile runs"
+        msg = "No active tracers"
         print(msg)
         dbg(msg)
         return
 
     if os.path.getsize(OLPROF_RUNS) == 0:
-        msg = "No active  profile runs"
+        msg = "No active  tracers"
         print(msg)
         dbg(msg)
         return
@@ -1190,12 +1190,12 @@ def runlist_clean(_id: int) -> None:
         return
 
     if not os.path.exists(OLPROF_RUNS):
-        msg = "No active  profile runs"
+        msg = "No active  tracers"
         dbg(msg)
         return
 
     if os.path.getsize(OLPROF_RUNS) == 0:
-        msg = "No active  profile runs"
+        msg = "No active tracers"
         dbg(msg)
         return
 
@@ -1223,7 +1223,7 @@ def runlist_clean(_id: int) -> None:
             runfile.close()
 
     except Exception:
-        msg = "Error in profile traces."
+        msg = "Error in trace."
         print(msg)
         dbg(msg)
         return
@@ -1240,13 +1240,13 @@ def runlist_clean(_id: int) -> None:
                         runfile.write(line)
 
     except Exception:
-        msg = "Error in profile traces."
+        msg = "Error in trace."
         print(msg)
         dbg(msg)
         return
 
     if lcount == 0:
-        msg = "No runnig profile traces."
+        msg = "No running tracers."
         dbg(msg)
 
     return
@@ -1254,7 +1254,7 @@ def runlist_clean(_id: int) -> None:
 
 def terminate_id(_id: str) -> None:
     """
-    Terminate the specified profile based on the PID provided
+    Terminate the specified trace based on the PID provided
     """
     if _id is None:
         return
@@ -1275,7 +1275,7 @@ def terminate_id(_id: str) -> None:
             runfile.close()
 
     except Exception:
-        msg = "No runnig profile traces."
+        msg = "No running tracers."
         print(msg)
         dbg(msg)
         return
@@ -1318,7 +1318,7 @@ def run_dt(dtfile_name: str) -> None:
             logfile.write(f"Kernel version: {uek_version}\n")
             logfile.write(f"Command: {cmdline}\n")
             logfile.write(f"Version: {VERSION}\n")
-            logfile.write(f"oled profile start time: {time}\n")
+            logfile.write(f"oled trace start time: {time}\n")
             logfile.write(f"dtrace file: {dtfile_path}\n")
 
             logfile.close()
@@ -1540,20 +1540,20 @@ def config_file_to_list(file_path, entries_list):
 # pylint: disable=too-many-branches, too-many-statements
 def main() -> None:
     """
-    oled profile genartes profiling scripts dynamically for a list of
-    functions representing a workload and excutes the profiling script.
-    The profiled data contains outputs of  entry and return traces of each
+    oled trace genartes tracing scripts dynamically for a list of
+    functions representing a workload and excutes the script.
+    The gathered data contains outputs of  entry and return traces of each
     function listed in workload list. If a function is not traceable,
-    profile will skip it and continue to trace other functions.
+    trace will skip it and continue to trace other functions.
 
-    The oled profile command  mandates use of the `-l` option ponits to
+    The oled trace command  mandates use of the `-l` option ponits to
     workload function list. The default workloads are available in the
     workload directory.
 
-    The command oled profile with a pid as an argument, will trace the
+    The command oled trace with a pid as an argument, will trace the
     specified process, otherwise will trace the kernel.
 
-    The command oled profile with -d option, excutes in debug mode.
+    The command oled trace with -d option, excutes in debug mode.
     """
     global MAJOR, MINOR
 
@@ -1596,8 +1596,8 @@ def main() -> None:
     if args.terminate:
         _id = args.terminate
         if _id is None:
-            print("We need a PID to terminate the profile")
-            print("Please run oled profile -R to list running profiles")
+            print("We need a PID to terminate the trace")
+            print("Please run oled trace -R to list running tracers")
         else:
             terminate_id(_id)
 

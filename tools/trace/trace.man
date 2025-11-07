@@ -1,34 +1,34 @@
-.TH OLED OLPROF 8 "Mar 2025" "Oracle Linux Enhanced Diagnostics"
+.TH OLED TRACE 8 "Mar 2025" "Oracle Linux Enhanced Diagnostics"
 
 .SH NAME
-oled profile - Evaluate performance of a work load.
+oled trace - Evaluate performance of a work load.
 
 .SH SYNOPSIS
-oled  profile [-h] -l WORKLOAD LIST [-p PID] [-d]
+oled  trace [-h] -l WORKLOAD LIST [-p PID] [-d]
 
 .SH DESCRIPTION
-profile genartes profiling scripts dynamically for a list of functions
-representing a workload and excutes the profiling script.
-The profiled data contains outputs of  entry and return traces of each
+trace genartes a tracing scripts dynamically for a list of functions
+representing a workload and excutes the tracing script.
+The gathered data contains outputs of  entry and return traces of each
 function listed in workload list. If a function is not traceable,
-profile will skip it and continue to trace other functions.
+trace will skip it and continue to trace other functions.
 
-The oled profile command mandates use of the `-l` option, which ponits
+The oled trace command mandates use of the `-l` option, which ponits
 to workload function list. The default workloads available are:
 
 kern_cpuhp
 libvirt_cpuhp
 qemu_cpuhp
 
-The command oled profile with a pid as an argument will trace the specified
+The command oled trace with a pid as an argument will trace the specified
 process, otherwise will trace the kernel.
 
-The command oled profile with -d option excutes in debug mode.
+The command oled trace with -d option excutes in debug mode.
 
-Note : profile may need ulimit "max locked memory" set properly.
+Note : trace may need ulimit "max locked memory" set properly.
 
 .SH EXAMPLE
-#oled profile -l kern_cpuhp
+#oled trace -l kern_cpuhp
 .PP
 Creating dtrace for kernel, workload : kern_cpuhp
 .PP
@@ -53,19 +53,19 @@ Running dtrace for kernel, workload : kern_cpuhp
 .SH OPTIONS
 .TP
 -h, --help
-Displays a help message for profile command.
+Displays a help message for trace command.
 
 .TP
 -l --workloads WORKLOAD
-Create and excute a profiler based on the workload's functions list.
+Create and excute a tracer based on the workload's functions list.
 
 .TP
 -f WORKLOADFILE, --workloadfile WORKLOADFILE
-Create and execut a profiler based on user provided workload file.
+Create and execut a tracer based on user provided workload file.
 
 .TP
 -p --pid PID
-Profiles the specified pid; otherwise, profiles the kernel.
+Profiles the specified pid; otherwise, trace the kernel.
 
 .TP
 -d, --debug
@@ -85,7 +85,7 @@ Display currently running traces.
 
 .TP
 -T PID, --terminate PID
-Terminates the sepcified profiling.
+Terminates the sepcified tracer.
 
 .TP
 -e, --expand
