@@ -56,11 +56,11 @@ def read_neighbor(files, fpopen):
         try:
             with open(infile, "r") as flog:
                 for line in flog.readlines():
-                    words = line.split()
+                    words = line.lower().split()
                     if words and len(words) > 5:
                         if words[1] == "dev" and words[3] == "lladdr":
                             ip_addr = words[0]
-                            mac = str(words[4])
+                            mac = words[4]
                             store_neighbor(ip_addr, mac)
         except (PermissionError, FileNotFoundError, IOError,
                 IsADirectoryError, UnicodeDecodeError):
@@ -105,7 +105,7 @@ def process_one_entry(line, prev_cnt, fpopen) -> int:
     process single neighbor entry
     """
     total = prev_cnt
-    words = line.split()
+    words = line.lower().split()
     if words:
         if words[0] == "zzz" and words[3] == "subcount:":
             if total > -1:
@@ -166,11 +166,11 @@ def collect_one_neigh(line):
     """
     Process one neighbor entry
     """
-    words = line.split()
+    words = line.lower().split()
     if words and len(words) > 5:
         if (words[1] == "dev" and words[3] == "lladdr"):
             ip_addr = words[0]
-            mac = str(words[4])
+            mac = words[4]
             store_neighbor(ip_addr, mac)
 
 
@@ -208,9 +208,9 @@ def get_args() -> argparse.Namespace:
     parser.add_argument("-t", action='store_true',
                         help="Entry count per sample in files. "
                         "Use with -i option")
-    parser.add_argument("-a", "--addr",
+    parser.add_argument("-a", "--addr", type=str.lower,
                         help="Display MACs matching given IP address")
-    parser.add_argument("-m", "--mac",
+    parser.add_argument("-m", "--mac", type=str.lower,
                         help="Display IP addresses matching given MAC")
     parser.add_argument("-c", "--count",
                         help="Display entries matching >= 'count' "
