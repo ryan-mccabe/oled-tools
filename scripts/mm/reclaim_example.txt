@@ -1,0 +1,105 @@
+Purpose: This scripts summarizes results of an indirect or direct reclaim.
+	 Once started, it monitors direct and indirect reclaim tracing events and
+	 reports the results of those reclaims once they finish.
+
+Arguments: None
+1) For UEK6 and UEK7 - No arguments
+2) For UEK8
+need "-D uek8" as macro optional value in command line
+
+Output format:
+
+	<Time stamp> <Direct/Indirect> reclaim summary:
+	    start time: <val>
+	    end time: <val>
+	    duration: <val>
+    	    reclaimed pages (total) : <val>
+                file lru pages : <val> 
+                anon lru pages : <val> 
+                slab pages : <val>
+		pruned inode pages : <val>
+		xfs buf pages : <val>
+
+Sample output:
+
+	2025 Oct 21 01:35:21 Indirect reclaim summary:
+	    start time: 1442306266526
+	    end time: 1442502301571
+	    duration (usecs): 196035
+	    reclaimed pages (total) : 19808
+		file lru pages : 8183
+		anon lru pages : 11506
+		slab pages : 119
+		pruned inode pages : 0
+		xfs buf pages : 0
+	2025 Oct 21 01:35:22 Indirect reclaim summary:
+	    start time: 1443450884803
+	    end time: 1443639344674
+	    duration (usecs): 188459
+	    reclaimed pages (total) : 24624
+		file lru pages : 8193
+		anon lru pages : 16421
+		slab pages : 10
+		pruned inode pages : 0
+		xfs buf pages : 0
+	2025 Oct 21 01:35:24 Indirect reclaim summary:
+	    start time: 1444369461523
+	    end time: 1445914268970
+	    duration (usecs): 1544807
+	    reclaimed pages (total) : 21589
+		file lru pages : 7879
+		anon lru pages : 13709
+		slab pages : 1
+		pruned inode pages : 0
+		xfs buf pages : 0
+	2025 Oct 21 01:35:25 Direct reclaim summary:
+	    start time: 1446706245628
+	    end time: 1446708076500
+	    duration (usecs): 1830
+	    reclaimed pages (total) : 35
+		file lru pages : 12
+		anon lru pages : 23
+		slab pages : 0
+		pruned inode pages : 0
+		xfs buf pages : 0
+
+	2025 Oct 21 01:35:34 Indirect reclaim summary:
+	    start time: 1456270659223
+	    end time: 1456420478838
+	    duration (usecs): 149819
+	    reclaimed pages (total) : 6090
+		file lru pages : 2815
+		anon lru pages : 3275
+		slab pages : 0
+		pruned inode pages : 0
+		xfs buf pages : 0
+	2025 Oct 21 01:35:35 Indirect reclaim summary:
+	    start time: 1456420507964
+	    end time: 1456611055581
+	    duration (usecs): 190547
+	    reclaimed pages (total) : 3919
+		file lru pages : 2317
+		anon lru pages : 1594
+		slab pages : 8
+		pruned inode pages : 0
+		xfs buf pages : 0
+	2025 Oct 21 01:35:35 Indirect reclaim summary:
+	    start time: 1456611079315
+	    end time: 1456630919699
+	    duration (usecs): 19840
+	    reclaimed pages (total) : 2455
+		file lru pages : 2034
+		anon lru pages : 421
+		slab pages : 0
+		pruned inode pages : 0
+		xfs buf pages : 0
+	2025 Oct 21 01:35:35 Indirect reclaim summary:
+	    start time: 1456630955397
+	    end time: 1456662939078
+	    duration (usecs): 31983
+	    reclaimed pages (total) : 3351
+		file lru pages : 1140
+		anon lru pages : 2211
+		slab pages : 0
+		pruned inode pages : 0
+		xfs buf pages : 0
