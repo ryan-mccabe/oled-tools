@@ -1,0 +1,37 @@
+.TH SWAPINFO 8
+.SH NAME
+swapinfo \- Get system swap information.
+.SH SYNOPSIS
+\fB swapinfo\fR
+[ \fB-c \fIVMCORE\fR ]
+[ \fB-p\fR|\fB--pid \fI PID\fR ]
+[ \fB\-d \fISECONDS \fR]
+[ \fB\-h\fR|\fB--help\fR]
+.SH DESCRIPTION
+\fBswapinfo\fR is used to capture the swap infomation on the livesystem or from the given vmcore.
+
+.SH OPTIONS
+.TP
+\fB\-p \fIPID\fR
+The pid of the process to dump swap information for.
+.TP
+\fB\-d \fISECONDS\fR
+Run in diff-mode. Two scans of swap information on system wide are performed with an interval of SECONDS seconds. In diff-mode, newly swapped-in/out memory happened in last SECONDS seconds are reported.
+.TP
+\fB\-c \fIVMCORE\fR
+The path to the vmcore to dump swap information from rather than from the live system.
+.SH ASSUMPTIONS
+\fBswapinfo\fR must be run by root.
+.SH EXAMPLES
+.TP
+To list all processes which has memory swapped out. The output is sorted in reverse order based on the size.
+\fBswapinfo\fR
+.TP
+To dump swap information on process whith pid 56. Swapped-out memory ranges are reported.
+\fBswapinfo -p 56\fR
+.TP
+To see swapped-in/out in last 5 seconds. Sizes for swapped-in are prefixed by "-".
+\fBswapinfo -d 5\fR
+.SH REPORTING BUGS
+.TP
+Please contact Oracle Linux Support to report any bugs for OLED tools.

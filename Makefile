@@ -35,7 +35,8 @@ subdirs := scripts \
 	tools/trace	\
 	tools/rpm_db_snooper \
 	tools/signal_snooper \
-	tools/neighbrwatch
+	tools/neighbrwatch \
+	tools/swapinfo
 
 rev_subdirs := $(shell echo -n "$(subdirs) " | tac -s ' ')
 OLEDDIR := $(DESTDIR)/etc/oled
