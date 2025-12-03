@@ -1,7 +1,8 @@
 Name: oled-tools
 Version: 1.1.0
-Release: 1test2%{?dist}
+Release: 1test3%{?dist}
 Summary: Diagnostic tools for more efficient and faster debugging on Oracle Linux
+Conflicts: oled-tools-lite
 # kcore-utils requirements
 %ifarch x86_64
 BuildRequires: zlib-devel
@@ -34,6 +35,15 @@ oled-tools is a collection of command line tools, scripts, config files, etc.,
 that will aid in faster and better debugging of problems on Oracle Linux. It
 contains: lkce, kstack, memstate, oomwatch, syswatch, scanfs, vmcore_sz,
 olprof, neighbrwatch and swapinfo.
+
+%package lite
+Summary: Subset of oled-tools containing syswatch
+Requires: python3
+Conflicts: %{name}
+
+%description lite
+oled-tools-lite is a lightweight subset of the oled-tools package. Currently
+it contains the syswatch tool.
 
 %prep
 %setup -q
@@ -155,6 +165,15 @@ end
 # all oled-tools subcommands and scripts
 %{_libexecdir}/oled-tools/
 
+%files lite
+%defattr(-,root,root,-)
+
+%license LICENSE.txt
+%doc README.md
+%{_libexecdir}/oled-tools/syswatch
+%{_mandir}/man8/oled-syswatch.8.gz
+
+
 %changelog
 * Fri Oct 31 2025 Ryan McCabe <ryan.m.mccabe@oracle.com> - 1.1.0-1
 - Add rpm_db_snooper tool [Orabug: 37780610]
@@ -165,9 +184,8 @@ end
   (John Sobecki)
 - Add RDS socket congestion tracking script [Orabug: 38028931]
   (Aru Kolappan)
-- Add the neighbrwatch command.
+- Add the neighbrwatch command.[Orabug: 38332817]
   (Arumugam Kolappan)
-  [Orabug: 38332817]
 - Add the os health checker (oscheck) command.
   (Ryan McCabe)
  
