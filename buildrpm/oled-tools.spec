@@ -2,7 +2,6 @@ Name: oled-tools
 Version: 1.1.0
 Release: 1test3%{?dist}
 Summary: Diagnostic tools for more efficient and faster debugging on Oracle Linux
-Conflicts: oled-tools-lite
 # kcore-utils requirements
 %ifarch x86_64
 BuildRequires: zlib-devel
@@ -11,6 +10,8 @@ BuildRequires: elfutils-devel
 %endif
 Requires: python3
 Requires: drgn
+Requires: %{name}-core = %{version}-%{release}
+
 BuildRequires: systemd
 BuildRequires: python3-devel
 BuildRequires: python3-setuptools
@@ -28,22 +29,21 @@ License: GPLv2
 %global debug_package %{nil}
 %global selinuxtype targeted
 
-Source0: %{name}-%{version}.tar.gz
+Source0: %{name}-%{version}.tar.bz2
 
 %description
 oled-tools is a collection of command line tools, scripts, config files, etc.,
 that will aid in faster and better debugging of problems on Oracle Linux. It
-contains: lkce, kstack, memstate, oomwatch, syswatch, scanfs, vmcore_sz,
+contains: lkce, kstack, memstate, oomwatch, scanfs, vmcore_sz,
 olprof, neighbrwatch and swapinfo.
 
-%package lite
-Summary: Subset of oled-tools containing syswatch
+%package core
+Summary: oled-tools core components
 Requires: python3
-Conflicts: %{name}
 
-%description lite
-oled-tools-lite is a lightweight subset of the oled-tools package. Currently
-it contains the syswatch tool.
+%description core
+oled-tools-core is a the minimal set of tools required for the oled-tools
+diagnostic suite. Currently it contains syswatch.
 
 %prep
 %setup -q
@@ -132,6 +132,8 @@ end
 %{_unitdir}/rpm_db_snooper.service
 %{_unitdir}/signal_snooper.service
 %defattr(-,root,root,-)
+%exclude %{_libexecdir}/oled-tools/syswatch
+%exclude %{_mandir}/man8/oled-syswatch.8.gz
 
 %license LICENSE.txt
 %doc README.md
@@ -165,7 +167,7 @@ end
 # all oled-tools subcommands and scripts
 %{_libexecdir}/oled-tools/
 
-%files lite
+%files core
 %defattr(-,root,root,-)
 
 %license LICENSE.txt
