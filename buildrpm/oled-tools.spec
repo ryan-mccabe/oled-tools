@@ -1,6 +1,6 @@
 Name: oled-tools
 Version: 1.1.0
-Release: 1test3%{?dist}
+Release: 1test5%{?dist}
 Summary: Diagnostic tools for more efficient and faster debugging on Oracle Linux
 # kcore-utils requirements
 %ifarch x86_64
@@ -42,8 +42,8 @@ Summary: oled-tools core components
 Requires: python3
 
 %description core
-oled-tools-core is a the minimal set of tools required for the oled-tools
-diagnostic suite. Currently it contains syswatch.
+oled-tools-core is the minimal set of tools required for the oled-tools
+diagnostic suite. Currently, it contains syswatch.
 
 %prep
 %setup -q
@@ -177,20 +177,19 @@ end
 
 
 %changelog
-* Fri Oct 31 2025 Ryan McCabe <ryan.m.mccabe@oracle.com> - 1.1.0-1
-- Add rpm_db_snooper tool [Orabug: 37780610]
-  (Sagar Sagar)
-- Add kill_signal_watcher service [Orabug: 38300383]
-  (Sagar Sagar)
-- Add sosdiff [Orabug: 37816934]
-  (John Sobecki)
-- Add RDS socket congestion tracking script [Orabug: 38028931]
-  (Aru Kolappan)
-- Add the neighbrwatch command.[Orabug: 38332817]
-  (Arumugam Kolappan)
-- Add the os health checker (oscheck) command.
-  (Ryan McCabe)
- 
+* Mon Dec 08 2025 Ryan McCabe <ryan.m.mccabe@oracle.com> - 1.1.0-1
+- Add the rpm_db_snooper tool [Orabug: 37780610] (Sagar Sagar)
+- Add the kill_signal_watcher service [Orabug: 38300383] (Sagar Sagar)
+- Add sosdiff [Orabug: 37816934] (John Sobecki)
+- Add an RDS socket congestion tracking dtrace script. [Orabug: 38028931] (Aru Kolappan)
+- Add the neighbrwatch command. [Orabug: 38332817, 38636189] (Arumugam Kolappan)
+- Add the os health checker (oscheck) command. (Ryan McCabe)
+- Add a hung task detection dtrace script. [Orabug 38321535] (Imran Khan)
+- Add the reclaim.d dtrace script. [Orabug 38561293] (Imran Khan)
+- Add the wakeup_latency.d dtrace script. [Orabug 38334215] (Imran Khan)
+- Rename the profile tool to trace. [Orabug 38590846] (Srikanth C S)
+- Add the swapinfo tool. (Wengang Wang)
+
 * Thu Jul 10 2025 Ryan McCabe <ryan.m.mccabe@oracle.com> - 1.0.3-2
 - Fix olprof failure on UEK8 kernels.
   (Srikanth C S)
