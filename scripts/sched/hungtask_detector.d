@@ -31,10 +31,9 @@
  */
 
 /*
- * min_kernel any UEK-6, UEK-7 or UEK-8 kernel.
+ * min_kernel 5.4.17,5.15.0-200.103.1,6.12.0-0.0.1
  */
 
-#pragma D option quiet
 #pragma D option defaultargs
 
 dtrace:::BEGIN
