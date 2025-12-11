@@ -78,6 +78,12 @@ install:
 	install -m 755 $(CURDIR)/net/rds_ping_example.txt $(DOCSDIR)
 	install -m 755 $(CURDIR)/net/rds_cong_track.d $(SCRIPTSDIR)
 	install -m 755 $(CURDIR)/net/rds_cong_track_example.txt $(DOCSDIR)
+#mm
+	install -m 755 $(CURDIR)/mm/reclaim.d $(SCRIPTSDIR)
+	install -m 755 $(CURDIR)/mm/reclaim_example.txt $(DOCSDIR)
+#sched
+	install -m 755 $(CURDIR)/sched/hungtask_detector.d $(SCRIPTSDIR)
+	install -m 755 $(CURDIR)/sched/hungtask_detector_example.txt $(DOCSDIR)
 #io
 	install -m 755 $(CURDIR)/io/nvme_io_comp.d $(SCRIPTSDIR)
 	install -m 755 $(CURDIR)/io/nvme_io_comp_example.txt $(DOCSDIR)
