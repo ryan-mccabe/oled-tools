@@ -1,6 +1,6 @@
 Name: oled-tools
 Version: 1.1.0
-Release: 1test5%{?dist}
+Release: 1%{?dist}
 Summary: Diagnostic tools for more efficient and faster debugging on Oracle Linux
 # kcore-utils requirements
 %ifarch x86_64
