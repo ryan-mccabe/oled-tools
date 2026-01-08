@@ -1,0 +1,38 @@
+{
+  "packages": {
+    "bash": {
+      "version": { "package_gt": "4.4.20-4.el8" }
+    },
+    "openssl-libs": {
+      "epoch": 1
+    },
+    "grub2-common": {
+      "and": [
+	{ "version": { "package_ne": "2.02-164.0.1.el8_10" } },
+	{ "version": { "package_ne": "2.02-162.0.2.el8_10" } }
+      ]
+    },
+    "grub2-tools-efi": {
+      "and": [
+	{ "evr": { "package_ne": "1:2.02-164.0.1.el8_10" } },
+	{ "evr": { "package_ne": "1:2.02-162.0.2.el8_10" } }
+      ]
+    },
+    "glibc": {
+      "ver": { "package_lt": "2.29" }
+    },
+    "kernel-uek-core": {
+      "version": { "regex": "^5.*uek.*$" }
+    },
+    "rpm": {
+      "installtime": { "gt": 1600000000 }
+    },
+    "badpackage": {
+	"not": { "exists": true }
+    },
+    "badpackage2": {
+	"exists": false
+    }
+  }
+}
+

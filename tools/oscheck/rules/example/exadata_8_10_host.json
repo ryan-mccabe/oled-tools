@@ -1,0 +1,331 @@
+{
+  "sysctl": {
+    "net.ipv6.conf.default.disable_ipv6": {
+      "eq": 1
+    },
+    "fs.file-max": {
+      "eq": 13631488
+    },
+    "net.ipv4.ip_forward": {
+      "eq": 0
+    },
+    "net.ipv4.ip_local_port_range": {
+      "regex": "9000\\s+65500"
+    },
+    "net.ipv4.ip_local_reserved_ports": {
+      "eq": "5042-5056"
+    },
+    "net.ipv4.conf.all.log_martians": {
+      "eq": 1
+    },
+    "net.ipv4.conf.default.log_martians": {
+      "eq": 1
+    },
+    "vm.min_free_kbytes": {
+      "eq": 5279835
+    },
+    "fs.negative-dentry-limit": {
+      "eq": 15
+    },
+    "kernel.nmi_watchdog": {
+      "eq": 0
+    },
+    "dev.raid.speed_limit_min": {
+      "eq": 200000
+    },
+    "dev.raid.speed_limit_max": {
+      "eq": 800000
+    },
+    "kernel.sem": {
+      "regex": "1024\\s+60000\\s+1024\\s+256"
+    },
+    "net.ipv4.tcp_rmem": {
+      "regex": "4096\\s+131072\\s+16777216"
+    },
+    "net.ipv4.tcp_wmem": {
+      "regex": "4096\\s+16384\\s+16777216"
+    },
+    "kernel.randomize_va_space": {
+      "eq": 2
+    },
+    "kernel.sysrq": {
+      "eq": 1
+    },
+    "kernel.panic": {
+      "eq": 60
+    },
+    "kernel.softlockup_panic": {
+      "eq": 1
+    },
+    "kernel.numa_balancing": {
+      "eq": 0
+    },
+    "kernel.core_uses_pid": {
+      "eq": 1
+    },
+    "vm.max_map_count": {
+      "eq": 100000000
+    },
+    "net.core.high_order_alloc_disable": {
+      "eq": 1
+    },
+    "kernel.unknown_nmi_panic": {
+      "eq": 1
+    },
+    "kernel.watchdog_thresh": {
+      "eq": 30
+    },
+    "kernel.printk": {
+      "regex": "4\\s+4\\s+1\\s+7"
+    },
+    "net.ipv4.conf.all.accept_redirects": {
+      "eq": 0
+    },
+    "net.ipv4.conf.default.accept_redirects": {
+      "eq": 0
+    },
+    "net.ipv4.conf.all.send_redirects": {
+      "eq": 0
+    },
+    "net.ipv4.conf.default.send_redirects": {
+      "eq": 0
+    },
+    "net.ipv4.conf.default.secure_redirects": {
+      "eq": 0
+    },
+    "net.ipv4.conf.all.secure_redirects": {
+      "eq": 0
+    },
+    "net.ipv4.tcp_invalid_ratelimit": {
+      "eq": 500
+    },
+    "net.ipv4.tcp_max_syn_backlog": {
+      "eq": 1280
+    },
+    "net.ipv4.conf.default.accept_source_route": {
+      "eq": 0
+    },
+    "net.ipv4.conf.all.accept_source_route": {
+      "eq": 0
+    },
+    "net.ipv4.icmp_echo_ignore_broadcasts": {
+      "eq": 1
+    },
+    "net.ipv4.icmp_ignore_bogus_error_responses": {
+      "eq": 1
+    },
+    "net.ipv4.tcp_syncookies": {
+      "eq": 1
+    },
+    "net.ipv4.tcp_timestamps": {
+      "eq": 0
+    },
+    "net.ipv6.conf.default.autoconf": {
+      "eq": 0
+    },
+    "net.ipv6.conf.all.forwarding": {
+      "eq": 0
+    },
+    "net.ipv6.conf.default.forwarding": {
+      "eq": 0
+    },
+    "net.ipv6.conf.default.accept_redirects": {
+      "eq": 0
+    },
+    "net.ipv6.conf.all.accept_redirects": {
+      "eq": 0
+    },
+    "net.ipv6.conf.default.accept_source_route": {
+      "eq": 0
+    },
+    "net.ipv6.conf.all.accept_source_route": {
+      "eq": 0
+    },
+    "net.ipv6.conf.default.router_solicitations": {
+      "eq": 3
+    },
+    "net.ipv6.conf.default.accept_ra": {
+      "eq": 0
+    },
+    "net.ipv6.conf.all.accept_ra": {
+      "eq": 0
+    },
+    "net.ipv6.conf.default.dad_transmits": {
+      "eq": 1
+    },
+    "net.ipv6.conf.default.accept_dad": {
+      "eq": 2
+    },
+    "net.ipv6.conf.default.max_addresses": {
+      "eq": 1
+    },
+    "vm.nr_overcommit_hugepages": {
+      "eq": 13
+    },
+    "kernel.msgmni": {
+      "eq": 2878
+    },
+    "kernel.msgmax": {
+      "eq": 8192
+    },
+    "kernel.msgmnb": {
+      "eq": 65536
+    },
+    "kernel.shmmni": {
+      "eq": 4096
+    },
+    "fs.aio-max-nr": {
+      "eq": 3145728
+    },
+    "kernel.pid_max": {
+      "eq": 400000
+    },
+    "net.core.rmem_default": {
+      "eq": 4194304
+    },
+    "net.core.wmem_default": {
+      "eq": 262144
+    },
+    "net.core.rmem_max": {
+      "eq": 4194304
+    },
+    "net.core.wmem_max": {
+      "eq": 2097152
+    },
+    "net.core.somaxconn": {
+      "eq": 1024
+    },
+    "net.rds.ib.cm_watchdog_ms": {
+      "eq": 6000
+    },
+    "kernel.core_pattern": {
+      "eq": "|/bin/false"
+    },
+    "kernel.yama.ptrace_scope": {
+      "eq": 1
+    },
+    "kernel.dmesg_restrict": {
+      "eq": 1
+    },
+    "kernel.perf_event_paranoid": {
+      "eq": 2
+    },
+    "net.core.bpf_jit_harden": {
+      "eq": 2
+    },
+    "net.ipv6.conf.eth0.accept_ra": {
+      "eq": 0
+    },
+    "net.ipv6.conf.eth1.accept_ra": {
+      "eq": 0
+    },
+    "net.ipv6.conf.eth10.accept_ra": {
+      "eq": 0
+    },
+    "net.ipv6.conf.eth2.accept_ra": {
+      "eq": 0
+    },
+    "net.ipv6.conf.eth9.accept_ra": {
+      "eq": 0
+    },
+    "net.ipv6.conf.re0.accept_ra": {
+      "eq": 0
+    },
+    "net.ipv6.conf.re1.accept_ra": {
+      "eq": 0
+    },
+    "net.ipv6.conf.stre0.accept_ra": {
+      "eq": 0
+    },
+    "net.ipv6.conf.stre1.accept_ra": {
+      "eq": 0
+    },
+    "net.ipv4.conf.re[01].arp_accept": {
+      "eq": 1
+    },
+    "net.ipv4.conf.re[01].arp_ignore": {
+      "eq": 1
+    },
+    "net.ipv4.conf.re[01].arp_announce": {
+      "eq": 2
+    },
+    "net.ipv4.conf.re[01].arp_filter": {
+      "eq": 0
+    },
+    "net.ipv4.conf.re[01].arp_notify": {
+      "eq": 0
+    },
+    "net.ipv4.neigh.re[01].locktime": {
+      "eq": 0
+    },
+    "net.ipv4.neigh.re[01].base_reachable_time_ms": {
+      "eq": 10000
+    },
+    "net.ipv4.neigh.re[01].delay_first_probe_time": {
+      "eq": 1
+    },
+    "net.ipv4.conf.re*vf*repr.arp_accept": {
+      "eq": 1
+    },
+    "net.ipv4.conf.re*vf*repr.arp_ignore": {
+      "eq": 1
+    },
+    "net.ipv4.conf.re*vf*repr.arp_announce": {
+      "eq": 2
+    },
+    "net.ipv4.conf.re*vf*repr.arp_filter": {
+      "eq": 0
+    },
+    "net.ipv4.conf.re*vf*repr.arp_notify": {
+      "eq": 0
+    },
+    "net.ipv4.conf.stre*.arp_accept": {
+      "eq": 1
+    },
+    "net.ipv4.conf.stre*.arp_ignore": {
+      "eq": 1
+    },
+    "net.ipv4.conf.stre*.arp_announce": {
+      "eq": 2
+    },
+    "net.ipv4.conf.stre*.arp_filter": {
+      "eq": 0
+    },
+    "net.ipv4.conf.stre*.arp_notify": {
+      "eq": 0
+    },
+    "net.ipv4.neigh.stre*.locktime": {
+      "eq": 0
+    },
+    "net.ipv4.neigh.stre[01].base_reachable_time_ms": {
+      "eq": 10000
+    },
+    "net.ipv4.neigh.stre[01].delay_first_probe_time": {
+      "eq": 1
+    },
+    "net.ipv4.conf.all.rp_filter": {
+      "eq": 0
+    },
+    "net.ipv4.conf.default.rp_filter": {
+      "eq": 0
+    },
+    "net.ipv4.conf.all.accept_local": {
+      "eq": 1
+    },
+    "net.ipv4.conf.eth*.rp_filter": {
+      "eq": 1
+    },
+    "net.ipv4.conf.re*.rp_filter": {
+      "eq": 0
+    },
+    "net.ipv4.conf.re[01].accept_local": {
+      "eq": 1
+    },
+    "kernel.shmmax": {
+      "eq": 919112179712
+    },
+    "kernel.shmall": {
+      "eq": 224392622
+    }
+  }
+}

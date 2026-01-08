@@ -30,26 +30,39 @@
  * Sample output: Refer to rds_rdma_lat_example.txt
  */
 
-#define DT_VERSION_NUMBER_(M, m, u) \
-        ((((M) & 0xFF) << 24) | (((m) & 0xFFF) << 12) | ((u) & 0xFFF))
-
-#if __SUNW_D_VERSION >= DT_VERSION_NUMBER_(2,0,0)
-#pragma D option lockmem=unlimited
-#endif
+/*
+ * min_kernel 4.14.35-2047.511.5.5.3,5.4.17-2136.333.5,5.15.0-209.161.3,6.12.0-0.0.1
+ */
 
 #define container_of(__ptr, __type, __member) ((__type *)((unsigned long long)__ptr - (unsigned long long)offsetof(__type, __member)))
 
 dtrace:::BEGIN
 {
+	self->cmsg = (struct cmsghdr *)0;
 	printf("%Y %16s %-16s %s\n", walltimestamp, "[<connection> op]",
 		"Bytes", "Latency(in usecs)"); }
 
+#ifdef uek6
+fbt:rds:rds_rdma_process_send_cmsg:entry
+/
+(self->cmsg = (struct cmsghdr *)arg2) &&
+(self->cmsg != 0) &&
+(self->cmsg->cmsg_type == 1)
+/
+{
+	this->rm = (struct rds_message *)arg1;
+	this->op = (struct rm_rdma_op *)&this->rm->rdma;
+	track_rdma[this->op] = timestamp;
+	self->cmsg = 0;
+}
+#else
 fbt:rds:rds_cmsg_rdma_args:entry
 {
 	this->rm = (struct rds_message *)arg1;
 	this->op = (struct rm_rdma_op *)&this->rm->rdma;
 	track_rdma[this->op] = timestamp;
 }
+#endif
 
 fbt::rds_ib_send_unmap_rdma*:entry
 / track_rdma[(struct rm_rdma_op *) arg1] /

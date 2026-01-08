@@ -39,6 +39,7 @@ class Meminfo(Base):
         self.unaccounted_gb = 0
         self.rds_cache_size_gb = 0
         self.committed_as_gb = 0
+        self.percpu_gb = 0
         self.hugepages = Hugepages()
 
     def __read_meminfo(self):
@@ -46,6 +47,9 @@ class Meminfo(Base):
         if data == "":
             self.print_error("Unable to read /proc/meminfo")
             return data
+
+        swap_total_kb = 0
+        swap_free_kb = 0
         for line in data.splitlines():
             if line.startswith("MemTotal:"):
                 self.mem_total_gb = self.__meminfo_get_value_gb(line)
@@ -53,6 +57,15 @@ class Meminfo(Base):
                 self.slab_total_gb = self.__meminfo_get_value_gb(line)
             if line.startswith("PageTables:"):
                 self.pagetables_gb = self.__meminfo_get_value_gb(line)
+            if line.startswith("SwapTotal:"):
+                swap_total_kb = self.__meminfo_get_value_kb(line)
+            if line.startswith("SwapFree:"):
+                swap_free_kb = self.__meminfo_get_value_kb(line)
+            if line.startswith("Committed_AS:"):
+                self.committed_as_gb = self.__meminfo_get_value_gb(line)
+            if line.startswith("Percpu:"):
+                self.percpu_gb = self.__meminfo_get_value_gb(line)
+        self.swap_used_kb = max(0, swap_total_kb - swap_free_kb)
         return data
 
     def __calc_rds_cache_size(self):
@@ -67,6 +80,11 @@ class Meminfo(Base):
                 size_gb = self.convert_kb_to_gb(
                     num_frags * constants.FRAG_SIZE_KB)
         return round(size_gb, 1)
+
+    @staticmethod
+    def __meminfo_get_value_kb(line):
+        kb_value = line.split(":")[1].strip().split(" ")[0]
+        return int(kb_value)
 
     def __meminfo_get_value_gb(self, line):
         kb_value = line.split(":")[1].strip().split(" ")[0]
@@ -143,9 +161,8 @@ class Meminfo(Base):
         vmalloc = 0
         kernelstack = 0
         anonpages = 0
+        mapped = 0
         shmem = 0
-        swap_total = 0
-        swap_free = 0
         user_allocs = 0
 
         data = self.__read_meminfo()
@@ -171,29 +188,22 @@ class Meminfo(Base):
                 mapped = self.__meminfo_get_value_gb(line)
             if line.startswith("Shmem:"):
                 shmem = self.__meminfo_get_value_gb(line)
-            if line.startswith("SwapTotal:"):
-                swap_total = self.__meminfo_get_value_gb(line)
-            if line.startswith("SwapFree:"):
-                swap_free = self.__meminfo_get_value_gb(line)
-            if line.startswith("Committed_AS:"):
-                self.committed_as_gb = self.__meminfo_get_value_gb(line)
 
         self.rds_cache_size_gb = self.__calc_rds_cache_size()
-        self.swap_used_kb = round(swap_total - swap_free, 1)
 
-        # Userspace allocations include process stack and heap, page cache, I/O
-        # buffers. The page cache value includes mapped files as well as shared
-        # memory.
+        # Userspace allocations include anonymous pages allocated by the
+        # process, page cache, I/O buffers. The page cache value includes
+        # mapped files as well as shared memory.
         user_allocs = round(anonpages + cached + buffers, 1)
 
         # Kernel allocations include slabs, vmalloc, pagetables, stack, RDS
-        # cache, and more. The rest of kernel allocations are "unknown" - these
-        # typically tend to be kernel memory that are consumed via
+        # cache, percpu and more. The rest of kernel allocations are "unknown"
+        # - these typically tend to be kernel memory that are consumed via
         # __get_free_pages() or related APIs, which are not tracked anywhere.
         # If the "unaccounted" value is large, that's a red flag.
         kernel_allocs = round(
             self.slab_total_gb + vmalloc + self.pagetables_gb + kernelstack
-            + self.rds_cache_size_gb, 1)
+            + self.percpu_gb + self.rds_cache_size_gb, 1)
         self.unaccounted_gb = round(
             self.mem_total_gb -
             (mem_free + kernel_allocs + user_allocs
@@ -210,6 +220,7 @@ class Meminfo(Base):
         self.print_pretty_gb_l2("Shared mem", shmem)
         self.print_pretty_gb_l1("Kernel", kernel_allocs)
         self.print_pretty_gb_l2("Slabs", self.slab_total_gb)
+        self.print_pretty_gb_l2("Percpu", self.percpu_gb)
         if self.rds_cache_size_gb != 0:
             self.print_pretty_gb_l2("RDS", self.rds_cache_size_gb)
         self.print_pretty_gb_l2("Unknown", self.unaccounted_gb)

@@ -1,0 +1,58 @@
+Purpose: This script tracks CM packet completions.
+
+Arguments: 
+1) For UEK6 - No arguments
+2) For UEK7 and UEK8
+need "-D uek7" and "-D uek8" as macro optional value in command line
+Refer example below
+
+Output format: each line lists
+<date> <time> <probe>:<ib-dev name>:<port num> <CM event> <WC status>
+
+Sample Run:
+
+UEK6
+****
+
+# rds-stress -r 192.168.100.117  -s 192.168.100.124 -Q 121 --reset
+
+# ./track_cm_packet.d
+DTrace 2.0.0 [Pre-Release with limited functionality]
+>2024 Nov 20 07:19:34 1913336287159 cm_send_handler:mlx5_0:1 DREQ WR_FLUSH_ERR(5) DREQ_SENT
+2024 Nov 20 07:19:34 1913446031257 cm_recv_handler:mlx5_0:1 REJ SUCCESS(0)
+2024 Nov 20 07:19:34 1913449251805 cm_recv_handler:mlx5_0:1 DREP SUCCESS(0)
+2024 Nov 20 07:19:35 1914517241701 cm_recv_handler:mlx5_0:1 REQ SUCCESS(0)
+2024 Nov 20 07:19:35 1914517324761 cm_send_handler:mlx5_0:1 REJ SUCCESS(0) IDLE
+2024 Nov 20 07:19:37 1916051698814 cm_recv_handler:mlx5_0:1 REQ SUCCESS(0)
+2024 Nov 20 07:19:39 1917959227506 cm_recv_handler:mlx5_0:1 REP SUCCESS(0)
+2024 Nov 20 07:19:39 1917959303643 cm_send_handler:mlx5_0:1 REQ WR_FLUSH_ERR(5) REQ_SENT
+2024 Nov 20 07:19:39 1917964082871 cm_send_handler:mlx5_0:1 RTU SUCCESS(0) IDLE
+2024 Nov 20 07:19:43 1922515402227 cm_recv_handler:mlx5_0:1 REQ SUCCESS(0)
+2024 Nov 20 07:19:50 1929171371064 cm_recv_handler:mlx5_0:1 REQ SUCCESS(0)
+
+UEK7
+***
+
+# rds-stress -s 192.168.100.39 -r 192.168.100.117 --reset
+
+# ./track_cm_packet.d -D uek7
+>2025 May 27 09:42:34 1381136772769 cm_recv_handler:mlx5_0:1 DREP SUCCESS(0)
+2025 May 27 09:42:34 1381136838493 cm_send_handler:mlx5_0:1 DREQ WR_FLUSH_ERR(5) DREQ_SENT
+2025 May 27 09:42:34 1381157044260 cm_recv_handler:mlx5_0:1 REQ SUCCESS(0)
+2025 May 27 09:42:34 1381157068355 cm_req_handler:mlx5_0:1 REQ_RECEIVED
+2025 May 27 09:42:34 1381161574421 cm_recv_handler:mlx5_0:1 RTU SUCCESS(0)
+2025 May 27 09:42:34 1381161603202 cm_send_handler:mlx5_0:1 REP WR_FLUSH_ERR(5) REP_SENT
+
+UEK8
+****
+
+# rds-stress -s 192.168.100.117 -r 192.168.100.39 --reset
+
+# ./track.d -D uek8
+>2025 May 30 08:42:22 247444670286140 cm_recv_handler:mlx5_0:1 DREP SUCCESS(0)
+2025 May 30 08:42:22 247444670314488 cm_send_handler:mlx5_0:1 DREQ WR_FLUSH_ERR(5) DREQ_SENT
+2025 May 30 08:42:22 247444689803429 cm_recv_handler:mlx5_0:1 REP SUCCESS(0)
+2025 May 30 08:42:22 247444689827496 cm_rep_handler:mlx5_0:1 REP_RECEIVED
+2025 May 30 08:42:22 247444689835529 cm_send_handler:mlx5_0:1 REQ WR_FLUSH_ERR(5) REQ_SENT
+2025 May 30 08:42:22 247444693751247 cm_send_handler:mlx5_0:1 RTU SUCCESS(0) IDLE
+

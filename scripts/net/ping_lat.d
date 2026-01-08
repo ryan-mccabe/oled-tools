@@ -23,7 +23,7 @@
  */
 
 /*
- * Author: Praveen Kumar Kannoju
+ * Author: Praveen Kumar Kannoju, Nagappan Ramasamy Palaniappan
  * Purpose: This script provides latency details of the icmp packet, during
  * its journey in the kernel. Output shows the time delta between two
  * consequtive kernel functions through which the packet travels.
@@ -31,31 +31,36 @@
  * Sample output: Refer to the file ping_lat_example.txt
 */
 
-#define DT_VERSION_NUMBER_(M, m, u) \
-        ((((M) & 0xFF) << 24) | (((m) & 0xFFF) << 12) | ((u) & 0xFFF))
-
-#if __SUNW_D_VERSION >= DT_VERSION_NUMBER_(2,0,0)
-#pragma D option lockmem=unlimited
-#endif
+/*
+ * min_kernel 4.14.35-2042,5.4.17,5.15.0-200.103.1,6.12.0-0.0.1
+ */
 
 #define ICMP_PROTOCOL   1
 #define ICMP_ECHO       8
 #define ICMP_ECHO_REPLY 0
 
-fbt:vmlinux:ip_send_skb:entry,
-fbt:ib_ipoib:ipoib_cm_send:entry
+#if defined(uek7) || defined(uek8)
+ fbt:vmlinux:__ip_local_out:entry
+#else
+ fbt:vmlinux:ip_send_skb:entry
+#endif
 /
-(this->nh = ((struct sk_buff *)arg1)->head + ((struct sk_buff *)arg1)->network_header) &&
+#if defined(uek7) || defined(uek8)
+ (this->nh = ((struct sk_buff *)arg2)->head + ((struct sk_buff *)arg2)->network_header) &&
+ (this->th = ((struct sk_buff *)arg2)->head + ((struct sk_buff *)arg2)->transport_header) &&
+#else
+ (this->nh = ((struct sk_buff *)arg1)->head + ((struct sk_buff *)arg1)->network_header) &&
+ (this->th = ((struct sk_buff *)arg1)->head + ((struct sk_buff *)arg1)->transport_header) &&
+#endif
 (this->iphdr = (struct iphdr *)this->nh) &&
 (this->iphdr->protocol == ICMP_PROTOCOL) &&
-(this->th = ((struct sk_buff *)arg1)->head + ((struct sk_buff *)arg1)->transport_header) &&
 (this->icmphdr = (struct icmphdr *)this->th) &&
 (this->icmphdr->type == ICMP_ECHO)
 /
 {
-	this->sip = inet_ntoa((ipaddr_t *)(&this->iphdr->saddr));
-	this->dip = inet_ntoa((ipaddr_t *)(&this->iphdr->daddr));
-	this->icmp_seq = this->icmphdr->un.echo.sequence;
+	this->sip = inet_ntoa((__be32 *)(&this->iphdr->saddr));
+	this->dip = inet_ntoa((__be32 *)(&this->iphdr->daddr));
+	this->icmp_seq = ntohs(this->icmphdr->un.echo.sequence);
 	this->icmp_id = ntohs(this->icmphdr->un.echo.id);
 
 	timestamp_info[this->sip, this->dip, this->icmp_seq, this->icmp_id, probefunc] = timestamp;
@@ -75,9 +80,9 @@ fbt:ib_ipoib:ipoib_start_xmit:entry
 (this->icmphdr->type == ICMP_ECHO)
 /
 {
-	this->sip = inet_ntoa((ipaddr_t *)(&this->iphdr->saddr));
-	this->dip = inet_ntoa((ipaddr_t *)(&this->iphdr->daddr));
-	this->icmp_seq = this->icmphdr->un.echo.sequence;
+	this->sip = inet_ntoa((__be32 *)(&this->iphdr->saddr));
+	this->dip = inet_ntoa((__be32 *)(&this->iphdr->daddr));
+	this->icmp_seq = ntohs(this->icmphdr->un.echo.sequence);
 	this->icmp_id = ntohs(this->icmphdr->un.echo.id);
 
 	timestamp_info[this->sip, this->dip, this->icmp_seq, this->icmp_id, probefunc] = timestamp;
@@ -93,31 +98,41 @@ fbt:vmlinux:icmp_rcv:entry
 (this->icmphdr->type == ICMP_ECHO_REPLY)
 /
 {
-	this->sip = inet_ntoa((ipaddr_t *)(&this->iphdr->daddr));
-	this->dip = inet_ntoa((ipaddr_t *)(&this->iphdr->saddr));
-	this->icmp_seq = this->icmphdr->un.echo.sequence;
+	this->sip = inet_ntoa((__be32 *)(&this->iphdr->daddr));
+	this->dip = inet_ntoa((__be32 *)(&this->iphdr->saddr));
+	this->icmp_seq = ntohs(this->icmphdr->un.echo.sequence);
 	this->icmp_id = ntohs(this->icmphdr->un.echo.id);
 
 	this->ip_send_skb_time = timestamp_info[this->sip, this->dip, this->icmp_seq, this->icmp_id, "ip_send_skb"];
+	this->__ip_local_out = timestamp_info[this->sip, this->dip, this->icmp_seq, this->icmp_id,"__ip_local_out"];
 	this->dev_hard_start_xmit_time = timestamp_info[this->sip, this->dip, this->icmp_seq, this->icmp_id, "dev_hard_start_xmit"];
 	this->ipoib_start_xmit_time = timestamp_info[this->sip, this->dip, this->icmp_seq, this->icmp_id, "ipoib_start_xmit"];
-	this->ipoib_cm_send_time = timestamp_info[this->sip, this->dip, this->icmp_seq, this->icmp_id, "ipoib_cm_send"];
 	this->icmp_rcv_time = timestamp;
 
 	printf("icmp id: %d, icmp sequence: %d, src ip: %s, dst ip: %s\n", this->icmp_id, this->icmp_seq, this->sip, this->dip);
 	printf("\nroutine			        delta(ns)\n\n");
-	printf("ip_send_skb\n");
-	printf("dev_hard_start_xmit 	%15d\n", this->dev_hard_start_xmit_time - this->ip_send_skb_time);
-	printf("ipoib_start_xmit 	%15d\n", this->ipoib_start_xmit_time > 0 ? this->ipoib_start_xmit_time - this->dev_hard_start_xmit_time : 0);
-	printf("ipoib_cm_send 		%15d\n", this->ipoib_cm_send_time > 0 ? this->ipoib_cm_send_time - this->ipoib_start_xmit_time : 0);
-	printf("icmp_rcv 		%15d\n\n", this->icmp_rcv_time - this->ipoib_cm_send_time);
-	printf("request-reply latency: 	%15d\n", this->icmp_rcv_time - this->ip_send_skb_time);
-	printf("------------------------------------------------------------------\n");
+	#if defined(uek7) || defined(uek8)
+	  printf("__ip_local_out\n");
+          printf("dev_hard_start_xmit        %15d\n", this->dev_hard_start_xmit_time - this->__ip_local_out);
+        #else
+          printf("ip_send_skb\n");
+          printf("dev_hard_start_xmit        %15d\n", this->dev_hard_start_xmit_time - this->ip_send_skb_time);
+        #endif
+        printf("ipoib_start_xmit       %15d\n", this->ipoib_start_xmit_time > 0 ? this->ipoib_start_xmit_time - this->dev_hard_start_xmit_time : 0);
+        #if defined(uek7) || defined(uek8)
+          printf("request-reply latency:      %15d\n", this->icmp_rcv_time - this->__ip_local_out);
+        #else
+         printf("request-reply latency:      %15d\n", this->icmp_rcv_time - this->ip_send_skb_time);
+        #endif
+        printf("------------------------------------------------------------------\n");
 
-	timestamp_info[this->sip, this->dip, this->icmp_seq, this->icmp_id, "ip_send_skb"] = 0;
+	#if defined(uek7) || defined(uek8)
+	  timestamp_info[this->sip, this->dip, this->icmp_seq, this->icmp_id,"__ip_local_out"] = 0;
+	#else
+ 	 timestamp_info[this->sip, this->dip, this->icmp_seq, this->icmp_id, "ip_send_skb"] = 0;
+	#endif
 	timestamp_info[this->sip, this->dip, this->icmp_seq, this->icmp_id, "dev_hard_start_xmit"] = 0;
 	timestamp_info[this->sip, this->dip, this->icmp_seq, this->icmp_id, "ipoib_start_xmit"] = 0;
-	timestamp_info[this->sip, this->dip, this->icmp_seq, this->icmp_id, "ipoib_cm_send"] = 0;
 
 }
 

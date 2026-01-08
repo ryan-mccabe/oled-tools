@@ -1,0 +1,28 @@
+{
+  "systemd": {
+    "rsyslog.service": {
+      "active": "active",
+      "sub": "running"
+    },
+    "falcon-sensor-nonexistent.service": {
+      "not": { "exists": 1 }
+    },
+    "falcon-senso*.service": {
+      "exists": 1
+    },
+    "tmp.mount": {
+      "active": "active"
+    },
+    "sshd.service": {
+      "active": { "eq": "active" },
+      "description": { "regex": ".*SSH.*" }
+    },
+    "systemd-journald.service": {
+      "state": { "eq": "active/running" }
+    },
+    "auditd.service": {
+      "active": { "eq": "active" },
+      "sub": { "ne": "dead" }
+    }
+  }
+}

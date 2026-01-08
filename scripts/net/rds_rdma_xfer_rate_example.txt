@@ -2,11 +2,60 @@ Purpose: The script shows the rdma transfer rate[MB/s] for each rds connection.
 It also shows histograms of inverse bandwidth in nsecs/KB [Avg number of nsecs
 to transfer 1KB of data].
 
-Arguments: None
+Arguments:
+1) For UEK6
+need "-D uek6" as macro optional value in command line
+2) For UEK5/7/8 None
 
 Output format: [src-ip, dst-ip, tos, <r/w>] <Data transfer rate in MB/s>
 
 Sample output: Shown below.
+
+Example for  UEK6
+----------------------
+# ./rds_rdma_xfer_rate.d -D uek6
+2025 Jul 16 08:49:18
+[<connection> op]                        MB/s
+2025 Jul 16 08:49:28
+[<192.168.101.79,192.168.101.124,0> r] 8
+[<192.168.101.79,192.168.101.124,0> w] 8
+2025 Jul 16 08:49:38
+[<192.168.101.79,192.168.101.124,0> r] 8
+[<192.168.101.79,192.168.101.124,0> w] 8
+2025 Jul 16 08:49:48
+[<192.168.101.79,192.168.101.124,0> w] 8
+[<192.168.101.79,192.168.101.124,0> r] 8
+2025 Jul 16 08:49:58
+[<192.168.101.79,192.168.101.124,0> r] 1
+[<192.168.101.79,192.168.101.124,0> w] 1
+^C
+2025 Jul 16 08:49:59 - Histogram of inverse bandwidth reported in nsecs/KB
+[<192.168.101.79,192.168.101.124,0> w]
+
+           value  ------------- Distribution ------------- count
+            2048 |                                         0
+            4096 |                                         36
+            8192 |@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ 272005
+           16384 |                                         2252
+           32768 |                                         16
+           65536 |                                         4
+          131072 |                                         23
+          262144 |                                         0
+
+[<192.168.101.79,192.168.101.124,0> r]
+
+           value  ------------- Distribution ------------- count
+            2048 |                                         0
+            4096 |                                         11
+            8192 |@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ 271649
+           16384 |                                         2608
+           32768 |                                         17
+           65536 |                                         9
+          131072 |                                         19
+          262144 |                                         0
+
+Example for UEK5/7/8
+----------------------
 # ./rds_rdma_xfer_rate.d
 2022 Oct 25 10:25:17
 [<connection> op]                        MB/s

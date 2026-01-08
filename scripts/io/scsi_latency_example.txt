@@ -1,12 +1,11 @@
 Below are sample output, the script gathers SCSI IO statistics given a sampling
 interval and displays the summary ouptut in histogram format.  The script takes
-2 arguments, the first argument is sampling interval in seconds for latency,
-the second argument is latency threshold time in milli-seconds for IO completion.
+1 argument which is sampling interval in seconds.
 
 The left column of the histogram 'value' output is the latency time in milli-seconds
 and the right 'count' are the number of IO commands completed.
  
-# scsi-latency.d 5 1   (5 being sample interval, and 1 is threshold for IO completion in ms).
+# scsi-latency.d 5   (5 being sample interval in seconds).
         sdbz
            value  ------------- Distribution ------------- count
               -1 |                                         0
@@ -30,7 +29,7 @@ and the right 'count' are the number of IO commands completed.
 
 Below is a sample of abnormally higher latency of IO completion.
 
-# scsi-latency.d 5 50
+# scsi-latency.d 5
        2022 Oct 21 15:49:16
         =======================================================
         sddb                                 7:0:2:229

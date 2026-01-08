@@ -1,0 +1,13 @@
+{
+  "cmdline": {
+    "nvme_core.shutdown_timeout": 10,
+    "root": { "eq": "/dev/mapper/vg00-root" },
+    "debug": { "ne": true },
+    "nomodeset": { "eq": true },
+    "noacpi": { "ne": true },
+    "ro": { "eq": true },
+    "systemd.unit": { "ne": "rescue.target" },
+    "single": { "ne": true }
+  }
+}
+

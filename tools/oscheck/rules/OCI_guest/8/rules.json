@@ -1,0 +1,73 @@
+{
+  "sysctl": {
+    "net.ipv4.ip_forward": {
+      "eq": 0
+    },
+    "net.ipv4.ip_local_port_range": {
+      "regex": "32768\\s+60999"
+    },
+    "kernel.nmi_watchdog": {
+      "eq": 0
+    },
+    "kernel.randomize_va_space": {
+      "eq": 2
+    },
+    "kernel.sysrq": {
+      "eq": 16
+    },
+    "kernel.unknown_nmi_panic": {
+      "eq": 1
+    },
+    "kernel.watchdog_thresh": {
+      "eq": 10
+    },
+    "kernel.printk": {
+      "regex": "7\\s+4\\s+1\\s+7"
+    },
+    "net.ipv4.conf.all.accept_redirects": {
+      "eq": 1
+    },
+    "net.ipv4.conf.default.accept_redirects": {
+      "eq": 1
+    },
+    "net.ipv4.conf.all.send_redirects": {
+      "eq": 1
+    },
+    "net.ipv4.conf.default.send_redirects": {
+      "eq": 1
+    },
+    "net.ipv4.conf.default.secure_redirects": {
+      "eq": 1
+    },
+    "net.ipv4.conf.all.secure_redirects": {
+      "eq": 1
+    },
+    "net.ipv4.tcp_syncookies": {
+      "eq": 1
+    },
+    "net.ipv4.tcp_timestamps": {
+      "eq": 1
+    },
+    "net.ipv6.conf.all.accept_redirects": {
+      "eq": 1
+    },
+    "net.ipv6.conf.default.accept_source_route": {
+      "eq": 0
+    },
+    "net.ipv6.conf.all.accept_source_route": {
+      "eq": 0
+    },
+    "net.ipv6.conf.default.router_solicitations": {
+      "eq":-1 
+    },
+    "net.ipv6.conf.default.accept_ra": {
+      "eq": 1
+    },
+    "net.ipv6.conf.all.accept_ra": {
+      "eq": 1
+    },
+    "net.ipv6.conf.default.dad_transmits": {
+      "eq": 1
+    }
+  }
+}

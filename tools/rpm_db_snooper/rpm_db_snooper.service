@@ -1,0 +1,16 @@
+[Unit]
+Description=Dtrace Program to track kill signals sent to yum/dnf/rpm processes
+After=network.target
+
+[Service]
+# Uncomment to Enable debug logging in dtrace program
+# Environment=RPM_DB_SNOOPER_DEBUG=-DDEBUG
+
+ExecStart=/usr/sbin/dtrace -Cs /usr/libexec/oled-tools/scripts.d/monitor_rpmdb.d $RPM_DB_SNOOPER_DEBUG
+StandardOutput=journal
+StandardError=journal
+Restart=on-success
+User=root
+
+[Install]
+WantedBy=multi-user.target

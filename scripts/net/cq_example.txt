@@ -1,0 +1,27 @@
+Purpose: This script tracks new connections and prints the Completion Queue
+objects and the associated completion queue numbers.
+
+Arguments:
+For UEK5:
+./cq.d -D uek5
+
+For UEK6/UEK7: None
+
+Output format: each line lists
+<probe> <pid> <execname> <IB device> <CQ object> <Mellanox Core CQ Object> <CQ
+number> <IRQ number>
+Sample output: Shown below.
+
+UEK5:
+./cq.d -D uek5
+mlx5_ib_destroy_cq:7837:kworker/u10:4 ib_dev=ffff9d97a9a20000 ib_cq=ffff9d97a91d7c00 m_core_cq=ffff9d97a91d7cc0 cqn=1416 irqn=26
+mlx5_ib_destroy_cq:7837:kworker/u10:4 ib_dev=ffff9d97a9a20000 ib_cq=ffff9d97a91d6000 m_core_cq=ffff9d97a91d60c0 cqn=1417 irqn=29
+mlx5_ib_create_cq:7853:kworker/u10:5 ib_cq=ffff9d9797115400 m_core_cq=ffff9d97971154c0 cqn=1416 irqn=26
+mlx5_ib_create_cq:7853:kworker/u10:5 ib_cq=ffff9d9797114800 m_core_cq=ffff9d97971148c0 cqn=1417 irqn=29
+
+UEK6/UEK7:
+./cq.d
+mlx5_ib_destroy_cq:26121:kworker/0:0 ib_dev=ffff88d725e40000 ib_cq=ffff88d71d3ebc00 m_core_cq=ffff88d71d3ebcd8 cqn=3239 irqn=37
+mlx5_ib_destroy_cq:26121:kworker/0:0 ib_dev=ffff88d725e40000 ib_cq=ffff88d72a109c00 m_core_cq=ffff88d72a109cd8 cqn=3238 irqn=36
+mlx5_ib_create_cq:26121:kworker/0:0 ib_dev=ffff88d725e40000 ib_cq=ffff88d7175a6800 m_core_cq=ffff88d7175a68d8 cqn=3238 irqn=36
+mlx5_ib_create_cq:26121:kworker/0:0 ib_dev=ffff88d725e40000 ib_cq=ffff88d717410400 m_core_cq=ffff88d7174104d8 cqn=3239 irqn=37

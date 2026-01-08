@@ -1,0 +1,18 @@
+{
+"kmod": {
+    "cramfs": {
+      "exists": false
+    },
+    "squashfs": {
+      "exists": true,
+      "state": { "eq": "live" }
+    },
+    "fat": {
+      "usage_count": { "ge": 1 },
+      "used_by": { "contains": "vfat" }
+    },
+    "loop": {
+      "state": { "eq": "live" }
+    }
+  }
+}

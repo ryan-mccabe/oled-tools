@@ -30,12 +30,9 @@
  * Sample output: Refer to the file rds_bcopy_metric_example.txt
  */
 
-#define DT_VERSION_NUMBER_(M, m, u) \
-        ((((M) & 0xFF) << 24) | (((m) & 0xFFF) << 12) | ((u) & 0xFFF))
-
-#if __SUNW_D_VERSION >= DT_VERSION_NUMBER_(2,0,0)
-#pragma D option lockmem=unlimited
-#endif
+/*
+ * min_kernel 4.14.35-2042,5.4.17,5.15.0-200.103.1,6.12.0-0.0.1
+ */
 
 dtrace:::BEGIN
 {
@@ -65,7 +62,11 @@ fbt::rds_sendmsg:return
 
 fbt::rds_ib_inc_copy_to_user:entry
 {
+#ifdef uek8
+	self->inc = (struct rds_incoming *)arg1;
+#else
 	self->inc = (struct rds_incoming *)arg0;
+#endif
 }
 
 fbt::rds_ib_inc_copy_to_user:return
@@ -85,6 +86,7 @@ tick-10s
 {
 	/* convert bytes/10 secs to MB/s */
 	normalize(@payloads, 10*1024*1024);
+	printf("%Y\n", walltimestamp);
 	printa("[<%s,%s,%d> %s] %-@d\n", @payloads);
 	clear(@payloads);
 }

@@ -1,0 +1,39 @@
+{
+  "mounts": {
+    "/": {
+      "or": [
+        { "source": { "ne": "mounts" } },
+        {
+          "and": [
+            { "fstype": { "eq": "ext4" } },
+            { "options": { "contains": "rw" } }
+          ]
+        }
+      ]
+    },
+    "/tmp": {
+      "or": [
+        { "source": { "ne": "mounts" } },
+        {
+          "and": [
+            { "options": { "contains": "nosuid" } },
+            { "options": { "contains": "nodev" } }
+          ]
+        }
+      ]
+    },
+    "/home": {
+      "or": [
+        { "source": { "ne": "mounts" } },
+        {
+          "and": [
+            { "source": { "eq": "fstab" } },
+            { "options": { "contains": "rw" } },
+            { "fstype": { "regex": "^xfs|ext4$" } }
+          ]
+        }
+      ]
+    }
+  }
+}
+

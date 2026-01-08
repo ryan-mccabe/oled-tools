@@ -1,0 +1,241 @@
+Purpose: This script tracks how long RDS sockets are congested and provides
+histogram of congestion duration in usec. You can pass port and/or IP_address
+as arguments to the script. Refer below examples for various arguments.
+
+Arguments: (port# or IP_address) or (Port# + IP_address) or None.
+
+Output format: script start time, end time, list of congested RDS sockets,
+their pid and command, histogram of RDS congestion based on the input.
+(Refer below examples for details)
+
+Sample Output:
+
+Case 1: IP and PORT are given
+-----------------------------
+
+# ./rds_cong_track.d -DIP="192.168.100.62" -DPORT="6101"
+DTrace 2.0.0 [Pre-Release with limited functionality]
+ Track RDS socket congestion Timing
+   ('value' in usec)
+
+  Arg IP: 192.168.100.62
+Arg Port: 6101
+
+Start Time: 2025 Aug 13 19:04:25 [274025196529373]
+
+^C
+End Time: 2025 Aug 13 19:04:45 [274044952596988]
+Run duration = 19 sec
+----------------------------------
+***  Congestion Detected ***
+----------------------------------
+
+     IP_ADDRESS                                       Port      PID   COMM
+     ----------                                       ----      ---   ----
+  192.168.100.62                                      6101     5753  rds-stress
+           value  ------------- Distribution ------------- count
+              64 |                                         0
+             128 |@                                        40
+             256 |@@@                                      106
+             512 |@@@@                                     159
+            1024 |@                                        54
+            2048 |@@@@@@                                   246
+            4096 |@@@@@@@@@@@@@@@@@@@@@@@@@@               1081
+            8192 |                                         3
+           16384 |                                         0
+
+
+2)
+Case 2: Only IP is given
+------------------------
+
+
+# ./rds_cong_track.d -DIP="192.168.100.62"
+DTrace 2.0.0 [Pre-Release with limited functionality]
+ Track RDS socket congestion Timing
+   ('value' in usec)
+
+  Arg IP: 192.168.100.62
+Arg Port: 0
+
+Start Time: 2025 Aug 13 19:06:46 [274165354907125]
+
+^C
+End Time: 2025 Aug 13 19:07:03 [274183078054254]
+Run duration = 17 sec
+----------------------------------
+***  Congestion Detected ***
+----------------------------------
+
+     IP_ADDRESS                                       Port      PID   COMM
+     ----------                                       ----      ---   ----
+  192.168.100.62                                      6101     5771  rds-stress
+           value  ------------- Distribution ------------- count
+              64 |                                         0
+             128 |                                         8
+             256 |@@@                                      160
+             512 |@@@@@@@                                  444
+            1024 |@@@@@@@@@@@                              663
+            2048 |@@@@@@@                                  440
+            4096 |@@@@@@@@@@                               570
+            8192 |@                                        70
+           16384 |                                         19
+           32768 |                                         0
+
+  192.168.100.62                                      5101     5769  rds-stress
+           value  ------------- Distribution ------------- count
+              64 |                                         0
+             128 |                                         3
+             256 |@                                        97
+             512 |@@@@@@                                   434
+            1024 |@@@@@@@@@                                626
+            2048 |@@@@@@@@@                                602
+            4096 |@@@@@@@@@@@@@                            866
+            8192 |@@                                       112
+           16384 |                                         0
+
+  192.168.100.62                                      all_ports
+           value  ------------- Distribution ------------- count
+              64 |                                         0
+             128 |                                         11
+             256 |@@                                       257
+             512 |@@@@@@@                                  878
+            1024 |@@@@@@@@@@                               1289
+            2048 |@@@@@@@@                                 1042
+            4096 |@@@@@@@@@@@                              1436
+            8192 |@                                        182
+           16384 |                                         19
+           32768 |                                         0
+
+
+
+3)
+Case 3: Only PORT is given
+--------------------------
+
+#  ./rds_cong_track.d -DPORT="6101"
+DTrace 2.0.0 [Pre-Release with limited functionality]
+ Track RDS socket congestion Timing
+   ('value' in usec)
+
+  Arg IP: -
+Arg Port: 6101
+
+Start Time: 2025 Aug 13 19:09:04 [274303618601108]
+
+^C
+End Time: 2025 Aug 13 19:09:16 [274315877760265]
+Run duration = 12 sec
+----------------------------------
+***  Congestion Detected ***
+----------------------------------
+
+     IP_ADDRESS                                       Port      PID   COMM
+     ----------                                       ----      ---   ----
+  192.168.100.62                                      6101     5778  rds-stress
+           value  ------------- Distribution ------------- count
+              64 |                                         0
+             128 |                                         14
+             256 |@@@                                      137
+             512 |@@@@@@@                                  335
+            1024 |@@@@                                     204
+            2048 |@@@@@@@@@@@@@@@                          714
+            4096 |@@@@@@@@@@@                              556
+            8192 |                                         0
+
+
+4)
+Case 4: PORT and IP are not given
+---------------------------------
+
+#  ./rds_cong_track.d
+DTrace 2.0.0 [Pre-Release with limited functionality]
+ Track RDS socket congestion Timing
+   ('value' in usec)
+
+  Arg IP: -
+Arg Port: 0
+
+Start Time: 2025 Aug 13 19:10:29 [274389278195203]
+
+^C
+End Time: 2025 Aug 13 19:10:36 [274396242879440]
+Run duration = 6 sec
+----------------------------------
+***  Congestion Detected ***
+----------------------------------
+
+     IP_ADDRESS                                       Port      PID   COMM
+     ----------                                       ----      ---   ----
+  192.168.100.62                                      6101     5802  rds-stress
+           value  ------------- Distribution ------------- count
+              64 |                                         0
+             128 |                                         2
+             256 |@                                        13
+             512 |@@@@@                                    41
+            1024 |@@@@                                     35
+            2048 |@@@@@@@                                  58
+            4096 |@@@@@@@@@@@@@@@@                         144
+            8192 |@@@@@                                    44
+           16384 |@@                                       14
+           32768 |                                         0
+
+  192.168.100.62                                      5101     5800  rds-stress
+           value  ------------- Distribution ------------- count
+              64 |                                         0
+             128 |@                                        24
+             256 |@@@@                                     87
+             512 |@@@@@@@@                                 183
+            1024 |@@@@@@@                                  145
+            2048 |@@@@@@@@@@                               232
+            4096 |@@@@@@@@@                                190
+            8192 |@                                        21
+           16384 |                                         2
+           32768 |                                         0
+
+  192.168.100.62                                      all_ports
+           value  ------------- Distribution ------------- count
+              64 |                                         0
+             128 |@                                        26
+             256 |@@@                                      100
+             512 |@@@@@@@                                  224
+            1024 |@@@@@@                                   180
+            2048 |@@@@@@@@@                                290
+            4096 |@@@@@@@@@@@                              334
+            8192 |@@                                       65
+           16384 |@                                        16
+           32768 |                                         0
+
+  all_ips                                             all_ports
+           value  ------------- Distribution ------------- count
+              64 |                                         0
+             128 |@                                        26
+             256 |@@@                                      100
+             512 |@@@@@@@                                  224
+            1024 |@@@@@@                                   180
+            2048 |@@@@@@@@@                                290
+            4096 |@@@@@@@@@@@                              334
+            8192 |@@                                       65
+           16384 |@                                        16
+           32768 |                                         0
+
+
+5)
+If no congestion is detected, it will report "No Congestion Detected"
+
+# ./rds_cong_track.d
+DTrace 2.0.0 [Pre-Release with limited functionality]
+ Track RDS socket congestion Timing
+   ('value' in usec)
+
+  Arg IP: -
+Arg Port: 0
+
+Start Time: 2025 Aug 14 03:04:19 [27233722847739]
+
+^C
+End Time: 2025 Aug 14 03:04:24 [27238217064432]
+Run duration = 4 sec
+----------------------------------
+***   No Congestion Detected   ***
+----------------------------------

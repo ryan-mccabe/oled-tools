@@ -1,0 +1,10 @@
+{
+  "processes": {
+    "bash": {
+	"rssanon": { "lt": 50000 }
+    },
+    "falcon-sensor-bpf": {
+	"exists": false
+    }
+  }
+}

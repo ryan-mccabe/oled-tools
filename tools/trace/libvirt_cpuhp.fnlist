@@ -1,0 +1,14 @@
+qemuDomainSetVcpuInternal
+qemuDomainSetVcpusInternal
+virDomainSetVcpu::6000
+virDomainSetVcpus::6000
+virDomainCgroupEmulatorAllNodesAllow
+virNumaGetHostMemoryNodeset
+qemuMonitorDelDevice
+qemuDomainVcpuPersistOrder
+virDomainObjWaitUntil
+qemuDomainRemoveVcpuAlias
+qemuDomainRemoveDevice
+qemuDomainRefreshVcpuInfo
+qemuMonitorJSONIOProcessLine
+qemuMonitorIOWriteWithFD

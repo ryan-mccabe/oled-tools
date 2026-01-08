@@ -57,6 +57,15 @@ def get_mem_usage() -> MemoryUsage:
     """
     Get memory data from makedumpfile --mem-usage command
     """
+    check = subprocess.run(["which", "makedumpfile"],  # nosec
+                           stdout=subprocess.DEVNULL,
+                           stderr=subprocess.DEVNULL)
+    if check.returncode:
+        print("\nCannot run the command makedumpfile.\n"
+              "Please check if the kexec-tools package is installed "
+              "and configured.\n")
+        exit(1)
+
     mem_op = subprocess.run(["makedumpfile",  # nosec
                              "--mem-usage", "/proc/kcore"],
                             stdout=subprocess.PIPE,
@@ -67,6 +76,8 @@ def get_mem_usage() -> MemoryUsage:
 
     mem_usg = mem_op.stdout.decode().strip().splitlines()
     header = mem_usg.pop(0).split()
+    while "TYPE" not in header:
+        header = mem_usg.pop(0).split()
     typ, pages = header.index("TYPE"), header.index("PAGES")
     page_sz = total_pg = 0
     zero_pg = npvt_pg = pctc_pg = user_pg = free_pg = 0
@@ -138,9 +149,16 @@ def get_default_dump_level() -> List[int]:
     """
     Get the default dump level from /etc/kdump.conf
     """
+    kdump_file = "/etc/kdump.conf"
     find_def = []
     default = []
-    output = subprocess.getoutput("grep core_collector /etc/kdump.conf "
+
+    if not os.path.isfile(kdump_file):
+        print("\nCannot get the default dump level.\n")
+        print("Please check if kdump is configured.")
+        exit_with_msg(f"The file {kdump_file} does not exist\n", 1)
+
+    output = subprocess.getoutput(f"grep core_collector {kdump_file} "
                                   "| grep makedumpfile"
                                   "| grep -v '#'").strip().split()
 
@@ -165,27 +183,27 @@ def get_vmcore_size(mem: MemoryUsage, dump_level: int) -> int:
     dump_pg = mem.total_pg
 
     if ex_page & 0x1:
-        print(f"Exclude zero pages : {mem.zero_pg}")
+        print(f"{'Exclude zero pages':<30} : {mem.zero_pg:>10}")
         dump_pg -= mem.zero_pg
 
     if ex_page & 0x2:
-        print(f"Exclude non private cache : {mem.npvt_pg}")
+        print(f"{'Exclude non private cache':<30} : {mem.npvt_pg:>10}")
         dump_pg -= mem.npvt_pg
 
     if ex_page & 0x4:
-        print(f"Exclude private cache : {mem.pctc_pg}")
+        print(f"{'Exclude private cache':<30} : {mem.pctc_pg:>10}")
         dump_pg -= mem.pctc_pg
 
     if ex_page & 0x8:
-        print(f"Exclude user pages : {mem.user_pg}")
+        print(f"{'Exclude user pages':<30} : {mem.user_pg:>10}")
         dump_pg -= mem.user_pg
 
     if ex_page & 0x10:
-        print(f"Exclude free pages : {mem.free_pg}")
+        print(f"{'Exclude free pages':<30} : {mem.free_pg:>10}")
         dump_pg -= mem.free_pg
 
-    print(f"\nTotal Pages : {mem.total_pg}")
-    print(f"Pages to be dumped : {dump_pg}")
+    print(f"\n{'Total Pages':<30} : {mem.total_pg:>10}")
+    print(f"{'Pages to be dumped':<30} : {dump_pg:>10}")
     dump_size = dump_pg * mem.page_sz
 
     return dump_size
@@ -208,16 +226,17 @@ def main() -> None:
     mem = get_mem_usage()
 
     for level in dump_levels:
-        print("\n----------------------------------------------")
+        print("\n------------------------------------------------------------")
         if not 0 <= level <= 31:
             print(f"Invalid dump level {level}")
             continue
-        print(f"Dump level = {level}")
+        print(f"{'Dump level':<30} : {level:>10}")
         dump_size = get_vmcore_size(mem, level)
 
-        print("\n----------------------------------------------")
-        print(f"Expected vmcore size in bytes : {dump_size}")
-        print("----------------------------------------------\n")
+        print("\n------------------------------------------------------------")
+        print(f"{'Expected vmcore size ':<30} : {dump_size:>10} bytes "
+              f"({dump_size / (1024 * 1024):.2f} MiB)")
+        print("------------------------------------------------------------\n")
 
 
 if __name__ == '__main__':

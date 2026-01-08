@@ -27,14 +27,17 @@ import os
 from typing import Sequence
 
 # Oracle Linux Enhanced Diagnostic Tools
-MAJOR = "0"
-MINOR = "7"
+MAJOR = "1"
+MINOR = "1"
+MICRO = "0"
 
 BINDIR = "/usr/libexec/oled-tools"
 
 # Valid oled subcomands
 OLED_CMDS = (
-    "kstack", "lkce", "memstate", "syswatch", "scanfs", "vmcore_sz")
+    "kstack", "lkce", "oomwatch", "memstate", "sosdiff", "oscheck",
+    "syswatch", "scanfs", "vmcore_sz", "trace", "scripts",
+    "neighbrwatch", "swapinfo")
 
 
 def parse_args(args: Sequence[str]) -> argparse.Namespace:
@@ -44,20 +47,25 @@ def parse_args(args: Sequence[str]) -> argparse.Namespace:
         usage="%(prog)s {-h | -v | COMMAND [ARGS]}",
         description="""\
 Valid commands:
+     kstack      -- Gather kernel stack based on the process status or PID
      lkce        -- Linux Kernel Core Extractor
      memstate    -- Capture and analyze memory usage statistics
-     kstack      -- Gather kernel stack based on the process status or PID
-     syswatch    -- Execute user-provided commands based on the CPU utilization
+     oomwatch    -- Kill processes exceeding memory thresholds
+     oscheck     -- Check OS configuration
      scanfs      -- Scan KVM images for corruption, supports XFS and EXT4
+     scripts     -- Run additional oled-tools scripts
+     sosdiff     -- Compare two sos reports
+     syswatch    -- Execute user-provided commands based on the CPU utilization
      vmcore_sz   -- Estimating vmcore size before kernel dump
-""",
-        epilog="NOTE: Must run as root.")
+     trace       -- Trace a workload
+     neighbrwatch -- Read and process ip-neighbor entries
+     swapinfo    -- Dump swap information on the system
+""")
 
     parser.add_argument(
         "-v", "--version", action="version",
-        version=(
-            f"Oracle Linux Enhanced Diagnostics (oled) v{MAJOR}.{MINOR} "
-            "(developer preview release)"))
+        version=("Oracle Linux Enhanced Diagnostics (oled) "
+                 f"v{MAJOR}.{MINOR}.{MICRO}"))
     parser.add_argument(
         "command", metavar="COMMAND", choices=OLED_CMDS,
         help=argparse.SUPPRESS)
@@ -72,11 +80,6 @@ def main(args: Sequence[str]) -> None:
     """Main function."""
 
     options = parse_args(args)
-
-    # only allow root to execute subcommands
-    if os.getuid() != 0:
-        print("Run as root only", file=sys.stderr)
-        sys.exit(1)
 
     cmd = options.command
 
